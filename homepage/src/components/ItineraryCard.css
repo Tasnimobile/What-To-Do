@@ -1,0 +1,51 @@
+.itinerary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background-color: rgba(30,50,95,0.7);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.itinerary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(30,50,95,0.9);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 0.8rem;
+}
+
+.itinerary-card p {
+    font-size: 0.8rem;
+    margin: 0 0 8px;
+    height: 50px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.rating {
+  vertical-align: bottom;
+}
+
+.star {
+    color: gray;
+    font-size: 2rem;
+}
+
+.star.filled {
+    color: gold;
+}
+
+.itinerary-card button {
+    background-color: #3b4f73;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+}
