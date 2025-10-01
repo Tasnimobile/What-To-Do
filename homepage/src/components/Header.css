@@ -2,10 +2,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: rgba(30,50,95,0.8);
+    background-color: rgba(113, 193, 157, 0.7);
     padding: 10px 20px;
     border-radius: 8px;
-    color: white;
+    color: #2D3047;
     font-size: 1rem;
     font-weight: bold;
     box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
@@ -15,8 +15,8 @@
 .back-button {
   background: none;
   border: none;
-  color: white;
-  font-size: 1.2rem;
+  color: #2D3047;
+  font-size: 2rem;
   cursor: pointer;
 }
 
@@ -24,5 +24,5 @@
   font-size: 1.5rem;
   cursor: pointer;
   background-color: transparent;
-  border: 2px solid gray; 
+  border: 2px solid #2D3047; 
 }
