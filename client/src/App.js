@@ -2,28 +2,42 @@
 import React, { useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './App.css';
+import WelcomePage from './components/WelcomePage/WelcomePage..js';
 import LoginPage from './components/LoginPage/LoginPage';
 import SignupPage from './components/SignupPage/SignupPage';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('login');
+  const [currentPage, setCurrentPage] = useState('welcome');
+  const [pageHistory, setPageHistory] = useState(['welcome']); // Track navigation history
   const [user, setUser] = useState(null);
+
+  const navigateTo = (page) => {
+    setPageHistory(prev => [...prev, page]);
+    setCurrentPage(page);
+  };
+
+  const handleBack = () => {
+    if (pageHistory.length > 1) {
+      const newHistory = [...pageHistory];
+      newHistory.pop(); // Remove current page
+      const previousPage = newHistory[newHistory.length - 1];
+      setPageHistory(newHistory);
+      setCurrentPage(previousPage);
+    }
+  };
 
   const handleLogin = (userData) => {
     setUser(userData);
     console.log('User logged in:', userData);
-    // We'll add navigation to dashboard later
   };
 
   const handleSignup = (userData) => {
     setUser(userData);
     console.log('User signed up:', userData);
-    // We'll add navigation to dashboard later
   };
 
   const handleGoogleLogin = (googleData) => {
     console.log('Google login successful:', googleData);
-    // Extract user info from Google response
     const userObject = parseJwt(googleData.credential);
     const userData = {
       id: userObject.sub,
@@ -34,10 +48,8 @@ function App() {
     };
     setUser(userData);
     console.log('User data:', userData);
-    // Navigate to dashboard later
   };
 
-  // Helper function to decode JWT
   const parseJwt = (token) => {
     try {
       return JSON.parse(atob(token.split('.')[1]));
@@ -47,29 +59,53 @@ function App() {
   };
 
   const switchToSignup = () => {
-    setCurrentPage('signup');
+    navigateTo('signup');
   };
 
   const switchToLogin = () => {
-    setCurrentPage('login');
+    navigateTo('login');
+  };
+
+  const switchToWelcome = () => {
+    navigateTo('welcome');
+  };
+
+  // Render the appropriate page based on current state
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case 'login':
+        return (
+          <LoginPage
+            onLogin={handleLogin}
+            onSwitchToSignup={switchToSignup}
+            onBack={handleBack}
+            onGoogleLogin={handleGoogleLogin}
+          />
+        );
+      case 'signup':
+        return (
+          <SignupPage
+            onSignup={handleSignup}
+            onSwitchToLogin={switchToLogin}
+            onBack={handleBack}
+            onGoogleLogin={handleGoogleLogin}
+          />
+        );
+      case 'welcome':
+      default:
+        return (
+          <WelcomePage
+            onSwitchToLogin={switchToLogin}
+            onSwitchToSignup={switchToSignup}
+          />
+        );
+    }
   };
 
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENT_ID}>
       <div className="app">
-        {currentPage === 'login' ? (
-          <LoginPage
-            onLogin={handleLogin}
-            onSwitchToSignup={switchToSignup}
-            onGoogleLogin={handleGoogleLogin}
-          />
-        ) : (
-          <SignupPage
-            onSignup={handleSignup}
-            onSwitchToLogin={switchToLogin}
-            onGoogleLogin={handleGoogleLogin}
-          />
-        )}
+        {renderCurrentPage()}
       </div>
     </GoogleOAuthProvider>
   );

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import './LoginPage.css';
 
-const LoginPage = ({ onLogin, onSwitchToSignup, onGoogleLogin }) => {
+const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -50,9 +50,23 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onGoogleLogin }) => {
         setShowPassword(!showPassword);
     };
 
+    const handleBack = () => {
+        onBack();
+    };
+
     return (
         <div className="login-page">
             <div className="login-container">
+                {/* Back Button */}
+                <div className="back-button-container">
+                    <button className="back-button" onClick={handleBack}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                        </svg>
+                        Back
+                    </button>
+                </div>
+
                 <div className="login-header">
                     <h1>Log In To Your Account</h1>
                 </div>

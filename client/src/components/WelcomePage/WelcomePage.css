@@ -1,0 +1,75 @@
+/* src/components/WelcomePage/WelcomePage.css */
+.welcome-page {
+    height: 100vh;
+    background-color: #FFFDF0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5%;
+    overflow: hidden;
+}
+
+.welcome-container {
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    padding: 60px 35px;
+    border-radius: 25px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 800px;
+    margin: 0 auto;
+    color: white;
+    text-align: center;
+}
+
+.welcome-header {
+    margin-bottom: 5px;
+}
+
+.welcome-header h1 {
+    color: white;
+    margin: 0;
+    font-size: 8rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+.welcome-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: center;
+}
+
+.welcome-button {
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    width: 40%;
+    min-height: 60px;
+    display: block;
+}
+
+.welcome-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.welcome-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(113, 193, 157, 0.4);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.welcome-button:active {
+    transform: translateY(0);
+}
