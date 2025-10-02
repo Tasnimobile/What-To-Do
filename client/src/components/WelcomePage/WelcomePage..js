@@ -7,7 +7,9 @@ const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup }) => {
         <div className="welcome-page">
             <div className="welcome-container">
                 <div className="welcome-header">
-                    <h1>Welcome!</h1>
+                    <h2 className="welcome-subtitle">Welcome to</h2>
+                    <h1 className="welcome-title">What To Do</h1>
+                    <p className="welcome-description">A community that wants to find and share fun new things to do</p>
                 </div>
 
                 <div className="welcome-buttons">

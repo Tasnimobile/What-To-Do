@@ -22,21 +22,42 @@
 }
 
 .welcome-header {
-    margin-bottom: 5px;
+    margin-bottom: 30px;
 }
 
-.welcome-header h1 {
+.welcome-subtitle {
+    color: white;
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    line-height: 1;
+}
+
+.welcome-title {
     color: white;
     margin: 0;
     font-size: 8rem;
     font-weight: 300;
     letter-spacing: 2px;
+    margin-bottom: 10px;
+    line-height: 1;
+}
+
+.welcome-description {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    line-height: 1;
 }
 
 .welcome-buttons {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 10px;
     align-items: center;
 }
 
