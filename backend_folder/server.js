@@ -68,7 +68,8 @@ app.post("/register", (req, res) => {
     if (!req.body.password) errors.push("You must provide a password.")
     if (req.body.password && req.body.password.length < 8) errors.push("Password must be at least 8 characters.")
     if (req.body.password && req.body.password.length > 70) errors.push("password cannot exceed 70 characters.")
-    if (errors.length){
+    
+    if (errors.length) {
         return res.render("homepage", {errors})
     } 
     // save the new user
