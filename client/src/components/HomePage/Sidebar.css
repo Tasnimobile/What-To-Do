@@ -90,7 +90,7 @@
     color: white;
     border-radius: 12px;
     cursor: pointer;
-    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    font-size: clamp(1rem, 1vw, 1.2rem);
     font-weight: 300;
     letter-spacing: 0.5px;
     transition: all 0.3s ease;
