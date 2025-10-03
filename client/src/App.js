@@ -5,6 +5,7 @@ import './App.css';
 import WelcomePage from './components/WelcomePage/WelcomePage..js';
 import LoginPage from './components/LoginPage/LoginPage';
 import SignupPage from './components/SignupPage/SignupPage';
+import Homepage from './components/HomePage/HomePage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('welcome');
@@ -29,11 +30,13 @@ function App() {
   const handleLogin = (userData) => {
     setUser(userData);
     console.log('User logged in:', userData);
+    navigateTo('homepage');
   };
 
   const handleSignup = (userData) => {
     setUser(userData);
     console.log('User signed up:', userData);
+    navigateTo('homepage');
   };
 
   const handleGoogleLogin = (googleData) => {
@@ -48,6 +51,7 @@ function App() {
     };
     setUser(userData);
     console.log('User data:', userData);
+    navigateTo('homepage');
   };
 
   const parseJwt = (token) => {
@@ -70,7 +74,10 @@ function App() {
     navigateTo('welcome');
   };
 
-  // Render the appropriate page based on current state
+  const switchToHomepage = () => {
+    navigateTo('homepage');
+  };
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 'login':
@@ -91,12 +98,15 @@ function App() {
             onGoogleLogin={handleGoogleLogin}
           />
         );
+      case 'homepage':
+        return <Homepage onBack={handleBack} />;
       case 'welcome':
       default:
         return (
           <WelcomePage
             onSwitchToLogin={switchToLogin}
             onSwitchToSignup={switchToSignup}
+            onSwitchToHomepage={switchToHomepage}
           />
         );
     }

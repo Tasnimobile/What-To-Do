@@ -1,0 +1,84 @@
+.itinerary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.itinerary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.itinerary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: clamp(0.8rem, 1.2vw, 1rem);
+    font-weight: 300;
+    letter-spacing: 0.3px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    gap: 20px;
+}
+
+.itinerary-card p {
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+    margin: 0 0 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    min-height: 60px;
+    font-weight: 300;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.rating {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.star {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+}
+
+.star.filled {
+    color: gold;
+}
+
+.itinerary-card button {
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    min-height: 44px;
+}
+
+.itinerary-card button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+}

@@ -2,7 +2,7 @@
 import React from 'react';
 import './WelcomePage.css';
 
-const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup }) => {
+const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup, onSwitchToHomepage }) => {
     return (
         <div className="welcome-page">
             <div className="welcome-container">
@@ -25,6 +25,14 @@ const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup }) => {
                         onClick={onSwitchToSignup}
                     >
                         Sign Up
+                    </button>
+
+                    {/* Temp Bypass Button */}
+                    <button
+                        className="welcome-button temp-bypass-button"
+                        onClick={onSwitchToHomepage}
+                    >
+                        Temp Bypass (Go to Homepage)
                     </button>
                 </div>
             </div>

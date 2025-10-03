@@ -26,6 +26,8 @@ body {
   line-height: 1.5;
   letter-spacing: 0.5px;
   font-weight: 300;
+  overflow: hidden;
+  /* Add this line to prevent body scrolling */
 }
 
 h1,
@@ -64,6 +66,7 @@ a {
   }
 }
 
+/* Prevent zoom on input focus on iOS */
 @media (max-width: 768px) {
 
   input,
