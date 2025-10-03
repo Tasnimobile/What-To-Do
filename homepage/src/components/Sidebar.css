@@ -1,56 +1,64 @@
 .sidebar {
-    padding: 16px;
+  padding: 16px;
 }
 
 .sidebar h1 {
-    margin-bottom: 16px;
-    font-size: 1.2rem;
-    text-align: center;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
-    padding: 12px;
-    border-radius: 8px;
-    background-color: rgba(68,156,117,0.7);
-    color: #2D3047;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
 }
 
 .sidebar h2 {
-    margin-bottom: 16px;
-    font-size: 1rem;
-    text-align: center;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
-    padding: 8px;
-    border-radius: 8px;
-    background-color: rgba(68,156,117,0.7);
-    color: #2D3047;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 8px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
 }
 
 .search-filter {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  position: relative;
 }
 
 .search-filter input[type="text"] {
-    background-color: #FFFDF0;   
-    border: 2px solid #449C75;  
-    color: #2D3047;               
-    padding: 6px 10px;         
-    border-radius: 8px;
+  color: #fffdf0;
+  padding: 10px 12px;
+  border: 1px solid #fffdf0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  background-color: #449c75;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-filter input::placeholder {
+  color: #fffdf0;
+  opacity: 0.8;
 }
 
 .search-filter input {
-    flex: 1;
-    padding: 6px;
-    border-radius: 4px;
-    border: none;
+  flex: 1;
+  padding: 6px;
+  border-radius: 4px;
+  border: none;
 }
 
 .search-filter button {
-    padding: 6px 12px;
-    border: none;
-    background-color: rgba(68,156,117,0.7);
-    color: #2D3047;
-    border-radius: 8px;
-    cursor: pointer;
+  padding: 6px 12px;
+  border: none;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  border-radius: 8px;
+  cursor: pointer;
 }
-
