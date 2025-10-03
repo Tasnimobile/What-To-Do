@@ -44,11 +44,61 @@ app.use(function (req, res, next) {
 })
 
 app.get("/", (req, res) => {
-    res.render("homepage")
+    if (req.user) {
+        res.render("dashboard")
+    } else {
+        res.render("homepage")
+    }
 })
 
 app.get("/login", (req, res) => {
     res.render("login")
+})
+
+app.get("/logout", (req, res) => {
+    res.clearCookie("ourSimpleApp")
+    res.redirect("/")
+})
+
+app.post("/login", (req, res) => {
+    let errors = []
+
+    if (typeof req.body.username != "string") req.body.username = ""
+    if (typeof req.body.password != "string") req.body.password = ""
+
+    if (req.body.username.trim() == "") errors = ["You must provide a username."]
+    if (req.body.password == "") errors = ["You must provide a password."]
+
+    if (errors.length) {
+        return res.render("login", {errors})
+    }
+
+    // res.send("Thank you")
+
+    const userInQuestionStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
+    const userInQuestion = userInQuestionStatement.get(req.body.username)
+        
+    if (!userInQuestion) {
+        errors = ["inavlid username or password."]
+        return res.render("login", {errors})
+    }
+
+    const matchOrNot = bcrypt.compareSync(req.body.password, userInQuestion.password)
+    if (!matchOrNot) {
+        errors = ["inavlid username or password."]
+        return res.render("login", {errors})
+    }
+
+    const ourTokenValue = jwt.sign({exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: userInQuestion.id, username: userInQuestion.username}, 
+    process.env.JWTSECRET)
+    res.cookie("ourSimpleApp", ourTokenValue, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24
+    })
+    res.redirect("/")
+
 })
 
 app.post("/register", (req, res) => {
@@ -64,6 +114,11 @@ app.post("/register", (req, res) => {
     if (req.body.username && req.body.username.length > 10) errors.push("Username cannot exceed 10 characters.")
     if (req.body.username && !req.body.username.match(/^[a-zA-Z0-9]+$/)) errors.push("Username can only contain letters and numbers.")
 
+    //check if username is already taken
+    const usernameStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
+    const usernameCheck = usernameStatement.get(req.body.username)
+
+    if (usernameCheck) errors.push("That username is already taken.")
     
     if (!req.body.password) errors.push("You must provide a password.")
     if (req.body.password && req.body.password.length < 8) errors.push("Password must be at least 8 characters.")
@@ -84,10 +139,10 @@ app.post("/register", (req, res) => {
     const ourTokenValue = jwt.sign({exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: ourUser.id, username: ourUser.username}, process.env.JWTSECRET)
     res.cookie("ourSimpleApp", ourTokenValue, {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: "strict",
         maxAge: 1000 * 60 * 60 * 24
     })
-    res.send("Thank You!")
+    res.redirect("/")
 })
 app.listen(3000)
