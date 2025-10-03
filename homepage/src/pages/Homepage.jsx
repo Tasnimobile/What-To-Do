@@ -1,4 +1,4 @@
-import CreateItinerary from "../components/CreateItinerary";
+import CreateNewItinerary from "../components/CreateNewItinerary";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import "./Homepage.css";
@@ -15,7 +15,7 @@ export default function Homepage() {
 
       <div className="sidebar-container">
         {/* <Sidebar /> */}
-        <CreateItinerary />
+        <CreateNewItinerary />
       </div>
     </div>
   );

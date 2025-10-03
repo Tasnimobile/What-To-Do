@@ -1,6 +1,6 @@
 import { useState } from "react";
 import TextInputField from "./TextInputField";
-import "./CreateItinerary.css";
+import "./CreateNewItinerary.css";
 
 export default function CreateItinerary() {
   return (
