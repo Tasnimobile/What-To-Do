@@ -2,7 +2,7 @@ import { useState } from "react";
 import ItineraryCard from "./ItineraryCard";
 import "./Sidebar.css";
 
-export default function Sidebar() {
+export default function Sidebar({ onCreateNew }) {
   const [searchValue, setSearchValue] = useState("");
 
   const handleKeyDown = (e) => {
@@ -14,7 +14,9 @@ export default function Sidebar() {
   return (
     <div className="sidebar">
       <h1>Itineraries</h1>
-      <h2>Create New</h2>
+      <button id="create-new" onClick={onCreateNew}>
+        Create New
+      </button>
 
       <div className="search-filter">
         <input

@@ -13,7 +13,8 @@
   color: #2d3047;
 }
 
-.sidebar h2 {
+#create-new {
+  width: 100%;
   margin-bottom: 16px;
   font-size: 1rem;
   text-align: center;

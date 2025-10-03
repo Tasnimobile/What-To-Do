@@ -1,28 +1,32 @@
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: rgba(113, 193, 157, 0.7);
-    padding: 10px 20px;
-    border-radius: 8px;
-    color: #2D3047;
-    font-size: 1rem;
-    font-weight: bold;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
-    margin: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(113, 193, 157, 0.7);
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #2d3047;
+  font-size: 1rem;
+  font-weight: bold;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  margin: 10px;
 }
 
 .back-button {
   background: none;
-  border: none;
-  color: #2D3047;
-  font-size: 2rem;
+  border: 2px solid #2d3047;
+  color: #2d3047;
+  font-size: 1.5rem;
   cursor: pointer;
+}
+
+.back-button:focus {
+  outline: 1px solid #2d3047;
 }
 
 .user-icon {
   font-size: 1.5rem;
   cursor: pointer;
   background-color: transparent;
-  border: 2px solid #2D3047; 
+  border: 2px solid #2d3047;
 }
