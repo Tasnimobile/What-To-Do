@@ -1,7 +1,7 @@
 import "./Header.css";
 import { useState, useEffect } from "react";
 
-export default function Header({ onBack }) {
+export default function Header({ onBack, goToSavedItineraries }) {
   const [showMenu, setShowMenu] = useState(false);
   const toggleMenu = () => {
     setShowMenu((prev) => !prev);
@@ -43,10 +43,12 @@ export default function Header({ onBack }) {
 
         {showMenu && (
           <div className="dropdown-menu">
-            <a href="/profile">Profile</a>
-            <a href="/settings">Created Itineraries</a>
-            <a href="/logout">Saved Itineraries</a>
-            <a href="/logout">Log Out</a>
+            <button onClick={() => alert("Profile clicked")}>Profile</button>
+            <button onClick={() => alert("Created Itineraries clicked")}>
+              Created Itineraries
+            </button>
+            <button onClick={goToSavedItineraries}>Saved Itineraries</button>
+            <button onClick={() => alert("Logout clicked")}>Log Out</button>
           </div>
         )}
       </div>

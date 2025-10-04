@@ -12,7 +12,7 @@ export default function SavedItineraries({ onCreateNew }) {
     }
   };
   return (
-    <div className="saved-itineraries">
+    <div className="sidebar">
       <h1>Saved Itineraries</h1>
 
       <ItineraryCard

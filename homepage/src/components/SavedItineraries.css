@@ -1,0 +1,14 @@
+.sidebar {
+  padding: 16px;
+}
+
+.sidebar h1 {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+}
