@@ -30,3 +30,34 @@
   background-color: transparent;
   border: 2px solid #2d3047;
 }
+
+.user-menu-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background-color: #fffdf0;
+  border: 1px solid #fffdf0;
+  border-radius: 6px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  z-index: 100;
+}
+
+.dropdown-menu a {
+  background: none;
+  border: none;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.dropdown-menu a:hover {
+  background-color: rgba(113, 193, 157, 0.2);
+}
