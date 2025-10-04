@@ -20,8 +20,10 @@ export default function CreateItinerary() {
       />
 
       <div className="buttons">
-        <button>+ Add Destinations</button>
-        <button>Save</button>
+        <a>+ Add Destinations</a>
+        {/* need to change later on to make the button navigate to the itinerary page of the created itinerary */}
+        <a href="/sidebar">Save</a>
+        <a href="/sidebar">Cancel</a>
       </div>
     </div>
   );
