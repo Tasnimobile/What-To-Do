@@ -1,6 +1,6 @@
 import "./ItineraryCard.css";
 
-export default function ItineraryCard({ title, description, rating }) {
+export default function ItineraryCard({ title, description, rating, href }) {
   return (
     <div className="itinerary-card">
       <div className="itinerary-header">
@@ -13,10 +13,10 @@ export default function ItineraryCard({ title, description, rating }) {
           ))}
         </div>
       </div>
-
       <p>{description}</p>
-
-      <button className="read-more">Read More</button>
+      <a className="read-more" href={href}>
+        Read More
+      </a>{" "}
     </div>
   );
 }

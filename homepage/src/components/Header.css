@@ -12,6 +12,14 @@
   margin: 10px;
 }
 
+.header-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2d3047;
+  cursor: pointer;
+}
+
 .back-button {
   background: none;
   border: 2px solid #2d3047;
@@ -49,8 +57,9 @@
   z-index: 100;
 }
 
-.dropdown-menu a {
+.dropdown-menu button {
   background: none;
+  color: #2d3047;
   border: none;
   padding: 10px;
   text-align: left;
@@ -58,6 +67,6 @@
   font-size: 0.95rem;
 }
 
-.dropdown-menu a:hover {
-  background-color: rgba(113, 193, 157, 0.2);
+.dropdown-menu button:hover {
+  background-color: rgba(113, 193, 157, 0.4);
 }
