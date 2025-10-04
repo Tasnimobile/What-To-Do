@@ -13,7 +13,7 @@ export default function Header({
 
   const handleMenuClick = (action) => {
     setShowMenu(false);
-    if (action) action();
+    if (typeof action === "function") action();
   };
 
   useEffect(() => {
