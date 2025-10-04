@@ -1,0 +1,162 @@
+.sidebar-container {
+    width: min(400px, 30vw);
+    min-width: 280px;
+    max-width: 450px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    color: white;
+    overflow-y: overlay;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.sidebar h1 {
+    margin: 0;
+    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+    text-align: center;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    color: white;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h2 {
+    margin: 0;
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+    text-align: center;
+    padding: 12px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    color: white;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-filter {
+    display: flex;
+    gap: 12px;
+    margin: 0;
+    width: 100%;
+}
+
+.search-filter input[type="text"] {
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    transition: all 0.3s ease;
+    color: white;
+    font-weight: 300;
+    text-align: center;
+    padding: 16px;
+    flex: 1;
+    min-height: 50px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.search-filter input[type="text"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 4px rgba(113, 193, 157, 0.4);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+}
+
+.search-filter input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    font-weight: 300;
+    text-align: center;
+}
+
+.search-filter button {
+    padding: 16px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: clamp(1rem, 1vw, 1.2rem);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    min-height: 50px;
+    white-space: nowrap;
+}
+
+.search-filter button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.search-filter button:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(113, 193, 157, 0.4);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-container {
+    overflow-y: overlay;
+}
+
+.sidebar-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar-container::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb:hover {
+    background: transparent;
+}
+
+@supports not (overflow-y: overlay) {
+    .sidebar-container {
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .sidebar-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .sidebar-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-container::-webkit-scrollbar-thumb {
+        background: transparent;
+    }
+}
+
+.sidebar-container {
+    scrollbar-width: none;
+}
+
+.sidebar>* {
+    width: 100%;
+    box-sizing: border-box;
+}
