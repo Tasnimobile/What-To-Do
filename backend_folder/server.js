@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser')
 const express = require("express")
 const db = require("better-sqlite3")("ourApp.db")
 db.pragma("journal_mode = WAL")
+const cors = require("cors");
 
 // Database setup here
 const createTables = db.transaction(() => {
@@ -17,9 +18,25 @@ const createTables = db.transaction(() => {
         `).run()
 })
 
-createTables()
+createTables(); 
+
+try { db.prepare("ALTER TABLE user ADD COLUMN email TEXT").run(); } catch {}
+try { db.prepare("ALTER TABLE user ADD COLUMN google_sub TEXT").run(); } catch {}
+
+db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON user(email)").run();
+db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_sub ON user(google_sub)").run();
+db.prepare("UPDATE user SET email = username WHERE instr(username,'@') > 0 AND email IS NULL").run();
+
 // Database setup end
 const app = express()
+
+app.use(express.json());
+
+app.use(cors({
+  origin: "http://localhost:3001", // React dev server
+  credentials: true
+}));
+
 
 app.set("view engine", "ejs")
 app.use(express.urlencoded({extended: false}))
@@ -145,4 +162,146 @@ app.post("/register", (req, res) => {
     })
     res.redirect("/")
 })
-app.listen(3000)
+
+app.post("/api/login", (req, res) => {
+  let errors = [];
+
+  if (typeof req.body.username !== "string") req.body.username = "";
+  if (typeof req.body.password !== "string") req.body.password = "";
+
+  if (!req.body.username.trim()) errors.push("You must provide a username.");
+  if (!req.body.password) errors.push("You must provide a password.");
+
+  if (errors.length) return res.status(400).json({ ok: false, errors });
+
+  const user = db.prepare("SELECT * FROM user WHERE username = ?").get(req.body.username);
+  if (!user) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
+
+  const match = bcrypt.compareSync(req.body.password, user.password);
+  if (!match) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
+
+  const token = jwt.sign(
+    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: user.id, username: user.username },
+    process.env.JWTSECRET
+  );
+
+  res.cookie("ourSimpleApp", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    maxAge: 1000 * 60 * 60 * 24
+  });
+
+  res.json({ ok: true, user: { id: user.id, username: user.username } });
+});
+
+
+// Register route for React frontend
+app.post("/api/register", (req, res) => {
+  let errors = [];
+
+  if (typeof req.body.username !== "string") req.body.username = "";
+  if (typeof req.body.password !== "string") req.body.password = "";
+  req.body.username = req.body.username.trim();
+
+  if (!req.body.username) errors.push("You must provide a username.");
+  if (req.body.username.length < 3) errors.push("Username must be at least 3 characters.");
+
+
+
+  const usernameCheck = db.prepare("SELECT * FROM user WHERE username = ?").get(req.body.username);
+  if (usernameCheck) errors.push("That username is already taken.");
+
+  if (!req.body.password) errors.push("You must provide a password.");
+  if (req.body.password.length < 8) errors.push("Password must be at least 8 characters.");
+  if (req.body.password.length > 70) errors.push("Password cannot exceed 70 characters.");
+
+  if (errors.length) return res.status(400).json({ ok: false, errors });
+
+  const salt = bcrypt.genSaltSync(10);
+  req.body.password = bcrypt.hashSync(req.body.password, salt);
+
+  const result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(req.body.username, req.body.password);
+  const newUser = db.prepare("SELECT * FROM user WHERE rowid = ?").get(result.lastInsertRowid);
+
+  const token = jwt.sign(
+    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: newUser.id, username: newUser.username },
+    process.env.JWTSECRET
+  );
+
+  res.cookie("ourSimpleApp", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    maxAge: 1000 * 60 * 60 * 24
+  });
+
+  res.json({ ok: true, user: { id: newUser.id, username: newUser.username } });
+});
+
+app.post("/api/oauth/google", async (req, res) => {
+  try {
+    const { access_token } = req.body;
+    if (!access_token) return res.status(400).json({ ok: false, errors: ["Missing access_token"] });
+
+    const g = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    if (!g.ok) return res.status(401).json({ ok: false, errors: ["Invalid Google token"] });
+
+    const profile = await g.json(); 
+    if (!profile.email || profile.email_verified === false) {
+      return res.status(400).json({ ok: false, errors: ["Google email not verified"] });
+    }
+
+    let user =
+      db.prepare("SELECT * FROM user WHERE google_sub = ?").get(profile.sub) ||
+      db.prepare("SELECT * FROM user WHERE email = ?").get(profile.email) ||
+      db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email); 
+
+    if (user) {
+      if (!user.email) db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
+      if (!user.google_sub) db.prepare("UPDATE user SET google_sub = ? WHERE id = ?").run(profile.sub, user.id);
+    } else {
+      const base = profile.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
+      let username = base.slice(0, 10);
+      while (db.prepare("SELECT 1 FROM user WHERE username = ?").get(username)) {
+        username = base.slice(0, 9) + Math.floor(Math.random() * 10);
+      }
+      const salt = bcrypt.genSaltSync(10);
+      const randomPass = bcrypt.hashSync(Math.random().toString(36), salt);
+
+      const ins = db.prepare(
+        "INSERT INTO user (username, password, email, google_sub) VALUES (?, ?, ?, ?)"
+      ).run(username, randomPass, profile.email, profile.sub);
+
+      user = db.prepare("SELECT * FROM user WHERE rowid = ?").get(ins.lastInsertRowid);
+    }
+
+    const token = jwt.sign(
+      { exp: Math.floor(Date.now()/1000) + 60*60*24, userid: user.id, username: user.username },
+      process.env.JWTSECRET
+    );
+    res.cookie("ourSimpleApp", token, {
+      httpOnly: true,
+      secure: false,     
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24
+    });
+
+    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
+
+
+app.post("/api/logout", (req, res) => {
+  res.clearCookie("ourSimpleApp");
+  res.json({ ok: true, message: "Logged out" });
+});
+
+
+app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
