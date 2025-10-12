@@ -1,0 +1,119 @@
+/* DestinationsList.css - Destinations list styles */
+.destinations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.destination-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.destination-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.destination-order {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.destination-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.destination-name {
+    color: white;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.destination-address {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    font-weight: 300;
+    margin-bottom: 2px;
+}
+
+.destination-rating {
+    color: gold;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.destination-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.move-btn,
+.remove-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.move-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.move-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.remove-btn:hover {
+    background: rgba(255, 69, 58, 0.3);
+    transform: translateY(-1px);
+}
+
+.no-destinations {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+    .destination-item {
+        flex-wrap: wrap;
+    }
+
+    .destination-actions {
+        margin-left: auto;
+    }
+}

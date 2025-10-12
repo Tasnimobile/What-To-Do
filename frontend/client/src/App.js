@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState, useEffect } from 'react'; // Add useEffect
+import React, { useState, useEffect } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './App.css';
 import WelcomePage from './components/WelcomePage/WelcomePage.js';
@@ -8,12 +8,13 @@ import SignupPage from './components/SignupPage/SignupPage';
 import AccountSetupPage from './components/AccountSetupPage/AccountSetupPage';
 import UserProfilePage from './components/UserProfilePage/UserProfilePage';
 import Homepage from './components/HomePage/HomePage';
+import CreateItineraryPage from './components/CreateItineraryPage/CreateItineraryPage'; // Add this import
 
 function App() {
   const [currentPage, setCurrentPage] = useState('welcome');
   const [pageHistory, setPageHistory] = useState(['welcome']);
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkUserSession = async () => {
@@ -142,6 +143,10 @@ function App() {
     navigateTo('setup');
   };
 
+  const switchToCreateItinerary = () => {
+    navigateTo('create-itinerary');
+  };
+
   if (isLoading) {
     return (
       <div className="app">
@@ -202,6 +207,16 @@ function App() {
             onBack={handleBack}
             user={user}
             onNavigateToProfile={switchToProfile}
+            onNavigateToCreate={switchToCreateItinerary} // Add this prop
+          />
+        );
+      case 'create-itinerary': // Add this case
+        return (
+          <CreateItineraryPage
+            onBack={handleBack}
+            user={user}
+            onNavigateToProfile={switchToProfile}
+            onNavigateToHome={switchToHomepage}
           />
         );
       case 'welcome':

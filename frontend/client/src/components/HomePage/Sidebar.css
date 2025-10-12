@@ -1,3 +1,4 @@
+/* Sidebar.css (updated) */
 .sidebar-container {
     width: min(400px, 30vw);
     min-width: 280px;
@@ -159,4 +160,49 @@
 .sidebar>* {
     width: 100%;
     box-sizing: border-box;
+}
+
+.create-new-header {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.create-new-header:hover {
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%) !important;
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.clear-filters-btn {
+    padding: 14px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-bottom: 8px;
+    min-height: 48px;
+}
+
+.clear-filters-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.no-results {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    padding: 20px;
+    font-weight: 300;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }

@@ -1,13 +1,21 @@
-import React from 'react';
+// HomePage.js
+import React, { useState } from 'react';
 import Header from './Header';
 import Map from './Map';
 import Sidebar from './Sidebar';
 import './HomePage.css';
 
-function HomePage({ onBack, user, onNavigateToProfile }) {
+function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate }) {
+    const [selectedDestinations, setSelectedDestinations] = useState([]);
 
     const handleNavigateToHome = () => {
         console.log('Already on homepage');
+    };
+
+    const handleCreateNew = () => {
+        if (onNavigateToCreate) {
+            onNavigateToCreate();
+        }
     };
 
     return (
@@ -19,11 +27,15 @@ function HomePage({ onBack, user, onNavigateToProfile }) {
                     onNavigateToProfile={onNavigateToProfile}
                     onNavigateToHome={handleNavigateToHome}
                 />
-                <Map />
+                <Map
+                    selectedDestinations={selectedDestinations}
+                />
             </div>
 
             <div className="sidebar-container">
-                <Sidebar />
+                <Sidebar
+                    onCreateNew={handleCreateNew}
+                />
             </div>
         </div>
     );
