@@ -303,5 +303,26 @@ app.post("/api/logout", (req, res) => {
   res.json({ ok: true, message: "Logged out" });
 });
 
+function mustBeLoggedIn(req, res, next){
+    if (req.user){
+        return next()
+    }
+    return res.redirect("/")
+}
+
+app.get("/create-itinerary", mustBeLoggedIn, (req, res) =>{
+    res.render("create-itinerary")
+})
+
+function sharedPostValidation(req){
+    const errors = []
+
+    
+    return errors
+}
+
+app.post("/api/create-itinerary", mustBeLoggedIn, (req, res) => {
+    const errors = sharedPostValidation(req)
+});
 
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
