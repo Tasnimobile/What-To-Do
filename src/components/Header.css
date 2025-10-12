@@ -4,12 +4,12 @@
   justify-content: space-between;
   background-color: rgba(113, 193, 157, 0.7);
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: 8px; /* rounded corners */
   color: #2d3047;
   font-size: 1rem;
   font-weight: bold;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
-  margin: 10px;
+  margin-bottom: 10px; /* space between header and map */
 }
 
 .header-title {
@@ -26,6 +26,7 @@
   color: #2d3047;
   font-size: 1.5rem;
   cursor: pointer;
+  border-radius: 6px;
 }
 
 .back-button:focus {
@@ -37,6 +38,7 @@
   cursor: pointer;
   background-color: transparent;
   border: 2px solid #2d3047;
+  border-radius: 6px;
 }
 
 .user-menu-container {

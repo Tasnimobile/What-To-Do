@@ -1,58 +1,62 @@
 import "./Header.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Header({
-  onBack,
+  goHome,
+  goToPrevious,
   goToSavedItineraries,
   goToMyItineraries,
   goToProfile,
   logOut,
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+  const userIconRef = useRef(null);
+
   const toggleMenu = () => setShowMenu((prev) => !prev);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        !menuRef.current?.contains(event.target) &&
+        !userIconRef.current?.contains(event.target)
+      ) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   const handleMenuClick = (action) => {
     setShowMenu(false);
     if (typeof action === "function") action();
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        !event.target.closest(".user-icon") &&
-        !event.target.closest(".dropdown-menu")
-      ) {
-        setShowMenu(false);
-      }
-    };
-
-    if (showMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showMenu]);
-
   return (
     <div className="header">
-      <button className="back-button" onClick={onBack}>
+      <button
+        className="back-button"
+        onClick={goToPrevious || undefined}
+        disabled={!goToPrevious}
+      >
         ←
       </button>
-
       <h2
         className="header-title"
-        onClick={onBack} // runs the same callback as the back button
-        style={{ cursor: "pointer" }} // makes it clickable
+        onClick={goHome}
+        style={{ cursor: "pointer" }}
       >
         What To Do - New York City
       </h2>
 
       <div className="user-menu-container">
-        <button className="user-icon" onClick={toggleMenu}>
+        <button className="user-icon" onClick={toggleMenu} ref={userIconRef}>
           👤
         </button>
-
         {showMenu && (
-          <div className="dropdown-menu">
+          <div className="dropdown-menu" ref={menuRef}>
             <button onClick={() => handleMenuClick(goToProfile)}>
               Profile
             </button>

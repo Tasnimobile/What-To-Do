@@ -1,0 +1,83 @@
+.add-destination-page {
+  padding: 16px;
+}
+
+.add-destination-page h1 {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+}
+
+.input-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #2d3047;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  color: #2d3047;
+  background-color: rgba(68, 156, 117, 0.15);
+  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+  color: #2d3047;
+  opacity: 0.6;
+}
+
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+  outline: none;
+  background-color: rgba(68, 156, 117, 0.25);
+  box-shadow: inset 0px 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.input-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.buttons button {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.buttons button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}

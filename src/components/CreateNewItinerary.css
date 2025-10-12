@@ -62,3 +62,123 @@
 .buttons a:hover {
   background-color: rgba(68, 156, 117, 0.85);
 }
+
+.destinations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* --- Destination Card --- */
+.destination {
+  display: flex;
+  flex-direction: column; /* Name+category on top, notes below */
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.15);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+  color: #2d3047;
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+.destination-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.destination-name {
+  font-weight: bold;
+}
+
+.destination-category {
+  font-weight: normal;
+  padding: 2px 6px;
+  background-color: rgba(45, 48, 71, 0.1);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.destination-notes {
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+/* Edit and Delete Buttons */
+.edit-button,
+.delete-button {
+  width: 100%;
+  text-align: center;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047; /* default for edit */
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* Edit Button */
+.edit-button {
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Delete Button */
+.delete-button {
+  color: rgb(132, 0, 0);
+}
+
+.edit-button:hover,
+.delete-button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Destination Edit Mode --- */
+.destination-edit {
+  display: flex;
+  gap: 8px;
+}
+
+.destination-edit input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(68, 156, 117, 0.5);
+  font-size: 1rem;
+  color: #2d3047;
+  background-color: rgba(68, 156, 117, 0.1);
+}
+
+.destination-edit input:focus {
+  outline: none;
+  background-color: rgba(68, 156, 117, 0.2);
+  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.destination-edit button {
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.destination-edit button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}

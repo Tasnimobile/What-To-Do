@@ -1,16 +1,13 @@
-import { useState } from "react";
+import { useRef } from "react";
 import ItineraryCard from "./ItineraryCard";
 import "./Sidebar.css";
 
 export default function Sidebar({ onCreateNew }) {
-  const [searchValue, setSearchValue] = useState("");
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      e.target.blur();
-    }
+  const searchRef = useRef();
+  const handleSearch = () => {
+    console.log("Search term:", searchRef.current.value);
   };
+
   return (
     <div className="sidebar">
       <h1>Itineraries</h1>
@@ -19,14 +16,8 @@ export default function Sidebar({ onCreateNew }) {
       </button>
 
       <div className="search-filter">
-        <input
-          type="text"
-          placeholder="Search"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button>Filter</button>
+        <input type="text" placeholder ref={searchRef} />
+        <button onClick={handleSearch}>Filter</button>
       </div>
 
       <ItineraryCard
