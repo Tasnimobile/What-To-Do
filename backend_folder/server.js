@@ -9,7 +9,7 @@ const cors = require("cors");
 
 // Database setup here
 const createTables = db.transaction(() => {
-    db.prepare(`
+  db.prepare(`
         CREATE TABLE IF NOT EXISTS user (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username STRING NOT NULL UNIQUE,
@@ -18,15 +18,18 @@ const createTables = db.transaction(() => {
         `).run()
 })
 
-createTables(); 
+createTables();
 
-try { db.prepare("ALTER TABLE user ADD COLUMN email TEXT").run(); } catch {}
-try { db.prepare("ALTER TABLE user ADD COLUMN google_sub TEXT").run(); } catch {}
+try { db.prepare("ALTER TABLE user ADD COLUMN email TEXT").run(); } catch { }
+try { db.prepare("ALTER TABLE user ADD COLUMN google_sub TEXT").run(); } catch { }
 
 db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON user(email)").run();
 db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_sub ON user(google_sub)").run();
-db.prepare("UPDATE user SET email = username WHERE instr(username,'@') > 0 AND email IS NULL").run();
-
+try {
+  db.prepare("UPDATE user SET email = username WHERE instr(username,'@') > 0 AND email IS NULL").run();
+} catch (error) {
+  console.log("Skipping email migration due to duplicate emails");
+}
 // Database setup end
 const app = express()
 
@@ -39,128 +42,128 @@ app.use(cors({
 
 
 app.set("view engine", "ejs")
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({ extended: false }))
 app.use(express.static("public"))
 app.use(cookieParser())
 
 app.use(function (req, res, next) {
-    res.locals.errors = []
+  res.locals.errors = []
 
-    //try to decode incoming cookie
-    try{
-        const decoded = jwt.verify(req.cookies.ourSimpleApp, process.env.JWTSECRET)
-        req.user = decoded
-    } catch(err) {
-        req.user = false
-    }
+  //try to decode incoming cookie
+  try {
+    const decoded = jwt.verify(req.cookies.ourSimpleApp, process.env.JWTSECRET)
+    req.user = decoded
+  } catch (err) {
+    req.user = false
+  }
 
-    res.locals.user = req.user
-    console.log(req.user)
+  res.locals.user = req.user
+  console.log(req.user)
 
-    next()
+  next()
 })
 
 app.get("/", (req, res) => {
-    if (req.user) {
-        res.render("dashboard")
-    } else {
-        res.render("homepage")
-    }
+  if (req.user) {
+    res.render("dashboard")
+  } else {
+    res.render("homepage")
+  }
 })
 
 app.get("/login", (req, res) => {
-    res.render("login")
+  res.render("login")
 })
 
 app.get("/logout", (req, res) => {
-    res.clearCookie("ourSimpleApp")
-    res.redirect("/")
+  res.clearCookie("ourSimpleApp")
+  res.redirect("/")
 })
 
 app.post("/login", (req, res) => {
-    let errors = []
+  let errors = []
 
-    if (typeof req.body.username != "string") req.body.username = ""
-    if (typeof req.body.password != "string") req.body.password = ""
+  if (typeof req.body.username != "string") req.body.username = ""
+  if (typeof req.body.password != "string") req.body.password = ""
 
-    if (req.body.username.trim() == "") errors = ["You must provide a username."]
-    if (req.body.password == "") errors = ["You must provide a password."]
+  if (req.body.username.trim() == "") errors = ["You must provide a username."]
+  if (req.body.password == "") errors = ["You must provide a password."]
 
-    if (errors.length) {
-        return res.render("login", {errors})
-    }
+  if (errors.length) {
+    return res.render("login", { errors })
+  }
 
-    // res.send("Thank you")
+  // res.send("Thank you")
 
-    const userInQuestionStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
-    const userInQuestion = userInQuestionStatement.get(req.body.username)
-        
-    if (!userInQuestion) {
-        errors = ["inavlid username or password."]
-        return res.render("login", {errors})
-    }
+  const userInQuestionStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
+  const userInQuestion = userInQuestionStatement.get(req.body.username)
 
-    const matchOrNot = bcrypt.compareSync(req.body.password, userInQuestion.password)
-    if (!matchOrNot) {
-        errors = ["inavlid username or password."]
-        return res.render("login", {errors})
-    }
+  if (!userInQuestion) {
+    errors = ["inavlid username or password."]
+    return res.render("login", { errors })
+  }
 
-    const ourTokenValue = jwt.sign({exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: userInQuestion.id, username: userInQuestion.username}, 
+  const matchOrNot = bcrypt.compareSync(req.body.password, userInQuestion.password)
+  if (!matchOrNot) {
+    errors = ["inavlid username or password."]
+    return res.render("login", { errors })
+  }
+
+  const ourTokenValue = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: userInQuestion.id, username: userInQuestion.username },
     process.env.JWTSECRET)
-    res.cookie("ourSimpleApp", ourTokenValue, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24
-    })
-    res.redirect("/")
+  res.cookie("ourSimpleApp", ourTokenValue, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    maxAge: 1000 * 60 * 60 * 24
+  })
+  res.redirect("/")
 
 })
 
 app.post("/register", (req, res) => {
-    const errors = []
+  const errors = []
 
-    if (typeof req.body.username != "string") req.body.username = ""
-    if (typeof req.body.password != "string") req.body.password = ""
+  if (typeof req.body.username != "string") req.body.username = ""
+  if (typeof req.body.password != "string") req.body.password = ""
 
-    req.body.username = req.body.username.trim()
+  req.body.username = req.body.username.trim()
 
-    if (!req.body.username) errors.push("You must provide a username.")
-    if (req.body.username && req.body.username.length < 3) errors.push("Username must be at least 3 characters.")
-    if (req.body.username && req.body.username.length > 10) errors.push("Username cannot exceed 10 characters.")
-    if (req.body.username && !req.body.username.match(/^[a-zA-Z0-9]+$/)) errors.push("Username can only contain letters and numbers.")
+  if (!req.body.username) errors.push("You must provide a username.")
+  if (req.body.username && req.body.username.length < 3) errors.push("Username must be at least 3 characters.")
+  if (req.body.username && req.body.username.length > 10) errors.push("Username cannot exceed 10 characters.")
+  if (req.body.username && !req.body.username.match(/^[a-zA-Z0-9]+$/)) errors.push("Username can only contain letters and numbers.")
 
-    //check if username is already taken
-    const usernameStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
-    const usernameCheck = usernameStatement.get(req.body.username)
+  //check if username is already taken
+  const usernameStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
+  const usernameCheck = usernameStatement.get(req.body.username)
 
-    if (usernameCheck) errors.push("That username is already taken.")
-    
-    if (!req.body.password) errors.push("You must provide a password.")
-    if (req.body.password && req.body.password.length < 8) errors.push("Password must be at least 8 characters.")
-    if (req.body.password && req.body.password.length > 70) errors.push("password cannot exceed 70 characters.")
-    
-    if (errors.length) {
-        return res.render("homepage", {errors})
-    } 
-    // save the new user
-    const salt = bcrypt.genSaltSync(10)
-    req.body.password = bcrypt.hashSync(req.body.password, salt)
-    const ourStatement = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)")
-    const result = ourStatement.run(req.body.username, req.body.password)
+  if (usernameCheck) errors.push("That username is already taken.")
 
-    const lookupStatement = db.prepare("SELECT * FROM user WHERE ROWID = ?")
-    const ourUser = lookupStatement.get(result.lastInsertRowid)
-    // log the user in by giving them a cookie
-    const ourTokenValue = jwt.sign({exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: ourUser.id, username: ourUser.username}, process.env.JWTSECRET)
-    res.cookie("ourSimpleApp", ourTokenValue, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 1000 * 60 * 60 * 24
-    })
-    res.redirect("/")
+  if (!req.body.password) errors.push("You must provide a password.")
+  if (req.body.password && req.body.password.length < 8) errors.push("Password must be at least 8 characters.")
+  if (req.body.password && req.body.password.length > 70) errors.push("password cannot exceed 70 characters.")
+
+  if (errors.length) {
+    return res.render("homepage", { errors })
+  }
+  // save the new user
+  const salt = bcrypt.genSaltSync(10)
+  req.body.password = bcrypt.hashSync(req.body.password, salt)
+  const ourStatement = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)")
+  const result = ourStatement.run(req.body.username, req.body.password)
+
+  const lookupStatement = db.prepare("SELECT * FROM user WHERE ROWID = ?")
+  const ourUser = lookupStatement.get(result.lastInsertRowid)
+  // log the user in by giving them a cookie
+  const ourTokenValue = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: ourUser.id, username: ourUser.username }, process.env.JWTSECRET)
+  res.cookie("ourSimpleApp", ourTokenValue, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    maxAge: 1000 * 60 * 60 * 24
+  })
+  res.redirect("/")
 })
 
 app.post("/api/login", (req, res) => {
@@ -249,7 +252,7 @@ app.post("/api/oauth/google", async (req, res) => {
     });
     if (!g.ok) return res.status(401).json({ ok: false, errors: ["Invalid Google token"] });
 
-    const profile = await g.json(); 
+    const profile = await g.json();
     if (!profile.email || profile.email_verified === false) {
       return res.status(400).json({ ok: false, errors: ["Google email not verified"] });
     }
@@ -257,7 +260,7 @@ app.post("/api/oauth/google", async (req, res) => {
     let user =
       db.prepare("SELECT * FROM user WHERE google_sub = ?").get(profile.sub) ||
       db.prepare("SELECT * FROM user WHERE email = ?").get(profile.email) ||
-      db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email); 
+      db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email);
 
     if (user) {
       if (!user.email) db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
@@ -279,12 +282,12 @@ app.post("/api/oauth/google", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { exp: Math.floor(Date.now()/1000) + 60*60*24, userid: user.id, username: user.username },
+      { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: user.id, username: user.username },
       process.env.JWTSECRET
     );
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
-      secure: false,     
+      secure: false,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24
     });

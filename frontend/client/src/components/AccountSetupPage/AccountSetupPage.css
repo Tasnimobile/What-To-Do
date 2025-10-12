@@ -1,0 +1,269 @@
+/* src/components/AccountSetupPage/AccountSetupPage.css */
+.account-setup-page {
+    height: 100vh;
+    background-color: #FFFDF0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3%;
+    overflow: hidden;
+}
+
+.account-setup-container {
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    color: white;
+}
+
+.setup-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.setup-header h1 {
+    color: white;
+    margin: 0;
+    font-size: 4rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-setup-page .form-input {
+    padding: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    font-weight: 300;
+    text-align: center;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.account-setup-page .form-textarea {
+    padding: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    font-weight: 300;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.account-setup-page .form-input:focus,
+.account-setup-page .form-textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(113, 193, 157, 0.4);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+}
+
+.account-setup-page .form-input::placeholder,
+.account-setup-page .form-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 300;
+    text-align: center;
+}
+
+.account-setup-page .char-count {
+    text-align: right;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    margin-top: 5px;
+    font-weight: 300;
+    width: 80%;
+    margin: 5px auto 0 auto;
+}
+
+.account-setup-page .setup-button {
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    letter-spacing: 1px;
+    width: 30%;
+    height: auto;
+    min-height: 44px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.account-setup-page .setup-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.account-setup-page .setup-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(113, 193, 157, 0.4);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.account-setup-page .setup-button:active {
+    transform: translateY(0);
+}
+
+.back-button-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.back-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(113, 193, 157, 0.4);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.back-button:active {
+    transform: translateY(0);
+}
+
+.account-setup-page .profile-picture-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.account-setup-page .profile-picture-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.account-setup-page .preview-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.account-setup-page .profile-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.account-setup-page .remove-picture-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.account-setup-page .remove-picture-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.account-setup-page .upload-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.account-setup-page .upload-placeholder svg {
+    opacity: 0.6;
+    width: 48px;
+    height: 48px;
+}
+
+.account-setup-page .file-input-label {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 300;
+    text-align: center;
+}
+
+.account-setup-page .file-input-label:hover {
+    background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.file-input {
+    display: none;
+}
