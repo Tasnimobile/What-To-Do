@@ -23,6 +23,9 @@ createTables();
 try { db.prepare("ALTER TABLE user ADD COLUMN email TEXT").run(); } catch { }
 try { db.prepare("ALTER TABLE user ADD COLUMN google_sub TEXT").run(); } catch { }
 
+//for bio; find the code at line 305
+try { db.prepare("ALTER TABLE user ADD COLUMN bio TEXT").run(); } catch { }
+
 db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON user(email)").run();
 db.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_sub ON user(google_sub)").run();
 try {
@@ -295,6 +298,40 @@ app.post("/api/oauth/google", async (req, res) => {
     res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email } });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
+//profile route to update bio
+app.post("/api/profile", (req, res) => {
+  
+  let errors = [];
+  
+  if (typeof req.body.bio !== "string") req.body.bio = "";
+
+  //validate length
+  //TODO: validate the length of bio
+
+  if (errors.length) {
+    return res.status(400).json({ ok: false, errors });
+  }
+
+  try {
+    // Update the user's bio in the database
+    const updateStatement = db.prepare("UPDATE user SET bio = ? WHERE id = ?");
+    updateStatement.run(req.body.bio, req.user.userid);
+
+    // Get the updated user info
+    const userStatement = db.prepare("SELECT id, username, email, bio FROM user WHERE id = ?");
+    const updatedUser = userStatement.get(req.user.userid);
+
+    res.json({ 
+      ok: true, 
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
