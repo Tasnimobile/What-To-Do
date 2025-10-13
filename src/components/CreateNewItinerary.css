@@ -63,16 +63,17 @@
   background-color: rgba(68, 156, 117, 0.85);
 }
 
-/* Theme Selector */
 .theme-selector {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin: 12px 0;
 }
 
 .theme-selector label {
   display: flex;
+  justify-content: left;
   align-items: center;
   color: #2d3047;
   gap: 4px;
@@ -81,10 +82,31 @@
   background-color: rgba(68, 156, 117, 0.15);
   border-radius: 6px;
   cursor: pointer;
+  min-width: 80px;
 }
 
 .theme-selector input[type="checkbox"] {
   cursor: pointer;
+}
+
+.theme-selector button {
+  display: block;
+  margin: 0 auto 0 auto;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.theme-selector button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .edit-themes-button {
@@ -106,7 +128,6 @@
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* Saved Themes */
 .saved-themes {
   margin-top: 8px;
   display: flex;

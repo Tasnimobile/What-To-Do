@@ -6,7 +6,7 @@ export default function TextInputField({
   value = "",
   onChange,
   id = "",
-  type = "itinerary-name", // "itinerary-name" or "description"
+  type = "itinerary-name",
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value);
@@ -16,7 +16,6 @@ export default function TextInputField({
   const placeholderText =
     type === "description" ? "Add description" : "Add itinerary name";
 
-  // Sync value from parent only when not editing
   useEffect(() => {
     if (!isEditing) {
       setInputValue(value);
@@ -29,18 +28,16 @@ export default function TextInputField({
     setText(finalValue);
     setInputValue(finalValue);
     if (onChange) onChange(finalValue);
-    setIsEditing(false); // hides the Enter button
+    setIsEditing(false);
   };
 
   const handleKeyDown = (e) => {
-    // call handleSubmit() when enter key is pressed
     if (e.key === "Enter" && type !== "description") {
-      e.preventDefault(); // prevent new line when enter key is pressed when type is not description
+      e.preventDefault();
       handleSubmit();
     }
   };
 
-  // Autofocus when editing
   useEffect(() => {
     if (isEditing) inputRef.current?.focus();
   }, [isEditing]);
@@ -73,7 +70,7 @@ export default function TextInputField({
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown} // Enter key triggers submit
+                onKeyDown={handleKeyDown}
                 className="text-input"
                 placeholder={placeholderText}
               />

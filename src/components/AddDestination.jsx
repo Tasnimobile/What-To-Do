@@ -6,7 +6,7 @@ export default function AddDestination({
   onCancel,
   mapCoords,
   setMapCoords,
-  initialData, // pre-filled data if editing
+  initialData,
 }) {
   const [name, setName] = useState(initialData?.name || "");
   const [category, setCategory] = useState(initialData?.category || "");
@@ -14,28 +14,13 @@ export default function AddDestination({
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
 
-  const handleThemeChange = (e) => {
-    const value = e.target.value;
-    setSelectedThemes((prev) =>
-      prev.includes(value)
-        ? prev.filter((theme) => theme !== value)
-        : [...prev, value]
-    );
-  };
-
-  const saveThemes = () => {
-    // For now, just keep selectedThemes as-is to display
-    console.log("Themes saved:", selectedThemes);
-  };
-
-  // Update local state whenever initialData changes (for editing)
   useEffect(() => {
     if (initialData) {
       setName(initialData.name || "");
       setCategory(initialData.category || "");
       setNotes(initialData.notes || "");
       if (initialData.coords) {
-        setMapCoords(initialData.coords); // preload pin
+        setMapCoords(initialData.coords);
       }
     } else {
       setName("");
@@ -45,7 +30,6 @@ export default function AddDestination({
     }
   }, [initialData, setMapCoords]);
 
-  // Google Autocomplete for optional search
   useEffect(() => {
     if (window.google && inputRef.current && !autocompleteRef.current) {
       autocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -70,7 +54,6 @@ export default function AddDestination({
   }, [setMapCoords]);
 
   const handleSave = () => {
-    // Check required fields
     if (!name.trim()) {
       alert("Please enter a destination name.");
       return;
@@ -84,13 +67,12 @@ export default function AddDestination({
       return;
     }
 
-    // Save destination
     onSave({
       id: initialData?.id || Date.now(),
       name,
       coords: mapCoords,
       category,
-      notes, // notes is optional
+      notes,
     });
   };
 

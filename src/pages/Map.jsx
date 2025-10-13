@@ -7,7 +7,6 @@ const MapComponent = ({ onClick, selectedCoords }) => {
   const [mapInstance, setMapInstance] = useState(null);
   const [markers, setMarkers] = useState([]);
 
-  // Initialize map
   useEffect(() => {
     if (!ref.current || mapInstance) return;
 
@@ -18,7 +17,6 @@ const MapComponent = ({ onClick, selectedCoords }) => {
           zoom: 12,
         });
 
-        // Only handle clicks for temporary pin (AddDestination)
         map.addListener("click", (e) => {
           const latLng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
           if (onClick) onClick(latLng);
@@ -29,30 +27,25 @@ const MapComponent = ({ onClick, selectedCoords }) => {
     }, 100);
   }, [mapInstance, onClick]);
 
-  // Update markers whenever selectedCoords changes
   useEffect(() => {
     if (!mapInstance) return;
 
-    // Convert selectedCoords to array if not already
     const coordsArray = Array.isArray(selectedCoords)
       ? selectedCoords
       : selectedCoords
       ? [selectedCoords]
       : [];
 
-    // Remove old markers
     markers.forEach((m) => m.setMap(null));
 
-    // Add new markers
     const newMarkers = coordsArray.map((coord, index) => {
       const marker = new window.google.maps.Marker({
         position: coord,
         map: mapInstance,
-        draggable: !Array.isArray(selectedCoords), // Only temporary pin draggable
+        draggable: !Array.isArray(selectedCoords),
       });
 
       if (!Array.isArray(selectedCoords)) {
-        // Update pin coordinates when dragged
         marker.addListener("dragend", (event) => {
           const newCoords = {
             lat: event.latLng.lat(),
@@ -67,7 +60,6 @@ const MapComponent = ({ onClick, selectedCoords }) => {
 
     setMarkers(newMarkers);
 
-    // Adjust map view
     if (coordsArray.length === 1) {
       mapInstance.setCenter(coordsArray[0]);
       mapInstance.setZoom(16);

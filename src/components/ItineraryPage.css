@@ -24,9 +24,9 @@
 }
 
 .itinerary-page h4 {
-  margin: 4px 0 8px 0; /* top, right/left, bottom */
-  font-weight: normal; /* optional: make it less bold */
-  font-size: 1rem; /* optional: adjust size to match sidebar style */
+  margin: 4px 0 8px 0;
+  font-weight: normal;
+  font-size: 1rem;
 }
 
 .themes {

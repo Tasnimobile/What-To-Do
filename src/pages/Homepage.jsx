@@ -6,17 +6,16 @@ import SavedItineraries from "../components/SavedItineraries.jsx";
 import MyItineraries from "../components/MyItineraries.jsx";
 import AddDestination from "../components/AddDestination.jsx";
 import Map from "./Map.jsx";
-import ItineraryPage from "../components/ItineraryPage.jsx"; // <-- NEW
+import ItineraryPage from "../components/ItineraryPage.jsx";
 import "./Homepage.css";
 
 export default function Homepage() {
   const [activeSidebar, setActiveSidebar] = useState("home");
   const historyRef = useRef(["home"]);
-  const [destinations, setDestinations] = useState([]); // All saved destinations
-  const [currentPin, setCurrentPin] = useState(null); // Temporary pin in AddDestination
-  const [editingDestination, setEditingDestination] = useState(null); // Track which destination is being edited
-
-  const [currentItinerary, setCurrentItinerary] = useState(null); // <-- NEW
+  const [destinations, setDestinations] = useState([]);
+  const [currentPin, setCurrentPin] = useState(null);
+  const [editingDestination, setEditingDestination] = useState(null);
+  const [currentItinerary, setCurrentItinerary] = useState(null);
   const [newItinerary, setNewItinerary] = useState({
     name: "",
     description: "",
@@ -48,7 +47,6 @@ export default function Homepage() {
     navigateTo("home");
   };
 
-  // Save destination from AddDestination
   const handleAddDestinationSave = (newDest) => {
     setDestinations((prev) => {
       const exists = prev.find((d) => d.id === newDest.id);
@@ -70,7 +68,7 @@ export default function Homepage() {
 
   const handleSaveItinerary = ({ name, description, themes, destinations }) => {
     setCurrentItinerary({ name, description, themes, destinations });
-    setActiveSidebar("viewItinerary"); // go to ItineraryPage
+    setActiveSidebar("viewItinerary");
   };
 
   const renderSidebar = () => {
@@ -103,10 +101,10 @@ export default function Homepage() {
             }}
             mapCoords={currentPin}
             setMapCoords={setCurrentPin}
-            initialData={editingDestination} // <-- pre-fill inputs when editing
+            initialData={editingDestination}
           />
         );
-      case "viewItinerary": // <-- NEW
+      case "viewItinerary":
         return <ItineraryPage itinerary={currentItinerary} />;
       case "home":
       default:
@@ -114,13 +112,12 @@ export default function Homepage() {
     }
   };
 
-  // Map logic: show **currentPin** if adding destination, otherwise all saved destinations
   const mapSelectedCoords =
     activeSidebar === "addDestination"
       ? currentPin
-        ? [currentPin] // Only show temporary pin
+        ? [currentPin]
         : []
-      : destinations.map((d) => d.coords); // Show all saved markers
+      : destinations.map((d) => d.coords);
 
   return (
     <div className="homepage">
