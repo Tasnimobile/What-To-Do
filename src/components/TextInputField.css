@@ -5,6 +5,7 @@
   margin-bottom: 12px;
 }
 
+/* Non-editing display div */
 .editable-div {
   color: #fffdf0;
   padding: 10px 12px;
@@ -16,57 +17,74 @@
   transition: border-color 0.2s, box-shadow 0.2s;
   white-space: pre-wrap;
   word-wrap: break-word;
+  min-height: 22px; /* ensures same height as input */
 }
 
-.editable-div:hover {
-  border-color: #888;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+/* Placeholder inside editable-div */
+.editable-placeholder {
+  color: #fffdf0;
+  opacity: 0.7;
+  font-style: italic;
+  margin: 0;
 }
 
+/* Editable text label for description */
+.editable-label {
+  font-weight: 300;
+  font-style: italic;
+  margin-bottom: 2px;
+}
+
+/* Text input field wrapper */
 .text-input-field {
   display: flex;
   gap: 8px;
 }
 
-.text-input-field[data-type="description"] {
+.text-input-field.description-mode {
   flex-direction: column;
 }
 
-.text-input-field[data-type="itinerary-name"] {
+.text-input-field.itinerary-name-mode {
   flex-direction: row;
 }
 
-.text-input {
+/* Inputs and textareas */
+.text-input,
+.description-input {
+  font-family: inherit;
+  font-size: 16px;
   color: #fffdf0;
   flex-grow: 1;
   padding: 10px 12px;
-  font-size: 16px;
   border: 1px solid #fffdf0;
   border-radius: 6px;
   outline: none;
   background-color: #449c75;
   transition: border-color 0.2s, box-shadow 0.2s;
+  min-height: 42px; /* matches editable-div */
+  resize: none; /* default for input and single-line input */
+  display: block;
+  box-sizing: border-box;
+  text-align: left;
+  vertical-align: top;
 }
 
-.text-input:focus {
+.text-input:focus,
+.description-input:focus {
   border-color: #4caf50;
   box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
 }
 
+/* Description-specific tweaks */
 .description-input {
-  min-height: 60px; /* allow some vertical space */
-  resize: vertical; /* allow user to resize */
-  white-space: pre-wrap; /* wrap text */
-  overflow-wrap: break-word; /* break long words */
+  min-height: 60px;
+  resize: vertical;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
-.text-input,
-.description-input {
-  font-family: inherit;
-  font-size: 16px;
-  color: #fffdf0; /* ensure text color matches */
-}
-
+/* Enter button */
 .submit-button {
   color: #fffdf0;
   padding: 10px 16px;
@@ -81,4 +99,9 @@
 .submit-button:hover {
   background-color: #71c19d;
   transform: translateY(-1px);
+}
+
+/* Wide button for description to match textarea width */
+.submit-button.wide {
+  width: 100%;
 }

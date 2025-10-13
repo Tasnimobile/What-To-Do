@@ -63,6 +63,67 @@
   background-color: rgba(68, 156, 117, 0.85);
 }
 
+/* Theme Selector */
+.theme-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.theme-selector label {
+  display: flex;
+  align-items: center;
+  color: #2d3047;
+  gap: 4px;
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  background-color: rgba(68, 156, 117, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.theme-selector input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.edit-themes-button {
+  padding: 4px 8px;
+  margin-left: 8px;
+  border-radius: 6px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-themes-button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Saved Themes */
+.saved-themes {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.theme-tag {
+  background-color: rgba(68, 156, 117, 0.15);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #2d3047;
+  font-weight: bold;
+}
+
+/* Destinations */
 .destinations {
   display: flex;
   flex-direction: column;
@@ -118,7 +179,6 @@
   font-size: 0.85rem;
   cursor: pointer;
   background-color: rgba(68, 156, 117, 0.7);
-  color: #2d3047; /* default for edit */
   border: none;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
   transition: background-color 0.2s, box-shadow 0.2s;
@@ -126,10 +186,7 @@
 
 /* Edit Button */
 .edit-button {
-  background-color: rgba(68, 156, 117, 0.7);
   color: #2d3047;
-  border: none;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Delete Button */

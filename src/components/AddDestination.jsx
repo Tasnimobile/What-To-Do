@@ -14,6 +14,20 @@ export default function AddDestination({
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
 
+  const handleThemeChange = (e) => {
+    const value = e.target.value;
+    setSelectedThemes((prev) =>
+      prev.includes(value)
+        ? prev.filter((theme) => theme !== value)
+        : [...prev, value]
+    );
+  };
+
+  const saveThemes = () => {
+    // For now, just keep selectedThemes as-is to display
+    console.log("Themes saved:", selectedThemes);
+  };
+
   // Update local state whenever initialData changes (for editing)
   useEffect(() => {
     if (initialData) {

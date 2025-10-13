@@ -5,36 +5,44 @@ import AddDestination from "./AddDestination";
 import "./CreateNewItinerary.css";
 
 export default function CreateNewItinerary({
-  onBack,
+  newItinerary,
+  setNewItinerary,
   destinations,
   onAddDestinationClick,
   setCurrentPin,
-  onUpdateDestination, // New prop to update destination in parent state
+  onSaveItinerary,
+  onBack,
 }) {
-  const titleRef = useRef(null);
-  const descRef = useRef(null);
-  const [addingDestination, setAddingDestination] = useState(false);
-  const [editingDestination, setEditingDestination] = useState(null); // New
+  const ITINERARY_THEMES = [
+    "Activity",
+    "Date",
+    "Foodie",
+    "Museum",
+    "Nature",
+    "Solo",
+  ];
+
+  const handleThemeChange = (e) => {
+    const value = e.target.value;
+    const newThemes = newItinerary.themes.includes(value)
+      ? newItinerary.themes.filter((theme) => theme !== value)
+      : [...newItinerary.themes, value];
+    setNewItinerary((prev) => ({ ...prev, themes: newThemes }));
+  };
+
+  const saveThemes = () =>
+    setNewItinerary((prev) => ({ ...prev, themesLocked: true }));
+
+  const editThemes = () =>
+    setNewItinerary((prev) => ({ ...prev, themesLocked: false }));
 
   const handleSave = () => {
-    console.log("Saving new itinerary:", {
-      title: titleRef.current,
-      description: descRef.current,
-      destinations: destinations.map((d) => d.name),
-    });
-    onBack();
-  };
-
-  const handleAddDestinationClick = () => {
-    setCurrentPin(null); // clear temp pin for new destination
-    setEditingDestination(null); // not editing
-    onAddDestinationClick();
-  };
-
-  const handleEditDestination = (dest) => {
-    setCurrentPin(dest.coords); // preload pin
-    setEditingDestination(dest); // local editing state
-    onAddDestinationClick(dest); // pass the destination being edited
+    if (onSaveItinerary) {
+      onSaveItinerary({
+        ...newItinerary,
+        destinations,
+      });
+    }
   };
 
   return (
@@ -43,41 +51,69 @@ export default function CreateNewItinerary({
 
       <TextInputField
         id="enter-itinerary"
-        initialText="Enter itinerary name"
         type="single-line"
-        onChange={(text) => (titleRef.current = text)}
+        value={newItinerary.name}
+        onChange={(text) =>
+          setNewItinerary((prev) => ({ ...prev, name: text }))
+        }
       />
+
+      <div className="theme-selector-wrapper">
+        {!newItinerary.themesLocked ? (
+          <div className="theme-selector">
+            {ITINERARY_THEMES.map((theme) => (
+              <label key={theme}>
+                <input
+                  type="checkbox"
+                  value={theme}
+                  checked={newItinerary.themes.includes(theme)}
+                  onChange={handleThemeChange}
+                />
+                {theme}
+              </label>
+            ))}
+            <button onClick={saveThemes}>Save Themes</button>
+          </div>
+        ) : (
+          <div className="saved-themes">
+            {newItinerary.themes.map((theme) => (
+              <span key={theme} className="theme-tag">
+                {theme}
+              </span>
+            ))}
+            <button className="edit-themes-button" onClick={editThemes}>
+              Edit
+            </button>
+          </div>
+        )}
+      </div>
 
       <TextInputField
         id="enter-description"
-        label="Description"
         type="description"
-        onChange={(text) => (descRef.current = text)}
+        value={newItinerary.description}
+        onChange={(text) =>
+          setNewItinerary((prev) => ({ ...prev, description: text }))
+        }
       />
 
       <div className="destinations">
         {destinations.map((dest) => (
           <Destination
             key={dest.id}
-            id={dest.id}
             data={dest}
-            onChange={() => {}} // optional
-            onEdit={() => handleEditDestination(dest)} // existing handler
-            onDelete={() => {
-              // Minimal delete logic
-              const updated = destinations.filter((d) => d.id !== dest.id);
-              setDestinations(updated); // assumes you have setDestinations from state
-            }}
+            onEdit={() => onAddDestinationClick(dest)}
+            onDelete={() => onAddDestinationClick(dest, true)}
           />
         ))}
       </div>
 
       <div className="buttons">
-        <button type="button" onClick={handleAddDestinationClick}>
+        <button type="button" onClick={onAddDestinationClick}>
           + Add Destinations
         </button>
         <button onClick={handleSave}>Save</button>
-        <button onClick={onBack}>Cancel</button>
+        <button onClick={() => onBack && onBack(null)}>Cancel</button>
       </div>
     </div>
   );

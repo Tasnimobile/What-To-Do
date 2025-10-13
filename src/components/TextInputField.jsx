@@ -1,24 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./TextInputField.css";
 
 export default function TextInputField({
-  label = "", // header text to show when text is entered
-  initialText = "", // first text to show up when page loads
+  label = "Description",
+  value = "",
+  onChange,
   id = "",
-  type = "itinerary-name", // type can be itinerary-name or description
+  type = "itinerary-name", // "itinerary-name" or "description"
 }) {
-  const [text, setText] = useState(initialText);
   const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(initialText);
+  const [inputValue, setInputValue] = useState(value);
+  const [text, setText] = useState(value);
+  const inputRef = useRef(null);
+
+  const placeholderText =
+    type === "description" ? "Add description" : "Add itinerary name";
+
+  // Sync value from parent only when not editing
+  useEffect(() => {
+    if (!isEditing) {
+      setInputValue(value);
+      setText(value);
+    }
+  }, [value, isEditing]);
 
   const handleSubmit = () => {
-    if (inputValue.trim() === "") {
-      setText(initialText);
-      setInputValue(initialText);
-    } else {
-      setText(inputValue);
-    }
-    setIsEditing(false);
+    const finalValue = inputValue.trim() === "" ? text : inputValue.trim();
+    setText(finalValue);
+    setInputValue(finalValue);
+    if (onChange) onChange(finalValue);
+    setIsEditing(false); // hides the Enter button
   };
 
   const handleKeyDown = (e) => {
@@ -29,35 +40,48 @@ export default function TextInputField({
     }
   };
 
+  // Autofocus when editing
+  useEffect(() => {
+    if (isEditing) inputRef.current?.focus();
+  }, [isEditing]);
+
   return (
     <div id={id} className="editable-container">
       {isEditing ? (
-        <div className="text-input-field" data-type={type}>
+        <div
+          className={`text-input-field ${
+            type === "description" ? "description-mode" : "itinerary-name-mode"
+          }`}
+        >
           {type === "description" ? (
-            <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              onFocus={(e) => e.target.select()}
-              className="text-input description-input"
-              placeholder="Add description"
-            />
+            <>
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="text-input description-input"
+                placeholder={placeholderText}
+              />
+              <button className="submit-button wide" onClick={handleSubmit}>
+                Enter
+              </button>
+            </>
           ) : (
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              autoFocus
-              onFocus={(e) => e.target.select()}
-              className="text-input"
-              placeholder="Enter itinerary name"
-            />
+            <>
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown} // Enter key triggers submit
+                className="text-input"
+                placeholder={placeholderText}
+              />
+              <button className="submit-button" onClick={handleSubmit}>
+                Enter
+              </button>
+            </>
           )}
-          <button onClick={handleSubmit} className="submit-button">
-            Enter
-          </button>
         </div>
       ) : (
         <div
@@ -67,15 +91,13 @@ export default function TextInputField({
             setIsEditing(true);
           }}
         >
-          {type === "description" ? (
-            text.trim() === "" ? (
-              <span className="editable-placeholder">Add description</span>
-            ) : (
-              <>
-                <div className="editable-label">{label}:</div>
-                <div className="editable-text">{text}</div>
-              </>
-            )
+          {text.trim() === "" ? (
+            <span className="editable-placeholder">{placeholderText}</span>
+          ) : type === "description" ? (
+            <>
+              {label && <div className="editable-label">{label}:</div>}
+              <div className="editable-text">{text}</div>
+            </>
           ) : (
             text
           )}

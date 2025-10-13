@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function Destination({ data, onEdit, onDelete }) {
   return (
     <div className="destination">
@@ -7,13 +9,16 @@ export default function Destination({ data, onEdit, onDelete }) {
       </div>
       {data.notes && <div className="destination-notes">{data.notes}</div>}
 
-      {/* Buttons */}
-      <button className="edit-button" onClick={onEdit}>
-        Edit
-      </button>
-      <button className="delete-button" onClick={onDelete}>
-        Delete
-      </button>
+      {onEdit && (
+        <button className="edit-button" onClick={onEdit}>
+          Edit
+        </button>
+      )}
+      {onDelete && (
+        <button className="delete-button" onClick={onDelete}>
+          Delete
+        </button>
+      )}
     </div>
   );
 }

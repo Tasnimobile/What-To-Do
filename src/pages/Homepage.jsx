@@ -6,6 +6,7 @@ import SavedItineraries from "../components/SavedItineraries.jsx";
 import MyItineraries from "../components/MyItineraries.jsx";
 import AddDestination from "../components/AddDestination.jsx";
 import Map from "./Map.jsx";
+import ItineraryPage from "../components/ItineraryPage.jsx"; // <-- NEW
 import "./Homepage.css";
 
 export default function Homepage() {
@@ -14,6 +15,14 @@ export default function Homepage() {
   const [destinations, setDestinations] = useState([]); // All saved destinations
   const [currentPin, setCurrentPin] = useState(null); // Temporary pin in AddDestination
   const [editingDestination, setEditingDestination] = useState(null); // Track which destination is being edited
+
+  const [currentItinerary, setCurrentItinerary] = useState(null); // <-- NEW
+  const [newItinerary, setNewItinerary] = useState({
+    name: "",
+    description: "",
+    themes: [],
+    themesLocked: false,
+  });
 
   const navigateTo = (newSidebar) => {
     if (newSidebar !== activeSidebar) {
@@ -59,6 +68,11 @@ export default function Homepage() {
     setActiveSidebar("createNew");
   };
 
+  const handleSaveItinerary = ({ name, description, themes, destinations }) => {
+    setCurrentItinerary({ name, description, themes, destinations });
+    setActiveSidebar("viewItinerary"); // go to ItineraryPage
+  };
+
   const renderSidebar = () => {
     switch (activeSidebar) {
       case "mine":
@@ -68,12 +82,16 @@ export default function Homepage() {
       case "createNew":
         return (
           <CreateNewItinerary
-            onBack={goToPrevious}
+            newItinerary={newItinerary}
+            setNewItinerary={setNewItinerary}
             destinations={destinations}
             onAddDestinationClick={() => setActiveSidebar("addDestination")}
-            setCurrentPin={setCurrentPin} // Clear homepage map before new pin
+            setCurrentPin={setCurrentPin}
+            onSaveItinerary={handleSaveItinerary}
+            onBack={goToPrevious}
           />
         );
+
       case "addDestination":
         return (
           <AddDestination
@@ -88,7 +106,8 @@ export default function Homepage() {
             initialData={editingDestination} // <-- pre-fill inputs when editing
           />
         );
-
+      case "viewItinerary": // <-- NEW
+        return <ItineraryPage itinerary={currentItinerary} />;
       case "home":
       default:
         return <Sidebar onCreateNew={goToCreate} />;
