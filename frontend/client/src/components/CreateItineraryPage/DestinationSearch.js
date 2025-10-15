@@ -1,14 +1,14 @@
-// DestinationSearch.js
-
+// DestinationSearch.js - Remove numbers
 import React, { useState, useRef } from 'react';
 import './DestinationSearch.css';
 
-function DestinationSearch({ currentStep, onDestinationSelected, onMapSelection, onCancel }) {
+function DestinationSearch({ onDestinationSelected, onMapSelection, onCancel }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
 
     const searchInputRef = useRef(null);
+    const searchContainerRef = useRef(null);
     const autocompleteService = useRef(null);
     const placesService = useRef(null);
 
@@ -27,7 +27,7 @@ function DestinationSearch({ currentStep, onDestinationSelected, onMapSelection,
     const handleSearchChange = (query) => {
         setSearchQuery(query);
 
-        if (query.length < 3) {
+        if (query.length < 2) {
             setSearchResults([]);
             return;
         }
@@ -36,23 +36,48 @@ function DestinationSearch({ currentStep, onDestinationSelected, onMapSelection,
 
         if (autocompleteService.current) {
             setIsSearching(true);
+
+            const request = {
+                input: query,
+                types: ['establishment']
+            };
+
             autocompleteService.current.getPlacePredictions(
-                {
-                    input: query,
-                    types: ['establishment', 'point_of_interest', 'tourist_attraction', 'park', 'museum'],
-                    location: new window.google.maps.LatLng(40.7128, -74.0060),
-                    radius: 50000
-                },
+                request,
                 (predictions, status) => {
                     setIsSearching(false);
+                    console.log('Search status:', status, 'Results:', predictions);
+
                     if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
                         setSearchResults(predictions);
                     } else {
                         setSearchResults([]);
+                        if (status === 'INVALID_REQUEST') {
+                            tryAlternativeSearch(query);
+                        }
                     }
                 }
             );
         }
+    };
+
+    const tryAlternativeSearch = (query) => {
+        if (!autocompleteService.current) return;
+
+        const simpleRequest = {
+            input: query
+        };
+
+        autocompleteService.current.getPlacePredictions(
+            simpleRequest,
+            (predictions, status) => {
+                console.log('Alternative search status:', status, 'Results:', predictions);
+
+                if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+                    setSearchResults(predictions);
+                }
+            }
+        );
     };
 
     const handleSelectSearchResult = (placePrediction) => {
@@ -75,10 +100,25 @@ function DestinationSearch({ currentStep, onDestinationSelected, onMapSelection,
                             lng: place.geometry.location.lng(),
                             types: place.types || [],
                             rating: place.rating || null,
-                            order: currentStep - 1
+                            order: 0
                         };
 
                         onDestinationSelected(newDestination);
+                        setSearchResults([]);
+                    } else {
+                        const fallbackDestination = {
+                            id: Date.now() + Math.random(),
+                            name: placePrediction.structured_formatting.main_text,
+                            address: placePrediction.structured_formatting.secondary_text,
+                            placeId: placePrediction.place_id,
+                            lat: 40.7128,
+                            lng: -74.0060,
+                            types: placePrediction.types || [],
+                            rating: null,
+                            order: 0
+                        };
+                        onDestinationSelected(fallbackDestination);
+                        setSearchResults([]);
                     }
                 }
             );
@@ -86,14 +126,27 @@ function DestinationSearch({ currentStep, onDestinationSelected, onMapSelection,
     };
 
     const handleMapSelection = () => {
+        console.log('Map selection clicked in DestinationSearch');
         onMapSelection();
-        onCancel();
     };
 
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+                setSearchResults([]);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
-        <div className="destination-search-mode">
+        <div className="destination-search-mode" ref={searchContainerRef}>
             <div className="search-header">
-                <h4>Search for Destination {currentStep}</h4>
+                <h4>Search for Destination</h4>
                 <button className="close-search-btn" onClick={onCancel}>×</button>
             </div>
 
@@ -109,23 +162,28 @@ function DestinationSearch({ currentStep, onDestinationSelected, onMapSelection,
                 {isSearching && (
                     <div className="search-loading">Searching...</div>
                 )}
+
+                {searchResults.length > 0 && (
+                    <div className="search-results">
+                        {searchResults.map((result) => (
+                            <div
+                                key={result.place_id}
+                                className="search-result-item"
+                                onClick={() => handleSelectSearchResult(result)}
+                            >
+                                <div className="result-details">
+                                    <div className="result-name">{result.structured_formatting.main_text}</div>
+                                    <div className="result-address">{result.structured_formatting.secondary_text}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {searchResults.length > 0 && (
-                <div className="search-results">
-                    {searchResults.map((result) => (
-                        <div
-                            key={result.place_id}
-                            className="search-result-item"
-                            onClick={() => handleSelectSearchResult(result)}
-                        >
-                            <div className="result-icon">📍</div>
-                            <div className="result-details">
-                                <div className="result-name">{result.structured_formatting.main_text}</div>
-                                <div className="result-address">{result.structured_formatting.secondary_text}</div>
-                            </div>
-                        </div>
-                    ))}
+            {searchQuery.length >= 2 && searchResults.length === 0 && !isSearching && (
+                <div className="no-results">
+                    No places found. Try a different search term.
                 </div>
             )}
 

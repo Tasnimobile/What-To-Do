@@ -1,4 +1,4 @@
-/* Map.css */
+/* Map.css - Updated with better hint placement and design */
 .map-container {
     flex: 1;
     display: flex;
@@ -14,6 +14,12 @@
     min-height: 200px;
     overflow: hidden;
     position: relative;
+}
+
+.map-component-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .google-map {
@@ -38,23 +44,74 @@
     color: #ff6b6b;
 }
 
-.map-selection-mode {
+.map-selection-hint {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9) 0%, rgba(255, 193, 7, 0.95) 100%);
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(113, 193, 157, 0.95);
     color: white;
-    padding: 12px;
+    padding: 12px 20px;
+    border-radius: 10px;
     z-index: 10;
     text-align: center;
-    font-weight: 500;
-    animation: pulse 2s infinite;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: slideDown 0.3s ease-out;
 }
 
-.selection-instruction {
+.selection-hint-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.hint-circle {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.hint-arrow {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.hint-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.hint-title {
     font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.hint-subtitle {
+    font-size: 0.8rem;
     font-weight: 400;
+    opacity: 0.9;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 @keyframes pulse {

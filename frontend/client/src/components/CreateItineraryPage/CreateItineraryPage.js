@@ -1,4 +1,4 @@
-// CreateItineraryPage.js
+// CreateItineraryPage.js - Fixed version with onCancelSelection
 import React, { useState } from 'react';
 import Header from '../HomePage/Header';
 import Map from '../HomePage/Map';
@@ -7,8 +7,12 @@ import '../HomePage/HomePage.css';
 
 function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome }) {
     const [isSelectingLocation, setIsSelectingLocation] = useState(false);
-    const [selectedDestinations, setSelectedDestinations] = useState([]);
     const [currentItineraryDestinations, setCurrentItineraryDestinations] = useState([]);
+
+    console.log('CreateItineraryPage state:', {
+        isSelectingLocation,
+        currentItineraryDestinations
+    });
 
     const handleNavigateToHome = () => {
         if (onNavigateToHome) {
@@ -17,28 +21,43 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
     };
 
     const handleStartLocationSelection = () => {
+        console.log('Starting location selection');
         setIsSelectingLocation(true);
     };
 
     const handleLocationSelected = (location) => {
+        console.log('Location selected in CreateItineraryPage:', location);
+
         const newDestination = {
             id: Date.now() + Math.random(),
-            name: location.name,
-            address: location.address,
+            name: location.name || 'Selected Location',
+            address: location.address || `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,
             lat: location.lat,
             lng: location.lng,
-            order: currentItineraryDestinations.length
+            order: currentItineraryDestinations.length,
+            rating: null
         };
 
-        setCurrentItineraryDestinations(prev => [...prev, newDestination]);
-        setSelectedDestinations(prev => [...prev, newDestination]);
+        console.log('New destination created:', newDestination);
+
+        setCurrentItineraryDestinations(prev => {
+            const updated = [...prev, newDestination];
+            console.log('Updated current destinations:', updated);
+            return updated;
+        });
+
+        setIsSelectingLocation(false);
+    };
+
+    const handleCancelLocationSelection = () => {
+        console.log('Location selection canceled by clicking outside map');
         setIsSelectingLocation(false);
     };
 
     const handleItinerarySave = (itineraryData) => {
+        console.log('Saving itinerary:', itineraryData);
         setCurrentItineraryDestinations([]);
-        setSelectedDestinations([]);
-        console.log('Itinerary saved:', itineraryData);
+        setIsSelectingLocation(false);
 
         if (onNavigateToHome) {
             onNavigateToHome();
@@ -46,12 +65,28 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
     };
 
     const handleItineraryCancel = () => {
+        console.log('Canceling itinerary creation');
         setCurrentItineraryDestinations([]);
-        setSelectedDestinations([]);
+        setIsSelectingLocation(false);
 
         if (onNavigateToHome) {
             onNavigateToHome();
         }
+    };
+
+    const updateItineraryData = (field, value) => {
+        console.log('Updating itinerary data:', field, value);
+        if (field === 'destinations') {
+            setCurrentItineraryDestinations(value);
+        }
+    };
+
+    const handleUpdateDestination = (destinationId, updates) => {
+        console.log('Updating destination location:', destinationId, updates);
+        const updatedDestinations = currentItineraryDestinations.map(dest =>
+            dest.id === destinationId ? { ...dest, ...updates } : dest
+        );
+        setCurrentItineraryDestinations(updatedDestinations);
     };
 
     return (
@@ -66,7 +101,9 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
                 <Map
                     onLocationSelect={handleLocationSelected}
                     isSelectingMode={isSelectingLocation}
-                    selectedDestinations={selectedDestinations}
+                    selectedDestinations={currentItineraryDestinations}
+                    onUpdateDestination={handleUpdateDestination}
+                    onCancelSelection={handleCancelLocationSelection}
                 />
             </div>
 
@@ -76,6 +113,10 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
                     isSelectingLocation={isSelectingLocation}
                     onItinerarySave={handleItinerarySave}
                     onItineraryCancel={handleItineraryCancel}
+                    itineraryData={{
+                        destinations: currentItineraryDestinations
+                    }}
+                    onUpdate={updateItineraryData}
                 />
             </div>
         </div>
