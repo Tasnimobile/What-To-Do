@@ -5,13 +5,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3%;
+    padding: 2%;
+    /* Reduced from 3% */
     overflow: hidden;
 }
 
 .account-setup-container {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
-    padding: 30px;
+    padding: 20px;
+    /* Reduced from 30px */
     border-radius: 20px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
     width: 100%;
@@ -22,13 +24,15 @@
 
 .setup-header {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+    /* Reduced from 25px */
 }
 
 .setup-header h1 {
     color: white;
     margin: 0;
-    font-size: 4rem;
+    font-size: 3.5rem;
+    /* Reduced from 4rem */
     font-weight: 300;
     letter-spacing: 1px;
 }
@@ -36,7 +40,8 @@
 .setup-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
+    /* Reduced from 20px */
 }
 
 .form-group {
@@ -45,7 +50,8 @@
 }
 
 .account-setup-page .form-input {
-    padding: 14px;
+    padding: 12px;
+    /* Reduced from 14px */
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     font-size: 16px;
@@ -59,7 +65,8 @@
 }
 
 .account-setup-page .form-textarea {
-    padding: 14px;
+    padding: 12px;
+    /* Reduced from 14px */
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     font-size: 14px;
@@ -69,7 +76,8 @@
     font-weight: 300;
     font-family: inherit;
     resize: vertical;
-    min-height: 80px;
+    min-height: 70px;
+    /* Reduced from 80px */
     width: 80%;
     margin: 0 auto;
 }
@@ -93,27 +101,33 @@
     text-align: right;
     color: rgba(255, 255, 255, 0.7);
     font-size: 12px;
-    margin-top: 5px;
+    margin-top: 3px;
+    /* Reduced from 5px */
     font-weight: 300;
     width: 80%;
-    margin: 5px auto 0 auto;
+    margin: 3px auto 0 auto;
+    /* Reduced from 5px */
 }
 
 .account-setup-page .setup-button {
-    padding: 12px;
+    padding: 10px;
+    /* Reduced from 12px */
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
-    font-size: 18px;
+    font-size: 16px;
+    /* Reduced from 18px */
     font-weight: 300;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 10px;
+    margin-top: 5px;
+    /* Reduced from 10px */
     letter-spacing: 1px;
     width: 30%;
     height: auto;
-    min-height: 44px;
+    min-height: 40px;
+    /* Reduced from 44px */
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -139,8 +153,10 @@
 
 .back-button-container {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 15px;
+    /* Reduced from 20px */
+    left: 15px;
+    /* Reduced from 20px */
 }
 
 .back-button {
@@ -151,8 +167,10 @@
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
-    padding: 10px 18px;
-    font-size: 16px;
+    padding: 8px 15px;
+    /* Reduced from 10px 18px */
+    font-size: 14px;
+    /* Reduced from 16px */
     font-weight: 300;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -182,12 +200,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 25px;
+    gap: 20px;
+    /* Reduced from 25px */
 }
 
 .account-setup-page .profile-picture-preview {
-    width: 120px;
-    height: 120px;
+    width: 110px;
+    /* Reduced from 120px */
+    height: 110px;
+    /* Reduced from 120px */
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.3);
     overflow: hidden;
@@ -211,8 +232,10 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    /* Reduced from 24px */
+    height: 22px;
+    /* Reduced from 24px */
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.6);
     color: white;
@@ -221,7 +244,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
+    /* Reduced from 16px */
     line-height: 1;
 }
 
@@ -241,19 +265,23 @@
 
 .account-setup-page .upload-placeholder svg {
     opacity: 0.6;
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    /* Reduced from 48px */
+    height: 42px;
+    /* Reduced from 48px */
 }
 
 .account-setup-page .file-input-label {
-    padding: 10px 20px;
+    padding: 8px 16px;
+    /* Reduced from 10px 20px */
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 14px;
+    font-size: 13px;
+    /* Reduced from 14px */
     font-weight: 300;
     text-align: center;
 }
@@ -266,4 +294,56 @@
 
 .file-input {
     display: none;
+}
+
+.account-setup-page .skip-button {
+    padding: 10px;
+    /* Reduced from 12px */
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 14px;
+    /* Reduced from 16px */
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 5px;
+    /* Reduced from 10px */
+    letter-spacing: 1px;
+    width: 40%;
+    height: auto;
+    min-height: 38px;
+    /* Reduced from 44px */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.account-setup-page .skip-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.account-setup-page .skip-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.account-setup-page .skip-button:active {
+    transform: translateY(0);
+}
+
+.account-setup-page .button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Reduced from 10px */
+    margin-top: 5px;
+    /* Reduced from 10px */
 }

@@ -40,6 +40,17 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
         }
     };
 
+    const handleSkip = async () => {
+        try {
+            // Call the onComplete function directly to navigate to homepage
+            // Pass the current user data (which might be incomplete)
+            onComplete(user);
+        } catch (err) {
+            console.error("Skip setup error:", err);
+            alert("Something went wrong. Please try again.");
+        }
+    };
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -160,6 +171,9 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
                     <div className="button-container">
                         <button type="submit" className="setup-button">
                             Complete Setup
+                        </button>
+                        <button type="button" className="skip-button" onClick={handleSkip}>
+                            Skip and Set Up Later
                         </button>
                     </div>
                 </form>

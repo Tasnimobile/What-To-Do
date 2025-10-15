@@ -8,13 +8,25 @@ import SignupPage from './components/SignupPage/SignupPage';
 import AccountSetupPage from './components/AccountSetupPage/AccountSetupPage';
 import UserProfilePage from './components/UserProfilePage/UserProfilePage';
 import Homepage from './components/HomePage/HomePage';
-import CreateItineraryPage from './components/CreateItineraryPage/CreateItineraryPage'; // Add this import
+import CreateItineraryPage from './components/CreateItineraryPage/CreateItineraryPage';
+import UniversalErrorPopup from './components/UniversalErrorPopup/UniversalErrorPopup'; // Add this import
 
 function App() {
   const [currentPage, setCurrentPage] = useState('welcome');
   const [pageHistory, setPageHistory] = useState(['welcome']);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [globalError, setGlobalError] = useState(''); // Add global error state
+
+  // Clear global error
+  const clearGlobalError = () => {
+    setGlobalError('');
+  };
+
+  // Function to show global errors
+  const showGlobalError = (message) => {
+    setGlobalError(message);
+  };
 
   useEffect(() => {
     const checkUserSession = async () => {
@@ -37,6 +49,7 @@ function App() {
         }
       } catch (error) {
         console.error("Session check failed:", error);
+        showGlobalError("Failed to check user session. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -114,6 +127,7 @@ function App() {
     try {
       return JSON.parse(atob(token.split('.')[1]));
     } catch (e) {
+      showGlobalError("Failed to process login. Please try again.");
       return null;
     }
   };
@@ -134,7 +148,7 @@ function App() {
     if (user) {
       navigateTo('profile');
     } else {
-      console.error('No user data available');
+      showGlobalError("Please log in to view your profile.");
       navigateTo('login');
     }
   };
@@ -207,10 +221,10 @@ function App() {
             onBack={handleBack}
             user={user}
             onNavigateToProfile={switchToProfile}
-            onNavigateToCreate={switchToCreateItinerary} // Add this prop
+            onNavigateToCreate={switchToCreateItinerary}
           />
         );
-      case 'create-itinerary': // Add this case
+      case 'create-itinerary':
         return (
           <CreateItineraryPage
             onBack={handleBack}
@@ -236,6 +250,13 @@ function App() {
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENT_ID}>
       <div className="app">
         {renderCurrentPage()}
+
+        {/* Global Error Popup - appears on top of everything */}
+        <UniversalErrorPopup
+          message={globalError}
+          onClose={clearGlobalError}
+          duration={6000}
+        />
       </div>
     </GoogleOAuthProvider>
   );
