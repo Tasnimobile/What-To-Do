@@ -1,4 +1,4 @@
-// CreateItineraryPage.js - Fixed version with onCancelSelection
+// CreateItineraryPage.js - Fixed version with proper state management
 import React, { useState } from 'react';
 import Header from '../HomePage/Header';
 import Map from '../HomePage/Map';
@@ -7,11 +7,19 @@ import '../HomePage/HomePage.css';
 
 function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome }) {
     const [isSelectingLocation, setIsSelectingLocation] = useState(false);
-    const [currentItineraryDestinations, setCurrentItineraryDestinations] = useState([]);
+    const [itineraryData, setItineraryData] = useState({
+        title: '',
+        description: '',
+        tags: [],
+        duration: '1 day',
+        price: '$$',
+        customTag: '',
+        destinations: []
+    });
 
     console.log('CreateItineraryPage state:', {
         isSelectingLocation,
-        currentItineraryDestinations
+        itineraryData
     });
 
     const handleNavigateToHome = () => {
@@ -34,17 +42,16 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
             address: location.address || `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,
             lat: location.lat,
             lng: location.lng,
-            order: currentItineraryDestinations.length,
+            order: itineraryData.destinations.length,
             rating: null
         };
 
         console.log('New destination created:', newDestination);
 
-        setCurrentItineraryDestinations(prev => {
-            const updated = [...prev, newDestination];
-            console.log('Updated current destinations:', updated);
-            return updated;
-        });
+        setItineraryData(prev => ({
+            ...prev,
+            destinations: [...prev.destinations, newDestination]
+        }));
 
         setIsSelectingLocation(false);
     };
@@ -56,7 +63,15 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
 
     const handleItinerarySave = (itineraryData) => {
         console.log('Saving itinerary:', itineraryData);
-        setCurrentItineraryDestinations([]);
+        setItineraryData({
+            title: '',
+            description: '',
+            tags: [],
+            duration: '1 day',
+            price: '$$',
+            customTag: '',
+            destinations: []
+        });
         setIsSelectingLocation(false);
 
         if (onNavigateToHome) {
@@ -66,7 +81,15 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
 
     const handleItineraryCancel = () => {
         console.log('Canceling itinerary creation');
-        setCurrentItineraryDestinations([]);
+        setItineraryData({
+            title: '',
+            description: '',
+            tags: [],
+            duration: '1 day',
+            price: '$$',
+            customTag: '',
+            destinations: []
+        });
         setIsSelectingLocation(false);
 
         if (onNavigateToHome) {
@@ -76,17 +99,21 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
 
     const updateItineraryData = (field, value) => {
         console.log('Updating itinerary data:', field, value);
-        if (field === 'destinations') {
-            setCurrentItineraryDestinations(value);
-        }
+        setItineraryData(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const handleUpdateDestination = (destinationId, updates) => {
         console.log('Updating destination location:', destinationId, updates);
-        const updatedDestinations = currentItineraryDestinations.map(dest =>
+        const updatedDestinations = itineraryData.destinations.map(dest =>
             dest.id === destinationId ? { ...dest, ...updates } : dest
         );
-        setCurrentItineraryDestinations(updatedDestinations);
+        setItineraryData(prev => ({
+            ...prev,
+            destinations: updatedDestinations
+        }));
     };
 
     return (
@@ -101,7 +128,7 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
                 <Map
                     onLocationSelect={handleLocationSelected}
                     isSelectingMode={isSelectingLocation}
-                    selectedDestinations={currentItineraryDestinations}
+                    selectedDestinations={itineraryData.destinations}
                     onUpdateDestination={handleUpdateDestination}
                     onCancelSelection={handleCancelLocationSelection}
                 />
@@ -113,9 +140,7 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
                     isSelectingLocation={isSelectingLocation}
                     onItinerarySave={handleItinerarySave}
                     onItineraryCancel={handleItineraryCancel}
-                    itineraryData={{
-                        destinations: currentItineraryDestinations
-                    }}
+                    itineraryData={itineraryData}
                     onUpdate={updateItineraryData}
                 />
             </div>
