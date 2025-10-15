@@ -1,11 +1,11 @@
-// HomePage.js
+// HomePage.js (updated)
 import React, { useState } from 'react';
 import Header from './Header';
 import Map from './Map';
 import Sidebar from './Sidebar';
 import './HomePage.css';
 
-function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate }) {
+function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary }) { // Add onViewItinerary prop
     const [selectedDestinations, setSelectedDestinations] = useState([]);
 
     const handleNavigateToHome = () => {
@@ -15,6 +15,12 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate }) {
     const handleCreateNew = () => {
         if (onNavigateToCreate) {
             onNavigateToCreate();
+        }
+    };
+
+    const handleViewItinerary = (itinerary) => {
+        if (onViewItinerary) {
+            onViewItinerary(itinerary);
         }
     };
 
@@ -35,6 +41,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate }) {
             <div className="sidebar-container">
                 <Sidebar
                     onCreateNew={handleCreateNew}
+                    onViewItinerary={handleViewItinerary}
                 />
             </div>
         </div>

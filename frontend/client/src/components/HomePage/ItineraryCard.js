@@ -1,16 +1,27 @@
-// ItineraryCard.js (updated)
+// ItineraryCard.js
 import React, { useState } from 'react';
 import './ItineraryCard.css';
 
-function ItineraryCard({ title, description, rating, tags, duration, price }) {
+function ItineraryCard({ title, description, rating, tags, duration, price, onClick, itineraryId }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const handleReadMore = () => {
+    const handleReadMore = (e) => {
+        e.stopPropagation();
         setIsExpanded(!isExpanded);
     };
 
+    const handleCardClick = () => {
+        if (onClick && itineraryId) {
+            onClick(itineraryId);
+        }
+    };
+
     return (
-        <div className={`itinerary-card ${isExpanded ? 'expanded' : ''}`}>
+        <div
+            className={`itinerary-card ${isExpanded ? 'expanded' : ''}`}
+            onClick={handleCardClick}
+            style={{ cursor: onClick ? 'pointer' : 'default' }}
+        >
             <div className="itinerary-header">
                 <h3>{title}</h3>
                 <div className="rating">
@@ -26,7 +37,6 @@ function ItineraryCard({ title, description, rating, tags, duration, price }) {
                 {description}
             </p>
 
-            {/* Expanded content */}
             {isExpanded && (
                 <div className="expanded-content">
                     <div className="itinerary-details">

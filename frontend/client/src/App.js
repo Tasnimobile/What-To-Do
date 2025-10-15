@@ -9,21 +9,21 @@ import AccountSetupPage from './components/AccountSetupPage/AccountSetupPage';
 import UserProfilePage from './components/UserProfilePage/UserProfilePage';
 import Homepage from './components/HomePage/HomePage';
 import CreateItineraryPage from './components/CreateItineraryPage/CreateItineraryPage';
-import UniversalErrorPopup from './components/UniversalErrorPopup/UniversalErrorPopup'; // Add this import
+import ViewItineraryPage from './components/ViewItineraryPage/ViewItineraryPage';
+import UniversalErrorPopup from './components/UniversalErrorPopup/UniversalErrorPopup';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('welcome');
   const [pageHistory, setPageHistory] = useState(['welcome']);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [globalError, setGlobalError] = useState(''); // Add global error state
+  const [globalError, setGlobalError] = useState('');
+  const [selectedItinerary, setSelectedItinerary] = useState(null);
 
-  // Clear global error
   const clearGlobalError = () => {
     setGlobalError('');
   };
 
-  // Function to show global errors
   const showGlobalError = (message) => {
     setGlobalError(message);
   };
@@ -161,6 +161,11 @@ function App() {
     navigateTo('create-itinerary');
   };
 
+  const switchToViewItinerary = (itinerary) => {
+    setSelectedItinerary(itinerary);
+    navigateTo('view-itinerary');
+  };
+
   if (isLoading) {
     return (
       <div className="app">
@@ -222,11 +227,22 @@ function App() {
             user={user}
             onNavigateToProfile={switchToProfile}
             onNavigateToCreate={switchToCreateItinerary}
+            onViewItinerary={switchToViewItinerary}
           />
         );
       case 'create-itinerary':
         return (
           <CreateItineraryPage
+            onBack={handleBack}
+            user={user}
+            onNavigateToProfile={switchToProfile}
+            onNavigateToHome={switchToHomepage}
+          />
+        );
+      case 'view-itinerary':
+        return (
+          <ViewItineraryPage
+            itinerary={selectedItinerary}
             onBack={handleBack}
             user={user}
             onNavigateToProfile={switchToProfile}
@@ -251,7 +267,6 @@ function App() {
       <div className="app">
         {renderCurrentPage()}
 
-        {/* Global Error Popup - appears on top of everything */}
         <UniversalErrorPopup
           message={globalError}
           onClose={clearGlobalError}

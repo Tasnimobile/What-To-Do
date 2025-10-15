@@ -73,7 +73,6 @@
     }
 }
 
-/* Responsive design */
 @media (max-width: 480px) {
     .universal-error-popup {
         max-width: 90%;

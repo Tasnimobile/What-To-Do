@@ -42,8 +42,6 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
 
     const handleSkip = async () => {
         try {
-            // Call the onComplete function directly to navigate to homepage
-            // Pass the current user data (which might be incomplete)
             onComplete(user);
         } catch (err) {
             console.error("Skip setup error:", err);

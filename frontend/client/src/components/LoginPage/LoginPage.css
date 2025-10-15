@@ -58,15 +58,12 @@
     width: 100%;
     box-sizing: border-box;
     height: 64px;
-    /* Fixed height for both */
     line-height: 1.5;
-    /* Better text alignment */
 }
 
 .password-input-container .form-input {
     width: 100% !important;
     padding: 16px 45px 16px 16px;
-    /* Extra right padding for toggle button */
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     font-size: 24px;
@@ -78,9 +75,7 @@
     box-sizing: border-box;
     margin: 0;
     height: 64px;
-    /* Same fixed height */
     line-height: 1.5;
-    /* Same line height */
 }
 
 .form-input:focus {
