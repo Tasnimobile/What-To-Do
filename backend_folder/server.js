@@ -16,6 +16,19 @@ const createTables = db.transaction(() => {
         password STRING NOT NULL
         )
         `).run()
+
+  db.prepare(`
+        CREATE TABLE IF NOT EXISTS itineraries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title STRING NOT NULL,
+        description TEXT NOT NULL,
+        tags TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(tags)),
+        duration TEXT NOT NULL,
+        price TEXT NOT NULL,
+        authorid INTEGER,
+        FOREIGN KEY (authorid) REFERENCES user (id)
+        )
+        `).run()
 })
 
 createTables();
@@ -342,6 +355,21 @@ app.post("/api/logout", (req, res) => {
   res.clearCookie("ourSimpleApp");
   res.json({ ok: true, message: "Logged out" });
 });
+
+app.get("/api/itineraries", (req, res) => {
+  const statement = db.prepare("SELECT * FROM itineraries")
+  const itineraries = statement.all()
+  
+  res.json({ ok: true, itineraries });
+})
+
+app.post("/api/create-itinerary", (req, res) => {
+  const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, authorid) VALUES (?, ?, ?, ?, ?, ?)")
+  const result = ourStatement.run(req.body.title, req.body.description, req.body.tags, req.body.duration, req.body.price, req.user.userid)
+})
+
+
+
 
 
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));

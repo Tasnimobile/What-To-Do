@@ -5,6 +5,7 @@ import FilterModal from './FilterModal';
 import './Sidebar.css';
 
 function Sidebar({ onCreateNew, onViewItinerary }) {
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [itineraries, setItineraries] = useState([

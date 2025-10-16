@@ -29,11 +29,10 @@ function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation,
 
     console.log('Sidebar itinerary data:', actualItineraryData);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         console.log('Saving itinerary with data:', actualItineraryData);
         const title = actualItineraryData.title || '';
         const destinations = actualItineraryData.destinations || [];
-
         if (title.trim() && destinations.length > 0) {
             onItinerarySave({
                 ...actualItineraryData,
@@ -41,6 +40,42 @@ function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation,
                 rating: 0
             });
         } else {
+            console.log('Cannot save - missing title or destinations');
+        }
+
+        try { 
+            const res = await fetch("http://localhost:3000/api/create-itinerary", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    title: actualItineraryData.title,
+                    description: actualItineraryData.description,
+                    tags: JSON.stringify(actualItineraryData.tags || []),
+                    duration: actualItineraryData.duration,
+                    price: actualItineraryData.price,
+                }),
+            });
+            const ct = res.headers.get("content-type") || "";
+            const payload = ct.includes("application/json")
+                ? await res.json()
+                : { ok: false, raw: await res.text() };
+
+            if (res.ok && payload.ok) {
+                const saved = payload.itinerary;
+                onItinerarySave(saved);
+                return;
+
+            } else {
+                const msg =
+                payload.errors?.join(", ") ||
+                payload.raw ||
+                `Create itinerary failed (status ${res.status})`;
+                console.error(msg);
+}
+
+        }
+        catch(err) {
             console.log('Cannot save - missing title or destinations');
         }
     };
@@ -92,7 +127,8 @@ function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation,
                 <button
                     className="save-btn"
                     onClick={handleSave}
-                    disabled={!actualItineraryData.title?.trim() || (actualItineraryData.destinations || []).length === 0}
+                    disabled={!actualItineraryData.title?.trim()}
+
                 >
                     Create Itinerary ({(actualItineraryData.destinations || []).length} destinations)
                 </button>
