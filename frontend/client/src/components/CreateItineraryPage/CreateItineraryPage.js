@@ -1,11 +1,11 @@
-// CreateItineraryPage.js - Fixed version with proper state management
+// CreateItineraryPage.js 
 import React, { useState } from 'react';
 import Header from '../HomePage/Header';
 import Map from '../HomePage/Map';
 import CreateItinerarySidebar from './CreateItinerarySidebar';
 import '../HomePage/HomePage.css';
 
-function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome }) {
+function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome, onNavigateToCreated }) {
     const [isSelectingLocation, setIsSelectingLocation] = useState(false);
     const [itineraryData, setItineraryData] = useState({
         title: '',
@@ -63,6 +63,11 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
 
     const handleItinerarySave = (itineraryData) => {
         console.log('Saving itinerary:', itineraryData);
+
+        const savedItineraries = JSON.parse(localStorage.getItem('userItineraries') || '[]');
+        const updatedItineraries = [...savedItineraries, itineraryData];
+        localStorage.setItem('userItineraries', JSON.stringify(updatedItineraries));
+
         setItineraryData({
             title: '',
             description: '',
@@ -124,6 +129,7 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
                     user={user}
                     onNavigateToProfile={onNavigateToProfile}
                     onNavigateToHome={handleNavigateToHome}
+                    onNavigateToCreated={onNavigateToCreated}
                 />
                 <Map
                     onLocationSelect={handleLocationSelected}
@@ -142,6 +148,7 @@ function CreateItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHo
                     onItineraryCancel={handleItineraryCancel}
                     itineraryData={itineraryData}
                     onUpdate={updateItineraryData}
+                    user={user}
                 />
             </div>
         </div>

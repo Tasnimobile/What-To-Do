@@ -1,4 +1,4 @@
-// Map.js - Fixed outside click behavior
+// Map.js 
 import React, { useState, useEffect } from 'react';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 import './Map.css';

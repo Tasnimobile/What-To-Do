@@ -2,11 +2,15 @@
 import React from 'react';
 import './ProfileStats.css';
 
-const ProfileStats = () => {
+const ProfileStats = ({ userItineraries = [] }) => {
     const stats = {
-        itineraries: 0,
+        itineraries: userItineraries.length,
         saved: 0,
-        recent: 0
+        recent: userItineraries.filter(itin => {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            return new Date(itin.createdAt) > oneWeekAgo;
+        }).length
     };
 
     return (

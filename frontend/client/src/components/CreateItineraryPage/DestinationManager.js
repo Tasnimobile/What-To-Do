@@ -1,4 +1,4 @@
-// DestinationManager.js - Fixed version
+// DestinationManager.js
 import React, { useState, useRef, useEffect } from 'react';
 import './DestinationManager.css';
 import DestinationSearch from './DestinationSearch';

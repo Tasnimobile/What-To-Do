@@ -4,39 +4,9 @@ import ItineraryCard from './ItineraryCard';
 import FilterModal from './FilterModal';
 import './Sidebar.css';
 
-function Sidebar({ onCreateNew, onViewItinerary }) {
-    
+function Sidebar({ onCreateNew, onViewItinerary, itineraries = [] }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const [itineraries, setItineraries] = useState([
-        {
-            id: 1,
-            title: "Central Park Day",
-            rating: 5,
-            description: "A perfect day exploring Central Park's hidden gems and main attractions",
-            tags: ["park", "outdoors", "family"],
-            duration: "1 day",
-            price: "$$"
-        },
-        {
-            id: 2,
-            title: "Brooklyn Food Tour",
-            rating: 4,
-            description: "Culinary adventure through Brooklyn's best eateries and food markets",
-            tags: ["food", "cultural", "walking"],
-            duration: "4 hours",
-            price: "$$$"
-        },
-        {
-            id: 3,
-            title: "Museum Hopping",
-            rating: 3,
-            description: "Explore NYC's world-class museums and cultural institutions",
-            tags: ["museums", "educational", "indoor"],
-            duration: "6 hours",
-            price: "$$"
-        }
-    ]);
     const [filters, setFilters] = useState({
         minRating: 0,
         tags: [],

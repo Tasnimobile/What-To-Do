@@ -57,6 +57,7 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 0 0 12px 12px;
     margin-top: -5px;
+    padding: 20px;
 }
 
 .grid-placeholder {
@@ -81,6 +82,88 @@
     line-height: 1.6;
 }
 
+.itineraries-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.itinerary-grid-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.itineraries-grid .itinerary-card {
+    margin-bottom: 0;
+    height: 100%;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+}
+
+.itineraries-grid .itinerary-header {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+}
+
+.itineraries-grid .collapsed-description,
+.itineraries-grid .expanded-description {
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    min-height: 80px;
+    flex: 1;
+}
+
+.itineraries-grid .itinerary-details {
+    padding: 12px 14px;
+}
+
+.itineraries-grid .detail-item {
+    font-size: 0.75rem;
+}
+
+.itineraries-grid .tags-container {
+    gap: 4px;
+}
+
+.itineraries-grid .tag {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+}
+
+.itineraries-grid .itinerary-card button {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    min-height: 40px;
+}
+
+.itineraries-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.itineraries-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.itineraries-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.itineraries-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 1200px) {
+    .itineraries-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .itinerary-container {
         padding: 25px 20px;
@@ -92,10 +175,42 @@
         padding: 16px 12px;
         font-size: 0.85rem;
     }
+
+    .content-grid {
+        padding: 15px;
+    }
+
+    .itineraries-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        max-height: 500px;
+    }
+
+    .itineraries-grid .itinerary-card {
+        min-height: 250px;
+    }
 }
 
 @media (max-width: 480px) {
     .itinerary-container {
         padding: 20px 15px;
+    }
+
+    .itineraries-grid {
+        max-height: 400px;
+    }
+
+    .itineraries-grid .itinerary-card {
+        min-height: 220px;
+    }
+}
+
+@media (max-width: 360px) {
+    .itineraries-grid {
+        gap: 12px;
+    }
+
+    .itineraries-grid .itinerary-card {
+        min-height: 200px;
     }
 }

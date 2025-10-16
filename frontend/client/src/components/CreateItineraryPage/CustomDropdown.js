@@ -1,4 +1,4 @@
-// CustomDropdown.js - Optional custom dropdown component
+// CustomDropdown.js 
 import React, { useState, useRef, useEffect } from 'react';
 import './CustomDropdown.css';
 

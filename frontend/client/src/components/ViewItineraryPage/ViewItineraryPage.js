@@ -5,12 +5,18 @@ import Map from '../HomePage/Map';
 import ViewItinerarySidebar from './ViewItinerarySidebar';
 import '../HomePage/HomePage.css';
 
-function ViewItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome, itinerary }) {
+function ViewItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome, onNavigateToCreated, itinerary }) {
     console.log('ViewItineraryPage received itinerary:', itinerary);
 
     const handleNavigateToHome = () => {
         if (onNavigateToHome) {
             onNavigateToHome();
+        }
+    };
+
+    const handleNavigateToCreated = () => {
+        if (onNavigateToCreated) {
+            onNavigateToCreated();
         }
     };
 
@@ -24,6 +30,7 @@ function ViewItineraryPage({ onBack, user, onNavigateToProfile, onNavigateToHome
                     user={user}
                     onNavigateToProfile={onNavigateToProfile}
                     onNavigateToHome={handleNavigateToHome}
+                    onNavigateToCreated={handleNavigateToCreated}
                 />
                 <Map
                     selectedDestinations={mapDestinations}

@@ -6,14 +6,16 @@ import ProfileStats from './ProfileStats';
 import ItineraryView from './ItineraryView';
 import './UserProfilePage.css';
 
-const UserProfilePage = ({ user, onBack, onUpdate }) => {
+const UserProfilePage = ({ user, onBack, onUpdate, onNavigateToCreated, onViewItinerary, onNavigateToHome }) => { // Add onNavigateToHome prop
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('itineraries');
+    const [userItineraries, setUserItineraries] = useState([]);
 
     useEffect(() => {
         if (user) {
             setIsLoading(false);
+            loadUserItineraries();
         } else {
             const timer = setTimeout(() => {
                 if (!user) {
@@ -24,6 +26,22 @@ const UserProfilePage = ({ user, onBack, onUpdate }) => {
             return () => clearTimeout(timer);
         }
     }, [user, onBack]);
+
+    const loadUserItineraries = () => {
+        try {
+            const savedItineraries = localStorage.getItem('userItineraries');
+            if (savedItineraries) {
+                const allItineraries = JSON.parse(savedItineraries);
+                const userCreated = allItineraries.filter(itinerary =>
+                    itinerary.createdBy === (user?.id || 'current-user')
+                );
+                setUserItineraries(userCreated);
+                console.log('User itineraries loaded:', userCreated);
+            }
+        } catch (error) {
+            console.error('Error loading user itineraries:', error);
+        }
+    };
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -40,6 +58,18 @@ const UserProfilePage = ({ user, onBack, onUpdate }) => {
 
     const handleTabClick = (tab) => {
         setActiveTab(tab);
+    };
+
+    const handleNavigateToHome = () => {
+        if (onNavigateToHome) {
+            onNavigateToHome();
+        }
+    };
+
+    const handleViewItinerary = (itinerary) => {
+        if (onViewItinerary) {
+            onViewItinerary(itinerary);
+        }
     };
 
     if (isLoading || !user) {
@@ -74,6 +104,8 @@ const UserProfilePage = ({ user, onBack, onUpdate }) => {
                     onBack={onBack}
                     user={user}
                     onNavigateToProfile={() => { }}
+                    onNavigateToHome={handleNavigateToHome}
+                    onNavigateToCreated={onNavigateToCreated}
                 />
             </div>
 
@@ -97,13 +129,16 @@ const UserProfilePage = ({ user, onBack, onUpdate }) => {
                 />
 
                 {/* Profile Stats Section */}
-                <ProfileStats />
+                <ProfileStats userItineraries={userItineraries} />
             </div>
 
             {/* Itinerary View Options */}
             <ItineraryView
                 activeTab={activeTab}
                 onTabClick={handleTabClick}
+                userItineraries={userItineraries}
+                user={user}
+                onViewItinerary={handleViewItinerary}
             />
         </div>
     );

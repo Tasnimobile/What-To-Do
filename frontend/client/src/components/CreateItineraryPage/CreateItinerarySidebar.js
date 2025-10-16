@@ -1,12 +1,12 @@
-// CreateItinerarySidebar.js - Fixed
-import React, { useState, useRef } from 'react';
+// CreateItinerarySidebar.js
+import React, { useState } from 'react';
 import './CreateItinerarySidebar.css';
 import './FormStyles.css';
 import ItineraryForm from './ItineraryForm';
 import DestinationManager from './DestinationManager';
 import TagsManager from './TagsManager';
 
-function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation, onItinerarySave, onItineraryCancel, itineraryData, onUpdate }) {
+function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation, onItinerarySave, onItineraryCancel, itineraryData, onUpdate, user }) {
     const [localItineraryData, setLocalItineraryData] = useState({
         title: '',
         description: '',
@@ -33,49 +33,43 @@ function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation,
         console.log('Saving itinerary with data:', actualItineraryData);
         const title = actualItineraryData.title || '';
         const destinations = actualItineraryData.destinations || [];
+
         if (title.trim() && destinations.length > 0) {
-            onItinerarySave({
+            const newItinerary = {
                 ...actualItineraryData,
                 id: Date.now(),
-                rating: 0
-            });
+                rating: 0,
+                createdAt: new Date().toISOString(),
+                createdBy: user?.id || 'current-user'
+            };
+
+            onItinerarySave(newItinerary);
+
+            try {
+                const res = await fetch("http://localhost:3000/api/create-itinerary", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        title: actualItineraryData.title,
+                        description: actualItineraryData.description,
+                        tags: JSON.stringify(actualItineraryData.tags || []),
+                        duration: actualItineraryData.duration,
+                        price: actualItineraryData.price,
+                        destinations: JSON.stringify(actualItineraryData.destinations || [])
+                    }),
+                });
+
+                if (res.ok) {
+                    const payload = await res.json();
+                    console.log('Itinerary saved to server:', payload);
+                } else {
+                    console.error('Failed to save itinerary to server');
+                }
+            } catch (err) {
+                console.error('Error saving itinerary to server:', err);
+            }
         } else {
-            console.log('Cannot save - missing title or destinations');
-        }
-
-        try { 
-            const res = await fetch("http://localhost:3000/api/create-itinerary", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    title: actualItineraryData.title,
-                    description: actualItineraryData.description,
-                    tags: JSON.stringify(actualItineraryData.tags || []),
-                    duration: actualItineraryData.duration,
-                    price: actualItineraryData.price,
-                }),
-            });
-            const ct = res.headers.get("content-type") || "";
-            const payload = ct.includes("application/json")
-                ? await res.json()
-                : { ok: false, raw: await res.text() };
-
-            if (res.ok && payload.ok) {
-                const saved = payload.itinerary;
-                onItinerarySave(saved);
-                return;
-
-            } else {
-                const msg =
-                payload.errors?.join(", ") ||
-                payload.raw ||
-                `Create itinerary failed (status ${res.status})`;
-                console.error(msg);
-}
-
-        }
-        catch(err) {
             console.log('Cannot save - missing title or destinations');
         }
     };
@@ -128,7 +122,6 @@ function CreateItinerarySidebar({ onStartLocationSelection, isSelectingLocation,
                     className="save-btn"
                     onClick={handleSave}
                     disabled={!actualItineraryData.title?.trim()}
-
                 >
                     Create Itinerary ({(actualItineraryData.destinations || []).length} destinations)
                 </button>

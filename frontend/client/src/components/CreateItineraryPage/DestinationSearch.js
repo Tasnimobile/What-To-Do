@@ -1,4 +1,4 @@
-// DestinationSearch.js - Remove numbers
+// DestinationSearch.js 
 import React, { useState, useRef } from 'react';
 import './DestinationSearch.css';
 

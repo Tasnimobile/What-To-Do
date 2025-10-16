@@ -1,4 +1,4 @@
-// src/App.js
+// App.js 
 import React, { useState, useEffect } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './App.css';
@@ -10,6 +10,7 @@ import UserProfilePage from './components/UserProfilePage/UserProfilePage';
 import Homepage from './components/HomePage/HomePage';
 import CreateItineraryPage from './components/CreateItineraryPage/CreateItineraryPage';
 import ViewItineraryPage from './components/ViewItineraryPage/ViewItineraryPage';
+import CreatedItinerariesPage from './components/CreatedItinerariesPage/CreatedItinerariesPage';
 import UniversalErrorPopup from './components/UniversalErrorPopup/UniversalErrorPopup';
 
 function App() {
@@ -166,6 +167,15 @@ function App() {
     navigateTo('view-itinerary');
   };
 
+  const switchToCreatedItineraries = () => {
+    if (user) {
+      navigateTo('created-itineraries');
+    } else {
+      showGlobalError("Please log in to view your created itineraries.");
+      navigateTo('login');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="app">
@@ -218,6 +228,9 @@ function App() {
             user={user}
             onBack={handleBack}
             onUpdate={handleProfileUpdate}
+            onNavigateToCreated={switchToCreatedItineraries}
+            onViewItinerary={switchToViewItinerary}
+            onNavigateToHome={switchToHomepage}
           />
         );
       case 'homepage':
@@ -228,6 +241,7 @@ function App() {
             onNavigateToProfile={switchToProfile}
             onNavigateToCreate={switchToCreateItinerary}
             onViewItinerary={switchToViewItinerary}
+            onNavigateToCreated={switchToCreatedItineraries}
           />
         );
       case 'create-itinerary':
@@ -237,6 +251,7 @@ function App() {
             user={user}
             onNavigateToProfile={switchToProfile}
             onNavigateToHome={switchToHomepage}
+            onNavigateToCreated={switchToCreatedItineraries}
           />
         );
       case 'view-itinerary':
@@ -247,6 +262,20 @@ function App() {
             user={user}
             onNavigateToProfile={switchToProfile}
             onNavigateToHome={switchToHomepage}
+            onNavigateToCreated={switchToCreatedItineraries}
+          />
+        );
+
+      case 'created-itineraries':
+        return (
+          <CreatedItinerariesPage
+            onBack={handleBack}
+            user={user}
+            onNavigateToProfile={switchToProfile}
+            onNavigateToHome={switchToHomepage}
+            onViewItinerary={switchToViewItinerary}
+            onNavigateToCreate={switchToCreateItinerary}
+            onNavigateToCreated={switchToCreatedItineraries}
           />
         );
       case 'welcome':
