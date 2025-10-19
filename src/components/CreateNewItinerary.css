@@ -144,7 +144,6 @@
   font-weight: bold;
 }
 
-/* Destinations */
 .destinations {
   display: flex;
   flex-direction: column;
@@ -152,10 +151,9 @@
   margin-bottom: 16px;
 }
 
-/* --- Destination Card --- */
 .destination {
   display: flex;
-  flex-direction: column; /* Name+category on top, notes below */
+  flex-direction: column;
   padding: 12px;
   border-radius: 8px;
   background-color: rgba(68, 156, 117, 0.15);
@@ -189,7 +187,6 @@
   font-size: 0.85rem;
 }
 
-/* Edit and Delete Buttons */
 .edit-button,
 .delete-button {
   width: 100%;
@@ -205,12 +202,10 @@
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-/* Edit Button */
 .edit-button {
   color: #2d3047;
 }
 
-/* Delete Button */
 .delete-button {
   color: rgb(132, 0, 0);
 }
@@ -221,7 +216,6 @@
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* --- Destination Edit Mode --- */
 .destination-edit {
   display: flex;
   gap: 8px;
