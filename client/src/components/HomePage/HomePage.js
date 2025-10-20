@@ -120,13 +120,20 @@ function HomePage({ onBack }) {
   return (
     <div className="homepage">
       <div className="main-left">
-        <Header onBack={onBack} />
-        <Map />
+        <Header
+          goHome={goHome}
+          goToPrevious={historyRef.current.length > 0 ? goToPrevious : null}
+          goToProfile={goToProfile}
+          goToMyItineraries={goToMy}
+          goToSavedItineraries={goToSaved}
+          logOut={logOut}
+        />
+        <Map selectedCoords={mapSelectedCoords} onClick={setCurrentPin} />
       </div>
 
       <div className="sidebar-container">
-        {/* <Sidebar /> */}
-        <CreateNewItinerary
+        {renderSidebar()}
+        {/* <CreateNewItinerary
           newItinerary={newItinerary}
           setNewItinerary={setNewItinerary}
           destinations={destinations}
@@ -134,7 +141,7 @@ function HomePage({ onBack }) {
           setCurrentPin={setCurrentPin}
           onSaveItinerary={handleSaveItinerary}
           onBack={goToPrevious}
-        />
+        /> */}
       </div>
     </div>
   );
