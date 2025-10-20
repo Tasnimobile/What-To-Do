@@ -1,0 +1,83 @@
+// RatingStars.js
+import React, { useState, useEffect } from 'react';
+import './RatingStars.css';
+
+function RatingStars({ itineraryId, currentRating, overallRating, onRate, canRate = true }) {
+    const [hoverRating, setHoverRating] = useState(0);
+    const [userRating, setUserRating] = useState(currentRating || 0);
+
+    useEffect(() => {
+        setUserRating(currentRating || 0);
+    }, [currentRating]);
+
+    const handleRate = (rating) => {
+        if (!canRate) return;
+
+        setUserRating(rating);
+        if (onRate) {
+            onRate(itineraryId, rating);
+        }
+    };
+
+    const handleMouseEnter = (rating) => {
+        if (!canRate) return;
+        setHoverRating(rating);
+    };
+
+    const handleMouseLeave = () => {
+        if (!canRate) return;
+        setHoverRating(0);
+    };
+
+    const displayRating = hoverRating || userRating;
+
+    return (
+        <div className="rating-stars-container">
+            <div className="rating-section">
+                <div className="rating-label">Your Rating:</div>
+                <div className="stars">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                            key={star}
+                            className={`star ${displayRating >= star ? 'active' : ''} ${canRate ? 'clickable' : ''}`}
+                            onClick={() => handleRate(star)}
+                            onMouseEnter={() => handleMouseEnter(star)}
+                            onMouseLeave={handleMouseLeave}
+                            title={canRate ? `Rate ${star} star${star !== 1 ? 's' : ''}` : ''}
+                        >
+                            ★
+                        </span>
+                    ))}
+                </div>
+                {userRating > 0 && (
+                    <span className="rating-value">({userRating})</span>
+                )}
+            </div>
+
+            {overallRating > 0 && (
+                <div className="rating-section">
+                    <div className="rating-label">Overall Rating:</div>
+                    <div className="overall-rating">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <span
+                                key={star}
+                                className={`star ${overallRating >= star ? 'active' : ''}`}
+                            >
+                                ★
+                            </span>
+                        ))}
+                        <span className="rating-value">({overallRating.toFixed(1)})</span>
+                    </div>
+                </div>
+            )}
+
+            {!canRate && (
+                <div className="rating-notice">
+                    You can't rate your own itineraries
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default RatingStars;

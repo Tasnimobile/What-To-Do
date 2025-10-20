@@ -4,7 +4,14 @@ import ItineraryCard from './ItineraryCard';
 import FilterModal from './FilterModal';
 import './Sidebar.css';
 
-function Sidebar({ onCreateNew, onViewItinerary, itineraries = [] }) {
+function Sidebar({
+    onCreateNew,
+    onViewItinerary,
+    itineraries = [],
+    isLoading = false,
+    currentUser,
+    onRateItinerary
+}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [filters, setFilters] = useState({
@@ -42,7 +49,8 @@ function Sidebar({ onCreateNew, onViewItinerary, itineraries = [] }) {
 
     const handleItineraryClick = (itineraryId) => {
         if (onViewItinerary) {
-            const itinerary = itineraries.find(item => item.id === itineraryId);
+            const safeItineraries = Array.isArray(itineraries) ? itineraries : [];
+            const itinerary = safeItineraries.find(item => item.id === itineraryId);
             onViewItinerary(itinerary);
         }
     };
@@ -66,7 +74,11 @@ function Sidebar({ onCreateNew, onViewItinerary, itineraries = [] }) {
         return price.length;
     };
 
-    const filteredItineraries = itineraries.filter(itinerary => {
+    const filteredItineraries = (Array.isArray(itineraries) ? itineraries : []).filter(itinerary => {
+        if (!itinerary || typeof itinerary !== 'object') {
+            return false;
+        }
+
         const matchesSearch = searchTerm === '' ||
             (itinerary.title && itinerary.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
             (itinerary.description && itinerary.description.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -133,25 +145,38 @@ function Sidebar({ onCreateNew, onViewItinerary, itineraries = [] }) {
                 </button>
             )}
 
-            {filteredItineraries.map(itinerary => (
-                <ItineraryCard
-                    key={itinerary.id}
-                    itineraryId={itinerary.id}
-                    title={itinerary.title}
-                    rating={itinerary.rating}
-                    description={itinerary.description}
-                    tags={itinerary.tags}
-                    duration={itinerary.duration}
-                    price={itinerary.price}
-                    onClick={handleItineraryClick}
-                />
-            ))}
+            <div className="itineraries-list">
+                {isLoading ? (
+                    <div className="no-results">
+                        Loading itineraries...
+                    </div>
+                ) : (
+                    <>
+                        {filteredItineraries.map(itinerary => (
+                            <ItineraryCard
+                                key={itinerary.id}
+                                itineraryId={itinerary.id}
+                                title={itinerary.title}
+                                rating={itinerary.rating}
+                                description={itinerary.description}
+                                tags={itinerary.tags}
+                                duration={itinerary.duration}
+                                price={itinerary.price}
+                                onClick={handleItineraryClick}
+                                createdBy={itinerary.createdBy}
+                                currentUser={currentUser}
+                                onRateItinerary={onRateItinerary}
+                            />
+                        ))}
 
-            {filteredItineraries.length === 0 && (
-                <div className="no-results">
-                    No itineraries found. Try adjusting your search or filters.
-                </div>
-            )}
+                        {filteredItineraries.length === 0 && (
+                            <div className="no-results">
+                                No itineraries found. Try adjusting your search or filters.
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
 
             {showFilterModal && (
                 <FilterModal

@@ -69,15 +69,39 @@
     display: flex;
     gap: 3px;
     flex-shrink: 0;
+    align-items: center;
 }
 
 .star {
     color: rgba(255, 255, 255, 0.3);
     font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+    transition: all 0.2s ease;
 }
 
 .star.filled {
     color: gold;
+}
+
+.star.clickable {
+    cursor: pointer;
+}
+
+.star.clickable:hover {
+    transform: scale(1.2);
+    color: gold;
+}
+
+.rating-text {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-left: 8px;
+}
+
+.rate-hint {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 8px;
+    font-style: italic;
 }
 
 .expanded-content {
@@ -192,5 +216,9 @@
     .tag {
         padding: 4px 10px;
         font-size: 0.7rem;
+    }
+
+    .rate-hint {
+        display: none;
     }
 }

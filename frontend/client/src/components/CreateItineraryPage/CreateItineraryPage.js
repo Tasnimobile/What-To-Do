@@ -71,12 +71,19 @@ function CreateItineraryPage({
   };
 
   const handleItinerarySave = (itineraryData) => {
-    console.log("Saving itinerary:", itineraryData);
+    console.log("Saving itinerary in parent:", itineraryData);
 
     const savedItineraries = JSON.parse(
       localStorage.getItem("userItineraries") || "[]"
     );
-    const updatedItineraries = [...savedItineraries, itineraryData];
+
+    const itineraryToSave = {
+      ...itineraryData,
+      id: itineraryData.id || Date.now(),
+      createdAt: itineraryData.createdAt || new Date().toISOString()
+    };
+
+    const updatedItineraries = [...savedItineraries, itineraryToSave];
     localStorage.setItem("userItineraries", JSON.stringify(updatedItineraries));
 
     setItineraryData({

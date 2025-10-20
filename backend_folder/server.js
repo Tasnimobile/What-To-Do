@@ -317,9 +317,9 @@ app.post("/api/oauth/google", async (req, res) => {
 
 //profile route to update bio
 app.post("/api/profile", (req, res) => {
-  
+
   let errors = [];
-  
+
   if (typeof req.body.bio !== "string") req.body.bio = "";
 
   //validate length
@@ -338,8 +338,8 @@ app.post("/api/profile", (req, res) => {
     const userStatement = db.prepare("SELECT id, username, email, bio FROM user WHERE id = ?");
     const updatedUser = userStatement.get(req.user.userid);
 
-    res.json({ 
-      ok: true, 
+    res.json({
+      ok: true,
       message: "Profile updated successfully",
       user: updatedUser
     });
@@ -359,15 +359,133 @@ app.post("/api/logout", (req, res) => {
 app.get("/api/itineraries", (req, res) => {
   const statement = db.prepare("SELECT * FROM itineraries")
   const itineraries = statement.all()
-  
+
   res.json({ ok: true, itineraries });
 })
 
 app.post("/api/create-itinerary", (req, res) => {
-  const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, authorid) VALUES (?, ?, ?, ?, ?, ?)")
-  const result = ourStatement.run(req.body.title, req.body.description, req.body.tags, req.body.duration, req.body.price, req.user.userid)
-})
+  console.log("Create itinerary request received");
+  console.log("User from session:", req.user);
+  console.log("Request body:", req.body);
 
+  if (!req.user) {
+    console.log("No user in session - unauthorized");
+    return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+  }
+
+  const { title, description, tags, duration, price } = req.body;
+
+  // Validate required fields
+  if (!title || !description || !duration || !price) {
+    return res.status(400).json({ ok: false, errors: ["Missing required fields"] });
+  }
+
+  try {
+    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, authorid) VALUES (?, ?, ?, ?, ?, ?)");
+    const result = ourStatement.run(title, description, tags || '[]', duration, price, req.user.userid);
+
+    console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
+
+    res.json({
+      ok: true,
+      message: "Itinerary created successfully",
+      itineraryId: result.lastInsertRowid
+    });
+  } catch (error) {
+    console.error("Error creating itinerary:", error);
+    res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
+// Get itineraries for the logged-in user
+app.get("/api/my-itineraries", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+  }
+
+  try {
+    const statement = db.prepare("SELECT * FROM itineraries WHERE authorid = ? ORDER BY id DESC");
+    const itineraries = statement.all(req.user.userid);
+
+    // Return in the format your frontend expects
+    res.json({
+      ok: true,
+      itineraries: itineraries.map(itinerary => ({
+        ...itinerary,
+        createdBy: itinerary.authorid,
+        rating: 0, // Add default rating since your DB doesn't have this column
+        destinations: [] // Add empty destinations array
+      }))
+    });
+  } catch (error) {
+    console.error("Error fetching user itineraries:", error);
+    res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
+// Add debug endpoint
+app.get("/api/debug/my-itineraries", (req, res) => {
+  if (!req.user) {
+    return res.json({ user: null, message: "No user logged in" });
+  }
+
+  try {
+    console.log("Debug: User ID:", req.user.userid);
+
+    const statement = db.prepare("SELECT * FROM itineraries WHERE authorid = ?");
+    const itineraries = statement.all(req.user.userid);
+
+    console.log("Debug: Found itineraries:", itineraries);
+
+    res.json({
+      user: req.user,
+      itineraries: itineraries,
+      count: itineraries.length
+    });
+  } catch (error) {
+    console.error("Debug error:", error);
+    res.json({ error: error.message });
+  }
+});
+
+// Add test itineraries (run this once)
+app.get("/api/create-test-itineraries", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Not logged in" });
+  }
+
+  try {
+    const testItineraries = [
+      {
+        title: "My First Adventure",
+        description: "A wonderful day exploring the city",
+        tags: JSON.stringify(["park", "walking"]),
+        duration: "1 day",
+        price: "$$",
+        authorid: req.user.userid
+      },
+      {
+        title: "Food Tour",
+        description: "Tasting the best local cuisine",
+        tags: JSON.stringify(["food", "cultural"]),
+        duration: "4 hours",
+        price: "$$$",
+        authorid: req.user.userid
+      }
+    ];
+
+    const statement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, authorid) VALUES (?, ?, ?, ?, ?, ?)");
+
+    testItineraries.forEach(itinerary => {
+      statement.run(itinerary.title, itinerary.description, itinerary.tags, itinerary.duration, itinerary.price, itinerary.authorid);
+    });
+
+    res.json({ message: "Test itineraries created", count: testItineraries.length });
+  } catch (error) {
+    console.error("Error creating test itineraries:", error);
+    res.status(500).json({ error: "Failed to create test data" });
+  }
+});
 
 
 

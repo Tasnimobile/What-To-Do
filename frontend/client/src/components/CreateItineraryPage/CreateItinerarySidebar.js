@@ -7,138 +7,177 @@ import DestinationManager from "./DestinationManager";
 import TagsManager from "./TagsManager";
 
 function CreateItinerarySidebar({
-  onStartLocationSelection,
-  isSelectingLocation,
-  onItinerarySave,
-  onItineraryCancel,
-  itineraryData,
-  onUpdate,
-  user,
+    onStartLocationSelection,
+    isSelectingLocation,
+    onItinerarySave,
+    onItineraryCancel,
+    itineraryData,
+    onUpdate,
+    user,
 }) {
-  const [localItineraryData, setLocalItineraryData] = useState({
-    title: "",
-    description: "",
-    tags: [],
-    duration: "1 day",
-    price: "$$",
-    customTag: "",
-    destinations: [],
-  });
+    const [localItineraryData, setLocalItineraryData] = useState({
+        title: "",
+        description: "",
+        tags: [],
+        duration: "1 day",
+        price: "$$",
+        customTag: "",
+        destinations: [],
+    });
 
-  const actualItineraryData = {
-    title: itineraryData?.title || localItineraryData.title,
-    description: itineraryData?.description || localItineraryData.description,
-    tags: itineraryData?.tags || localItineraryData.tags,
-    duration: itineraryData?.duration || localItineraryData.duration,
-    price: itineraryData?.price || localItineraryData.price,
-    customTag: itineraryData?.customTag || localItineraryData.customTag,
-    destinations:
-      itineraryData?.destinations || localItineraryData.destinations,
-  };
+    const actualItineraryData = {
+        title: itineraryData?.title || localItineraryData.title,
+        description: itineraryData?.description || localItineraryData.description,
+        tags: itineraryData?.tags || localItineraryData.tags,
+        duration: itineraryData?.duration || localItineraryData.duration,
+        price: itineraryData?.price || localItineraryData.price,
+        customTag: itineraryData?.customTag || localItineraryData.customTag,
+        destinations: itineraryData?.destinations || localItineraryData.destinations,
+    };
 
-  console.log("Sidebar itinerary data:", actualItineraryData);
+    console.log("Sidebar itinerary data:", actualItineraryData);
+    console.log("Current user:", user);
 
-  const handleSave = async () => {
-    console.log("Saving itinerary with data:", actualItineraryData);
-    const title = actualItineraryData.title || "";
-    const destinations = actualItineraryData.destinations || [];
+    const handleSave = async () => {
+        console.log('Saving itinerary with data:', actualItineraryData);
+        const title = actualItineraryData.title || '';
+        const destinations = actualItineraryData.destinations || [];
 
-    if (title.trim() && destinations.length > 0) {
-      const newItinerary = {
-        ...actualItineraryData,
-        id: Date.now(),
-        rating: 0,
-        createdAt: new Date().toISOString(),
-        createdBy: user?.id || "current-user",
-      };
-
-      onItinerarySave(newItinerary);
-
-      try {
-        const res = await fetch("http://localhost:3000/api/create-itinerary", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            title: actualItineraryData.title,
-            description: actualItineraryData.description,
-            tags: JSON.stringify(actualItineraryData.tags || []),
-            duration: actualItineraryData.duration,
-            price: actualItineraryData.price,
-            destinations: JSON.stringify(
-              actualItineraryData.destinations || []
-            ),
-          }),
-        });
-
-        if (res.ok) {
-          const payload = await res.json();
-          console.log("Itinerary saved to server:", payload);
-        } else {
-          console.error("Failed to save itinerary to server");
+        if (!title.trim()) {
+            alert('Please add a title for your itinerary.');
+            return;
         }
-      } catch (err) {
-        console.error("Error saving itinerary to server:", err);
-      }
-    } else {
-      console.log("Cannot save - missing title or destinations");
-    }
-  };
 
-  const updateItineraryData = (field, value) => {
-    console.log("Updating itinerary data:", field, value);
-    if (onUpdate) {
-      onUpdate(field, value);
-    } else {
-      setLocalItineraryData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    }
-  };
+        if (destinations.length === 0) {
+            alert('Please add at least one destination to your itinerary.');
+            return;
+        }
 
-  return (
-    <div className="create-itinerary-sidebar">
-      <div className="create-header">
-        <h1>Create New Itinerary</h1>
-      </div>
+        try {
+            const res = await fetch("http://localhost:3000/api/create-itinerary", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    title: actualItineraryData.title,
+                    description: actualItineraryData.description,
+                    tags: JSON.stringify(actualItineraryData.tags || []),
+                    duration: actualItineraryData.duration,
+                    price: actualItineraryData.price,
+                    destinations: JSON.stringify(actualItineraryData.destinations || [])
+                }),
+            });
 
-      <div className="create-form-card">
-        <ItineraryForm
-          itineraryData={actualItineraryData}
-          onUpdate={updateItineraryData}
-        />
+            if (res.ok) {
+                const response = await res.json();
+                console.log('Itinerary saved to server:', response);
 
-        <DestinationManager
-          itineraryData={actualItineraryData}
-          onUpdate={updateItineraryData}
-          onStartLocationSelection={onStartLocationSelection}
-          isSelectingLocation={isSelectingLocation}
-        />
+                if (response.ok && response.itineraryId) {
+                    const newItinerary = {
+                        id: response.itineraryId,
+                        title: actualItineraryData.title,
+                        description: actualItineraryData.description,
+                        tags: actualItineraryData.tags || [],
+                        duration: actualItineraryData.duration,
+                        price: actualItineraryData.price,
+                        destinations: actualItineraryData.destinations || [],
+                        rating: 0,
+                        createdAt: new Date().toISOString(),
+                        createdBy: user?.id || 'current-user',
+                        authorid: user?.id
+                    };
 
-        <TagsManager
-          itineraryData={actualItineraryData}
-          onUpdate={updateItineraryData}
-        />
-      </div>
+                    console.log('Calling onItinerarySave with:', newItinerary);
+                    onItinerarySave(newItinerary);
+                    alert('Itinerary created successfully!');
 
-      <div className="create-actions">
-        <button className="cancel-btn" onClick={onItineraryCancel}>
-          Cancel
-        </button>
-        <button
-          className="save-btn"
-          onClick={handleSave}
-          disabled={!actualItineraryData.title?.trim()}
-        >
-          Create Itinerary ({(actualItineraryData.destinations || []).length}{" "}
-          destinations)
-        </button>
-      </div>
+                    setLocalItineraryData({
+                        title: "",
+                        description: "",
+                        tags: [],
+                        duration: "1 day",
+                        price: "$$",
+                        customTag: "",
+                        destinations: [],
+                    });
+                } else {
+                    throw new Error('Invalid response from server');
+                }
+            } else {
+                console.error('Failed to save itinerary to server');
+                throw new Error('Server error');
+            }
+        } catch (err) {
+            console.error('Error saving itinerary to server:', err);
+            const newItinerary = {
+                ...actualItineraryData,
+                id: Date.now(),
+                rating: 0,
+                createdAt: new Date().toISOString(),
+                createdBy: user?.id || 'current-user',
+                authorid: user?.id
+            };
+            console.log('Fallback: Calling onItinerarySave with:', newItinerary);
+            onItinerarySave(newItinerary);
+            alert('Itinerary saved locally due to connection error!');
+        }
+    };
 
-      <div className="scroll-spacer"></div>
-    </div>
-  );
+    const updateItineraryData = (field, value) => {
+        console.log("Updating itinerary data:", field, value);
+        if (onUpdate) {
+            onUpdate(field, value);
+        } else {
+            setLocalItineraryData((prev) => ({
+                ...prev,
+                [field]: value,
+            }));
+        }
+    };
+
+    const canSave = actualItineraryData.title?.trim() && actualItineraryData.destinations?.length > 0;
+
+    return (
+        <div className="create-itinerary-sidebar">
+            <div className="create-header">
+                <h1>Create New Itinerary</h1>
+            </div>
+
+            <div className="create-form-card">
+                <ItineraryForm
+                    itineraryData={actualItineraryData}
+                    onUpdate={updateItineraryData}
+                />
+
+                <DestinationManager
+                    itineraryData={actualItineraryData}
+                    onUpdate={updateItineraryData}
+                    onStartLocationSelection={onStartLocationSelection}
+                    isSelectingLocation={isSelectingLocation}
+                />
+
+                <TagsManager
+                    itineraryData={actualItineraryData}
+                    onUpdate={updateItineraryData}
+                />
+            </div>
+
+            <div className="create-actions">
+                <button className="cancel-btn" onClick={onItineraryCancel}>
+                    Cancel
+                </button>
+                <button
+                    className="save-btn"
+                    onClick={handleSave}
+                    disabled={!canSave}
+                >
+                    Create Itinerary ({(actualItineraryData.destinations || []).length} destinations)
+                </button>
+            </div>
+
+            <div className="scroll-spacer"></div>
+        </div>
+    );
 }
 
 export default CreateItinerarySidebar;
