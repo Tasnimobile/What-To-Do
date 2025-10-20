@@ -1,0 +1,256 @@
+.create-itinerary {
+  padding: 16px;
+}
+
+.create-itinerary h1 {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+}
+
+#enter-itinerary .editable-div,
+#enter-itinerary .text-input {
+  padding: 8px;
+  overflow-wrap: break-word;
+}
+
+#enter-description .editable-div,
+#enter-description .text-input {
+  height: 180px;
+  padding: 8px;
+  overflow-wrap: break-word;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.buttons button {
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  border: none;
+  cursor: pointer;
+}
+
+.buttons a {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  cursor: pointer;
+}
+
+.buttons a:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+}
+
+.theme-selector {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.theme-selector label {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  color: #2d3047;
+  gap: 4px;
+  font-size: 0.9rem;
+  padding: 6px 8px;
+  background-color: rgba(68, 156, 117, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.theme-selector input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.theme-selector button {
+  display: block;
+  margin: 0 auto 0 auto;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.theme-selector button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.edit-themes-button {
+  padding: 4px 8px;
+  margin-left: 8px;
+  border-radius: 6px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-themes-button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.saved-themes {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.theme-tag {
+  background-color: rgba(68, 156, 117, 0.15);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #2d3047;
+  font-weight: bold;
+}
+
+.destinations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.destination {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.15);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+  color: #2d3047;
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+.destination-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.destination-name {
+  font-weight: bold;
+}
+
+.destination-category {
+  font-weight: normal;
+  padding: 2px 6px;
+  background-color: rgba(45, 48, 71, 0.1);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.destination-notes {
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.edit-button,
+.delete-button {
+  width: 100%;
+  text-align: center;
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background-color: rgba(68, 156, 117, 0.7);
+  border: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-button {
+  color: #2d3047;
+}
+
+.delete-button {
+  color: rgb(132, 0, 0);
+}
+
+.edit-button:hover,
+.delete-button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.destination-edit {
+  display: flex;
+  gap: 8px;
+}
+
+.destination-edit input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(68, 156, 117, 0.5);
+  font-size: 1rem;
+  color: #2d3047;
+  background-color: rgba(68, 156, 117, 0.1);
+}
+
+.destination-edit input:focus {
+  outline: none;
+  background-color: rgba(68, 156, 117, 0.2);
+  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.destination-edit button {
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: rgba(68, 156, 117, 0.7);
+  color: #2d3047;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.destination-edit button:hover {
+  background-color: rgba(68, 156, 117, 0.85);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+}
