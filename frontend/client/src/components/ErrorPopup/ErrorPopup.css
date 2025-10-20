@@ -1,0 +1,40 @@
+/* src/components/ErrorPopup/ErrorPopup.css */
+.error-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(113, 193, 157, 1) 0%, rgba(113, 193, 157, 1) 100%);
+    padding: 20px 25px;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-width: 300px;
+    min-width: 250px;
+    animation: slideDown 0.3s ease-out;
+    color: white;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    opacity: 1;
+    font-family: 'PoiretOne', cursive;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.error-popup.fade-out {
+    opacity: 0;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}

@@ -10,7 +10,6 @@ const ItineraryView = ({
   user,
   onViewItinerary,
 }) => {
-  // Add onViewItinerary prop
 
   const handleItineraryClick = (itineraryId) => {
     console.log("Itinerary clicked:", itineraryId);
@@ -127,9 +126,8 @@ const ItineraryView = ({
       {/* Profile Tabs */}
       <div className="profile-tabs">
         <button
-          className={`tab-button ${
-            activeTab === "itineraries" ? "active" : ""
-          }`}
+          className={`tab-button ${activeTab === "itineraries" ? "active" : ""
+            }`}
           onClick={() => onTabClick("itineraries")}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

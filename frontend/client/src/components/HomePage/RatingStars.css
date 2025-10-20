@@ -30,15 +30,10 @@
     font-size: 1.2rem;
     color: rgba(255, 255, 255, 0.3);
     cursor: default;
-    transition: all 0.2s ease;
 }
 
 .star.clickable {
     cursor: pointer;
-}
-
-.star.clickable:hover {
-    transform: scale(1.2);
 }
 
 .star.active {

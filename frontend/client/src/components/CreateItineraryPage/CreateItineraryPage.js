@@ -12,6 +12,8 @@ function CreateItineraryPage({
   onNavigateToHome,
   onNavigateToCreated,
   onNavigateToSaved,
+  onLogout,
+  showError,
 }) {
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [itineraryData, setItineraryData] = useState({
@@ -73,19 +75,6 @@ function CreateItineraryPage({
   const handleItinerarySave = (itineraryData) => {
     console.log("Saving itinerary in parent:", itineraryData);
 
-    const savedItineraries = JSON.parse(
-      localStorage.getItem("userItineraries") || "[]"
-    );
-
-    const itineraryToSave = {
-      ...itineraryData,
-      id: itineraryData.id || Date.now(),
-      createdAt: itineraryData.createdAt || new Date().toISOString()
-    };
-
-    const updatedItineraries = [...savedItineraries, itineraryToSave];
-    localStorage.setItem("userItineraries", JSON.stringify(updatedItineraries));
-
     setItineraryData({
       title: "",
       description: "",
@@ -146,9 +135,10 @@ function CreateItineraryPage({
           onBack={onBack}
           user={user}
           onNavigateToProfile={onNavigateToProfile}
-          onNavigateToHome={handleNavigateToHome}
+          onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onLogout={onLogout}
         />
         <Map
           onLocationSelect={handleLocationSelected}
@@ -168,6 +158,7 @@ function CreateItineraryPage({
           itineraryData={itineraryData}
           onUpdate={updateItineraryData}
           user={user}
+          showError={showError}
         />
       </div>
     </div>

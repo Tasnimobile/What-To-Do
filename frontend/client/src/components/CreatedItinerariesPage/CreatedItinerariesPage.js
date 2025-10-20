@@ -13,6 +13,9 @@ function CreatedItinerariesPage({
   onViewItinerary,
   onNavigateToCreate,
   onNavigateToSaved,
+  onLogout,
+  onNavigateToCreated,
+  showError,
 }) {
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [userItineraries, setUserItineraries] = useState([]);
@@ -68,11 +71,11 @@ function CreatedItinerariesPage({
 
         setUserItineraries(processed);
       } else {
-        fallbackToLocalStorage();
+        setUserItineraries([]);
       }
     } catch (error) {
       console.error('Debug fetch failed:', error);
-      fallbackToLocalStorage();
+      setUserItineraries([]);
     }
   };
 
@@ -109,47 +112,26 @@ function CreatedItinerariesPage({
           price: itinerary.price || '$$',
           rating: itinerary.rating || 0,
           destinations: itinerary.destinations || [],
-          createdBy: itinerary.createdBy || user?.id || 'unknown'
+          createdBy: itinerary.createdBy || itinerary.authorid || user?.id || 'unknown'
         }));
 
         console.log('User itineraries loaded from database:', processedItineraries);
         setUserItineraries(processedItineraries);
       } else {
         console.error('Failed to fetch user itineraries from server, status:', response.status);
-        await debugUserItineraries();
+        setUserItineraries([]);
+        if (showError) {
+          showError('Failed to load your itineraries from server.');
+        }
       }
     } catch (error) {
       console.error('Error loading user itineraries from server:', error);
-      fallbackToLocalStorage();
+      setUserItineraries([]);
+      if (showError) {
+        showError('Error loading your itineraries. Please check your connection.');
+      }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fallbackToLocalStorage = () => {
-    console.log('Falling back to localStorage');
-    const savedItineraries = localStorage.getItem('userItineraries');
-    if (savedItineraries) {
-      try {
-        const allItineraries = JSON.parse(savedItineraries);
-        const userCreated = Array.isArray(allItineraries) ?
-          allItineraries.filter(itinerary =>
-            itinerary && itinerary.createdBy === (user?.id || 'current-user')
-          ) : [];
-
-        const processed = userCreated.map(itinerary => ({
-          ...itinerary,
-          tags: processTags(itinerary.tags)
-        }));
-
-        setUserItineraries(processed);
-        console.log('Loaded from localStorage:', processed);
-      } catch (e) {
-        console.error('Error parsing localStorage data:', e);
-        setUserItineraries([]);
-      }
-    } else {
-      setUserItineraries([]);
     }
   };
 
@@ -526,9 +508,10 @@ function CreatedItinerariesPage({
           onBack={onBack}
           user={user}
           onNavigateToProfile={onNavigateToProfile}
-          onNavigateToHome={handleNavigateToHome}
-          onNavigateToCreated={() => { }}
+          onNavigateToHome={onNavigateToHome}
+          onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onLogout={onLogout}
         />
         <Map selectedDestinations={selectedDestinations} />
       </div>

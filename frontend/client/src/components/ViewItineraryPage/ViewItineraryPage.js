@@ -13,6 +13,7 @@ function ViewItineraryPage({
   onNavigateToCreated,
   onNavigateToSaved,
   itinerary,
+  onLogout,
 }) {
   console.log("ViewItineraryPage received itinerary:", itinerary);
 
@@ -37,9 +38,10 @@ function ViewItineraryPage({
           onBack={onBack}
           user={user}
           onNavigateToProfile={onNavigateToProfile}
-          onNavigateToHome={handleNavigateToHome}
-          onNavigateToCreated={handleNavigateToCreated}
+          onNavigateToHome={onNavigateToHome}
+          onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onLogout={onLogout}
         />
         <Map selectedDestinations={mapDestinations} isViewMode={true} />
       </div>

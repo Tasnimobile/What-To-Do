@@ -14,6 +14,7 @@ function CreateItinerarySidebar({
     itineraryData,
     onUpdate,
     user,
+    showError,
 }) {
     const [localItineraryData, setLocalItineraryData] = useState({
         title: "",
@@ -35,21 +36,32 @@ function CreateItinerarySidebar({
         destinations: itineraryData?.destinations || localItineraryData.destinations,
     };
 
-    console.log("Sidebar itinerary data:", actualItineraryData);
-    console.log("Current user:", user);
+    const handleShowError = (message, type = 'error') => {
+        if (typeof showError === 'function') {
+            showError(message, type);
+        } else {
+            console.log(`${type}:`, message);
+        }
+    };
 
     const handleSave = async () => {
         console.log('Saving itinerary with data:', actualItineraryData);
+
+        if (!user || !user.id) {
+            handleShowError('You must be logged in to create an itinerary.', 'warning');
+            return;
+        }
+
         const title = actualItineraryData.title || '';
         const destinations = actualItineraryData.destinations || [];
 
         if (!title.trim()) {
-            alert('Please add a title for your itinerary.');
+            handleShowError('Please add a title for your itinerary.', 'warning');
             return;
         }
 
         if (destinations.length === 0) {
-            alert('Please add at least one destination to your itinerary.');
+            handleShowError('Please add at least one destination to your itinerary.', 'warning');
             return;
         }
 
@@ -83,13 +95,13 @@ function CreateItinerarySidebar({
                         destinations: actualItineraryData.destinations || [],
                         rating: 0,
                         createdAt: new Date().toISOString(),
-                        createdBy: user?.id || 'current-user',
-                        authorid: user?.id
+                        createdBy: user.id,
+                        authorid: user.id
                     };
 
                     console.log('Calling onItinerarySave with:', newItinerary);
                     onItinerarySave(newItinerary);
-                    alert('Itinerary created successfully!');
+                    handleShowError('Itinerary created successfully!', 'success');
 
                     setLocalItineraryData({
                         title: "",
@@ -100,26 +112,19 @@ function CreateItinerarySidebar({
                         customTag: "",
                         destinations: [],
                     });
+
                 } else {
                     throw new Error('Invalid response from server');
                 }
+            } else if (res.status === 401) {
+                handleShowError('You must be logged in to create an itinerary.', 'warning');
             } else {
                 console.error('Failed to save itinerary to server');
-                throw new Error('Server error');
+                handleShowError('Failed to save itinerary to server. Please try again.', 'error');
             }
         } catch (err) {
             console.error('Error saving itinerary to server:', err);
-            const newItinerary = {
-                ...actualItineraryData,
-                id: Date.now(),
-                rating: 0,
-                createdAt: new Date().toISOString(),
-                createdBy: user?.id || 'current-user',
-                authorid: user?.id
-            };
-            console.log('Fallback: Calling onItinerarySave with:', newItinerary);
-            onItinerarySave(newItinerary);
-            alert('Itinerary saved locally due to connection error!');
+            handleShowError('Error saving itinerary. Please check your connection and try again.', 'error');
         }
     };
 

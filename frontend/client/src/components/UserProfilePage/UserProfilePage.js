@@ -6,20 +6,27 @@ import ProfileStats from "./ProfileStats";
 import ItineraryView from "./ItineraryView";
 import "./UserProfilePage.css";
 
-const UserProfilePage = ({
-  user,
-  onBack,
-  onUpdate,
-  onNavigateToCreated,
-  onViewItinerary,
-  onNavigateToHome,
-  onNavigateToSaved,
-}) => {
-  // Add onNavigateToHome prop
+const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated, onNavigateToSaved, onNavigateToHome, showError, onLogout }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("itineraries");
   const [userItineraries, setUserItineraries] = useState([]);
+
+  // Same helper function as in CreatedItinerariesPage
+  const processTags = (tags) => {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    if (typeof tags === 'string') {
+      try {
+        const parsed = JSON.parse(tags);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.warn('Failed to parse tags as JSON:', e);
+        return [];
+      }
+    }
+    return [];
+  };
 
   useEffect(() => {
     if (user) {
@@ -36,19 +43,49 @@ const UserProfilePage = ({
     }
   }, [user, onBack]);
 
-  const loadUserItineraries = () => {
+  const loadUserItineraries = async () => {
+    setIsLoading(true);
     try {
-      const savedItineraries = localStorage.getItem("userItineraries");
-      if (savedItineraries) {
-        const allItineraries = JSON.parse(savedItineraries);
-        const userCreated = allItineraries.filter(
-          (itinerary) => itinerary.createdBy === (user?.id || "current-user")
-        );
-        setUserItineraries(userCreated);
-        console.log("User itineraries loaded:", userCreated);
+      console.log('Fetching user itineraries for profile:', user?.id);
+
+      const response = await fetch("http://localhost:3000/api/my-itineraries", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Profile API Response:', data);
+
+        let userItinerariesFromDB = [];
+
+        if (data.ok && Array.isArray(data.itineraries)) {
+          userItinerariesFromDB = data.itineraries;
+        } else {
+          console.error('Unexpected API response structure:', data);
+          userItinerariesFromDB = [];
+        }
+
+        const processedItineraries = userItinerariesFromDB.map(itinerary => ({
+          ...itinerary,
+          tags: processTags(itinerary.tags),
+          title: itinerary.title || 'Untitled Itinerary',
+          description: itinerary.description || '',
+          duration: itinerary.duration || '1 day',
+          price: itinerary.price || '$$',
+          rating: itinerary.rating || 0,
+          destinations: itinerary.destinations || [],
+          createdBy: itinerary.createdBy || itinerary.authorid || user?.id || 'unknown'
+        }));
+
+        console.log('User itineraries loaded for profile:', processedItineraries);
+        setUserItineraries(processedItineraries);
       }
     } catch (error) {
-      console.error("Error loading user itineraries:", error);
+      console.error('Error loading user itineraries for profile:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,16 +151,16 @@ const UserProfilePage = ({
         <Header
           onBack={onBack}
           user={user}
-          onNavigateToProfile={() => {}}
-          onNavigateToHome={handleNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onLogout={onLogout}
         />
       </div>
 
       {/* Profile Content */}
       <div className="profile-content-main">
-        {/* Edit Profile Button in Top Right Corner */}
         {!isEditing && (
           <div className="edit-profile-top-right">
             <button className="edit-profile-btn-small" onClick={handleEdit}>

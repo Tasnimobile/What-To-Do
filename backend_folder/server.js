@@ -315,6 +315,16 @@ app.post("/api/oauth/google", async (req, res) => {
   }
 });
 
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.clearCookie('connect.sid');
+    res.status(200).json({ message: 'Logged out successfully' });
+  });
+});
+
 //profile route to update bio
 app.post("/api/profile", (req, res) => {
 

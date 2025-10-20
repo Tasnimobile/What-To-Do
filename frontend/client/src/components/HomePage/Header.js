@@ -9,6 +9,7 @@ function Header({
   onNavigateToHome,
   onNavigateToCreated,
   onNavigateToSaved,
+  onLogout,
 }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -24,8 +25,6 @@ function Header({
   const handleTitleClick = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
-    } else if (onBack) {
-      onBack();
     }
   };
 
@@ -61,9 +60,32 @@ function Header({
     setShowDropdown(false);
   };
 
-  const handleLogout = () => {
-    console.log("Logging out...");
-    setShowDropdown(false);
+  const handleLogout = async () => {
+    console.log("Logout button clicked");
+
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      console.log("Logout response status:", response.status);
+
+      if (response.ok) {
+        console.log("Logout successful on backend");
+        if (onLogout) {
+          onLogout();
+        } else {
+          console.error("onLogout prop is not provided to Header");
+        }
+      } else {
+        console.error("Logout failed on backend");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setShowDropdown(false);
+    }
   };
 
   const showTitleTooltip = () => {

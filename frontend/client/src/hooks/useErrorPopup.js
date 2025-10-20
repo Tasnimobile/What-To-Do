@@ -1,11 +1,18 @@
 // src/hooks/useErrorPopup.js
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export const useErrorPopup = () => {
     const [error, setError] = useState('');
 
-    const showError = useCallback((errorMessage) => {
+    const showError = useCallback((errorMessage, duration = 3000) => {
         setError(errorMessage);
+
+        // Auto-clear after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                setError('');
+            }, duration);
+        }
     }, []);
 
     const clearError = useCallback(() => {

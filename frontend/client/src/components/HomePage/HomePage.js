@@ -5,14 +5,10 @@ import Map from './Map';
 import Sidebar from './Sidebar';
 import './HomePage.css';
 
-function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated }) {
+function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated, onNavigateToSaved, onNavigateToHome, showError, onLogout }) {
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [allItineraries, setAllItineraries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadItineraries();
-  }, []);
 
   const processTags = (tags) => {
     if (!tags) return [];
@@ -51,21 +47,30 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
 
         loadItineraries();
 
-        alert(`Thanks for your ${rating}-star rating!`);
+        if (typeof showError === 'function') {
+          showError(`Thanks for your ${rating}-star rating!`);
+        }
       } else {
         console.error('Failed to submit rating');
-        alert('Failed to submit rating. Please try again.');
+        if (typeof showError === 'function') {
+          showError('Failed to submit rating. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error submitting rating:', error);
-      alert('Error submitting rating. Please check your connection.');
+      if (typeof showError === 'function') {
+        showError('Error submitting rating. Please check your connection.');
+      }
     }
   };
 
   const loadItineraries = async () => {
     setIsLoading(true);
     try {
-      console.log('Loading all itineraries for homepage...');
+      console.log('=== DEBUG: Loading itineraries ===');
+      console.log('Current user state:', user);
+      console.log('User ID:', user?.id);
+      console.log('Is user logged in?', !!user);
 
       const response = await fetch("http://localhost:3000/api/itineraries", {
         method: "GET",
@@ -77,7 +82,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
 
       if (response.ok) {
         const data = await response.json();
-        console.log('API Response data:', data);
+        console.log('=== DEBUG: Raw API response ===', data);
 
         let itinerariesFromDB = [];
 
@@ -92,7 +97,17 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
           itinerariesFromDB = [];
         }
 
-        console.log('Raw itineraries from DB:', itinerariesFromDB);
+        console.log('=== DEBUG: Raw itineraries from DB ===');
+        itinerariesFromDB.forEach((it, index) => {
+          console.log(`Itinerary ${index}:`, {
+            id: it.id,
+            title: it.title,
+            authorid: it.authorid,
+            createdBy: it.createdBy,
+            hasAuthorId: !!it.authorid,
+            hasCreatedBy: !!it.createdBy
+          });
+        });
 
         const processedItineraries = itinerariesFromDB.map(itinerary => ({
           ...itinerary,
@@ -103,46 +118,37 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
           price: itinerary.price || '$$',
           rating: itinerary.rating || 0,
           destinations: itinerary.destinations || [],
-          createdBy: itinerary.authorid || itinerary.createdBy,
+          createdBy: itinerary.authorid,
           authorid: itinerary.authorid
         }));
 
-        console.log('Processed itineraries for display:', processedItineraries);
+        console.log('=== DEBUG: Processed itineraries ===');
+        processedItineraries.forEach((it, index) => {
+          console.log(`Processed ${index}:`, {
+            id: it.id,
+            title: it.title,
+            createdBy: it.createdBy,
+            authorid: it.authorid
+          });
+        });
+
         setAllItineraries(processedItineraries);
 
-        localStorage.setItem('userItineraries', JSON.stringify(processedItineraries));
       } else {
         console.error('Failed to fetch itineraries from server, status:', response.status);
-        fallbackToLocalStorage();
+        setAllItineraries([]);
+        if (typeof showError === 'function') {
+          showError('Failed to load itineraries from server.');
+        }
       }
     } catch (error) {
       console.error('Error loading itineraries from server:', error);
-      fallbackToLocalStorage();
+      setAllItineraries([]);
+      if (typeof showError === 'function') {
+        showError('Error loading itineraries. Please check your connection.');
+      }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fallbackToLocalStorage = () => {
-    console.log('Falling back to localStorage...');
-    const savedItineraries = localStorage.getItem('userItineraries');
-    if (savedItineraries) {
-      try {
-        const parsed = JSON.parse(savedItineraries);
-        const processed = Array.isArray(parsed) ?
-          parsed.map(itinerary => ({
-            ...itinerary,
-            tags: processTags(itinerary.tags)
-          })) : [];
-        console.log('Loaded from localStorage:', processed);
-        setAllItineraries(processed);
-      } catch (e) {
-        console.error('Error parsing localStorage data:', e);
-        setAllItineraries([]);
-      }
-    } else {
-      console.log('No data in localStorage');
-      setAllItineraries([]);
     }
   };
 
@@ -163,22 +169,10 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
     }
   };
 
-  const addNewItinerary = (newItinerary) => {
-    const itineraryWithId = {
-      ...newItinerary,
-      id: Date.now(),
-      rating: 0,
-      createdAt: new Date().toISOString(),
-      createdBy: user?.id || 'current-user'
-    };
 
-    const updatedItineraries = [...allItineraries, itineraryWithId];
-    setAllItineraries(updatedItineraries);
-
-    localStorage.setItem('userItineraries', JSON.stringify(updatedItineraries));
-
-    console.log('New itinerary added to homepage:', itineraryWithId);
-  };
+  useEffect(() => {
+    loadItineraries();
+  }, []);
 
   console.log('HomePage render - itineraries count:', allItineraries.length);
 
@@ -189,8 +183,10 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
           onBack={onBack}
           user={user}
           onNavigateToProfile={onNavigateToProfile}
-          onNavigateToHome={handleNavigateToHome}
+          onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
+          onNavigateToSaved={onNavigateToSaved}
+          onLogout={onLogout}
         />
         <Map
           selectedDestinations={selectedDestinations}
@@ -202,7 +198,6 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
           onCreateNew={handleCreateNew}
           onViewItinerary={handleViewItinerary}
           itineraries={allItineraries}
-          onNewItinerary={addNewItinerary}
           isLoading={isLoading}
           currentUser={user}
           onRateItinerary={handleRateItinerary}

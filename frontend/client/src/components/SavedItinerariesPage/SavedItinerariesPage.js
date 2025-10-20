@@ -12,6 +12,7 @@ function SavedItinerariesPage({
   onViewItinerary,
   onNavigateToSaved,
   onNavigateToCreated,
+  onLogout,
 }) {
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [savedItineraries, setSavedItineraries] = useState([]);
@@ -234,9 +235,10 @@ function SavedItinerariesPage({
           onBack={onBack}
           user={user}
           onNavigateToProfile={onNavigateToProfile}
-          onNavigateToHome={handleNavigateToHome}
+          onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onLogout={onLogout}
         />
         <Map selectedDestinations={selectedDestinations} />
       </div>

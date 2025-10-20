@@ -115,9 +115,6 @@ function ItineraryCard({
             </span>
           ))}
           <span className="rating-text">({rating || 0})</span>
-          {canRate && (
-            <span className="rate-hint">Click to rate</span>
-          )}
         </div>
       </div>
 

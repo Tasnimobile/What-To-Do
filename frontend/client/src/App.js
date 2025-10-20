@@ -12,23 +12,16 @@ import CreateItineraryPage from "./components/CreateItineraryPage/CreateItinerar
 import ViewItineraryPage from "./components/ViewItineraryPage/ViewItineraryPage";
 import CreatedItinerariesPage from "./components/CreatedItinerariesPage/CreatedItinerariesPage";
 import SavedItinerariesPage from "./components/SavedItinerariesPage/SavedItinerariesPage.js";
-import UniversalErrorPopup from "./components/UniversalErrorPopup/UniversalErrorPopup";
+import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
+import { useErrorPopup } from "./hooks/useErrorPopup";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("welcome");
   const [pageHistory, setPageHistory] = useState(["welcome"]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [globalError, setGlobalError] = useState("");
   const [selectedItinerary, setSelectedItinerary] = useState(null);
-
-  const clearGlobalError = () => {
-    setGlobalError("");
-  };
-
-  const showGlobalError = (message) => {
-    setGlobalError(message);
-  };
+  const { error, showError, clearError } = useErrorPopup();
 
   useEffect(() => {
     const checkUserSession = async () => {
@@ -51,14 +44,14 @@ function App() {
         }
       } catch (error) {
         console.error("Session check failed:", error);
-        showGlobalError("Failed to check user session. Please try again.");
+        showError("Failed to check user session. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
     checkUserSession();
-  }, []);
+  }, [showError]);
 
   const navigateTo = (page) => {
     setPageHistory((prev) => [...prev, page]);
@@ -129,7 +122,7 @@ function App() {
     try {
       return JSON.parse(atob(token.split(".")[1]));
     } catch (e) {
-      showGlobalError("Failed to process login. Please try again.");
+      showError("Failed to process login. Please try again.");
       return null;
     }
   };
@@ -150,7 +143,7 @@ function App() {
     if (user) {
       navigateTo("profile");
     } else {
-      showGlobalError("Please log in to view your profile.");
+      showError("Please log in to view your profile.");
       navigateTo("login");
     }
   };
@@ -172,7 +165,7 @@ function App() {
     if (user) {
       navigateTo("created-itineraries");
     } else {
-      showGlobalError("Please log in to view your created itineraries.");
+      showError("Please log in to view your created itineraries.");
       navigateTo("login");
     }
   };
@@ -181,7 +174,7 @@ function App() {
     if (user) {
       navigateTo("saved-itineraries");
     } else {
-      showGlobalError("Please log in to view your saved itineraries.");
+      showError("Please log in to view your saved itineraries.");
       navigateTo("login");
     }
   };
@@ -206,6 +199,27 @@ function App() {
     );
   }
 
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        setUser(null);
+        setCurrentPage("welcome");
+        setPageHistory(["welcome"]);
+        console.log("User logged out successfully");
+      } else {
+        showError("Logout failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      showError("Logout failed. Please try again.");
+    }
+  };
+
   const renderCurrentPage = () => {
     switch (currentPage) {
       case "login":
@@ -215,6 +229,7 @@ function App() {
             onSwitchToSignup={switchToSignup}
             onBack={handleBack}
             onGoogleLogin={handleGoogleLogin}
+            showError={showError}
           />
         );
       case "signup":
@@ -224,6 +239,7 @@ function App() {
             onSwitchToLogin={switchToLogin}
             onBack={handleBack}
             onGoogleLogin={handleGoogleLogin}
+            showError={showError}
           />
         );
       case "setup":
@@ -232,6 +248,7 @@ function App() {
             user={user}
             onComplete={handleSetupComplete}
             onBack={handleBack}
+            showError={showError}
           />
         );
       case "profile":
@@ -243,7 +260,9 @@ function App() {
             onNavigateToCreated={switchToCreatedItineraries}
             onViewItinerary={switchToViewItinerary}
             onNavigateToHome={switchToHomepage}
+            onLogout={handleLogout}
             onNavigateToSaved={switchToSavedItineraries}
+            showError={showError}
           />
         );
       case "homepage":
@@ -256,6 +275,8 @@ function App() {
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            showError={showError}
+            onLogout={handleLogout}
           />
         );
       case "create-itinerary":
@@ -267,6 +288,8 @@ function App() {
             onNavigateToHome={switchToHomepage}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            showError={showError}
+            onLogout={handleLogout}
           />
         );
       case "view-itinerary":
@@ -279,6 +302,8 @@ function App() {
             onNavigateToHome={switchToHomepage}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            showError={showError}
+            onLogout={handleLogout}
           />
         );
 
@@ -287,12 +312,14 @@ function App() {
           <CreatedItinerariesPage
             onBack={handleBack}
             user={user}
+            onLogout={handleLogout}
             onNavigateToProfile={switchToProfile}
             onNavigateToHome={switchToHomepage}
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreate={switchToCreateItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            showError={showError}
           />
         );
 
@@ -306,6 +333,8 @@ function App() {
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            showError={showError}
+            onLogout={handleLogout}
           />
         );
 
@@ -329,10 +358,9 @@ function App() {
       <div className="app">
         {renderCurrentPage()}
 
-        <UniversalErrorPopup
-          message={globalError}
-          onClose={clearGlobalError}
-          duration={6000}
+        <ErrorPopup
+          error={error}
+          onClose={clearError}
         />
       </div>
     </GoogleOAuthProvider>
