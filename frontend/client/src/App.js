@@ -1,28 +1,29 @@
-// App.js 
-import React, { useState, useEffect } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import './App.css';
-import WelcomePage from './components/WelcomePage/WelcomePage.js';
-import LoginPage from './components/LoginPage/LoginPage';
-import SignupPage from './components/SignupPage/SignupPage';
-import AccountSetupPage from './components/AccountSetupPage/AccountSetupPage';
-import UserProfilePage from './components/UserProfilePage/UserProfilePage';
-import Homepage from './components/HomePage/HomePage';
-import CreateItineraryPage from './components/CreateItineraryPage/CreateItineraryPage';
-import ViewItineraryPage from './components/ViewItineraryPage/ViewItineraryPage';
-import CreatedItinerariesPage from './components/CreatedItinerariesPage/CreatedItinerariesPage';
-import UniversalErrorPopup from './components/UniversalErrorPopup/UniversalErrorPopup';
+// App.js
+import React, { useState, useEffect } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import "./App.css";
+import WelcomePage from "./components/WelcomePage/WelcomePage.js";
+import LoginPage from "./components/LoginPage/LoginPage";
+import SignupPage from "./components/SignupPage/SignupPage";
+import AccountSetupPage from "./components/AccountSetupPage/AccountSetupPage";
+import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
+import Homepage from "./components/HomePage/HomePage";
+import CreateItineraryPage from "./components/CreateItineraryPage/CreateItineraryPage";
+import ViewItineraryPage from "./components/ViewItineraryPage/ViewItineraryPage";
+import CreatedItinerariesPage from "./components/CreatedItinerariesPage/CreatedItinerariesPage";
+import SavedItinerariesPage from "./components/SavedItinerariesPage/SavedItinerariesPage.js";
+import UniversalErrorPopup from "./components/UniversalErrorPopup/UniversalErrorPopup";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('welcome');
-  const [pageHistory, setPageHistory] = useState(['welcome']);
+  const [currentPage, setCurrentPage] = useState("welcome");
+  const [pageHistory, setPageHistory] = useState(["welcome"]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [globalError, setGlobalError] = useState('');
+  const [globalError, setGlobalError] = useState("");
   const [selectedItinerary, setSelectedItinerary] = useState(null);
 
   const clearGlobalError = () => {
-    setGlobalError('');
+    setGlobalError("");
   };
 
   const showGlobalError = (message) => {
@@ -34,7 +35,7 @@ function App() {
       try {
         const res = await fetch("http://localhost:3000/api/user/me", {
           method: "GET",
-          credentials: "include"
+          credentials: "include",
         });
 
         if (res.ok) {
@@ -42,9 +43,9 @@ function App() {
           if (data.user) {
             setUser(data.user);
             if (!data.user.username || !data.user.bio) {
-              setCurrentPage('setup');
+              setCurrentPage("setup");
             } else {
-              setCurrentPage('homepage');
+              setCurrentPage("homepage");
             }
           }
         }
@@ -60,7 +61,7 @@ function App() {
   }, []);
 
   const navigateTo = (page) => {
-    setPageHistory(prev => [...prev, page]);
+    setPageHistory((prev) => [...prev, page]);
     setCurrentPage(page);
   };
 
@@ -72,61 +73,61 @@ function App() {
       setPageHistory(newHistory);
       setCurrentPage(previousPage);
     } else {
-      setCurrentPage('welcome');
+      setCurrentPage("welcome");
     }
   };
 
   const handleLogin = (userData) => {
     setUser(userData);
-    console.log('User logged in:', userData);
+    console.log("User logged in:", userData);
 
     if (!userData.username || !userData.bio) {
-      navigateTo('setup');
+      navigateTo("setup");
     } else {
-      navigateTo('homepage');
+      navigateTo("homepage");
     }
   };
 
   const handleSignup = (userData) => {
     setUser(userData);
-    console.log('User signed up:', userData);
-    navigateTo('setup');
+    console.log("User signed up:", userData);
+    navigateTo("setup");
   };
 
   const handleSetupComplete = (userData) => {
     setUser(userData);
-    console.log('User setup completed:', userData);
-    navigateTo('homepage');
+    console.log("User setup completed:", userData);
+    navigateTo("homepage");
   };
 
   const handleProfileUpdate = (userData) => {
     setUser(userData);
-    console.log('User profile updated:', userData);
+    console.log("User profile updated:", userData);
   };
 
   const handleGoogleLogin = (googleData) => {
-    console.log('Google login successful:', googleData);
+    console.log("Google login successful:", googleData);
     const userObject = parseJwt(googleData.credential);
     const userData = {
       id: userObject.sub,
       name: userObject.name,
       email: userObject.email,
       picture: userObject.picture,
-      provider: 'google'
+      provider: "google",
     };
     setUser(userData);
-    console.log('User data:', userData);
+    console.log("User data:", userData);
 
     if (!userData.username) {
-      navigateTo('setup');
+      navigateTo("setup");
     } else {
-      navigateTo('homepage');
+      navigateTo("homepage");
     }
   };
 
   const parseJwt = (token) => {
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      return JSON.parse(atob(token.split(".")[1]));
     } catch (e) {
       showGlobalError("Failed to process login. Please try again.");
       return null;
@@ -134,60 +135,71 @@ function App() {
   };
 
   const switchToSignup = () => {
-    navigateTo('signup');
+    navigateTo("signup");
   };
 
   const switchToLogin = () => {
-    navigateTo('login');
+    navigateTo("login");
   };
 
   const switchToHomepage = () => {
-    navigateTo('homepage');
+    navigateTo("homepage");
   };
 
   const switchToProfile = () => {
     if (user) {
-      navigateTo('profile');
+      navigateTo("profile");
     } else {
       showGlobalError("Please log in to view your profile.");
-      navigateTo('login');
+      navigateTo("login");
     }
   };
 
   const switchToAccountSetup = () => {
-    navigateTo('setup');
+    navigateTo("setup");
   };
 
   const switchToCreateItinerary = () => {
-    navigateTo('create-itinerary');
+    navigateTo("create-itinerary");
   };
 
   const switchToViewItinerary = (itinerary) => {
     setSelectedItinerary(itinerary);
-    navigateTo('view-itinerary');
+    navigateTo("view-itinerary");
   };
 
   const switchToCreatedItineraries = () => {
     if (user) {
-      navigateTo('created-itineraries');
+      navigateTo("created-itineraries");
     } else {
       showGlobalError("Please log in to view your created itineraries.");
-      navigateTo('login');
+      navigateTo("login");
+    }
+  };
+
+  const switchToSavedItineraries = () => {
+    if (user) {
+      navigateTo("saved-itineraries");
+    } else {
+      showGlobalError("Please log in to view your saved itineraries.");
+      navigateTo("login");
     }
   };
 
   if (isLoading) {
     return (
       <div className="app">
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: '#FFFDF0',
-          fontFamily: 'PoiretOne, cursive',
-          fontSize: '1.2rem'
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            backgroundColor: "#FFFDF0",
+            fontFamily: "PoiretOne, cursive",
+            fontSize: "1.2rem",
+          }}
+        >
           Loading...
         </div>
       </div>
@@ -196,7 +208,7 @@ function App() {
 
   const renderCurrentPage = () => {
     switch (currentPage) {
-      case 'login':
+      case "login":
         return (
           <LoginPage
             onLogin={handleLogin}
@@ -205,7 +217,7 @@ function App() {
             onGoogleLogin={handleGoogleLogin}
           />
         );
-      case 'signup':
+      case "signup":
         return (
           <SignupPage
             onSignup={handleSignup}
@@ -214,7 +226,7 @@ function App() {
             onGoogleLogin={handleGoogleLogin}
           />
         );
-      case 'setup':
+      case "setup":
         return (
           <AccountSetupPage
             user={user}
@@ -222,7 +234,7 @@ function App() {
             onBack={handleBack}
           />
         );
-      case 'profile':
+      case "profile":
         return (
           <UserProfilePage
             user={user}
@@ -231,9 +243,10 @@ function App() {
             onNavigateToCreated={switchToCreatedItineraries}
             onViewItinerary={switchToViewItinerary}
             onNavigateToHome={switchToHomepage}
+            onNavigateToSaved={switchToSavedItineraries}
           />
         );
-      case 'homepage':
+      case "homepage":
         return (
           <Homepage
             onBack={handleBack}
@@ -242,9 +255,10 @@ function App() {
             onNavigateToCreate={switchToCreateItinerary}
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
           />
         );
-      case 'create-itinerary':
+      case "create-itinerary":
         return (
           <CreateItineraryPage
             onBack={handleBack}
@@ -252,9 +266,10 @@ function App() {
             onNavigateToProfile={switchToProfile}
             onNavigateToHome={switchToHomepage}
             onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
           />
         );
-      case 'view-itinerary':
+      case "view-itinerary":
         return (
           <ViewItineraryPage
             itinerary={selectedItinerary}
@@ -263,10 +278,11 @@ function App() {
             onNavigateToProfile={switchToProfile}
             onNavigateToHome={switchToHomepage}
             onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
           />
         );
 
-      case 'created-itineraries':
+      case "created-itineraries":
         return (
           <CreatedItinerariesPage
             onBack={handleBack}
@@ -276,9 +292,24 @@ function App() {
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreate={switchToCreateItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
           />
         );
-      case 'welcome':
+
+      case "saved-itineraries":
+        return (
+          <SavedItinerariesPage
+            onBack={handleBack}
+            user={user}
+            onNavigateToProfile={switchToProfile}
+            onNavigateToHome={switchToHomepage}
+            onViewItinerary={switchToViewItinerary}
+            onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
+          />
+        );
+
+      case "welcome":
       default:
         return (
           <WelcomePage
@@ -292,7 +323,9 @@ function App() {
   };
 
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENT_ID}>
+    <GoogleOAuthProvider
+      clientId={process.env.REACT_APP_GOOGLE_OAUTH_CLIENT_ID}
+    >
       <div className="app">
         {renderCurrentPage()}
 
