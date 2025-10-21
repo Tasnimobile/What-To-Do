@@ -1,12 +1,9 @@
 /* CustomDropdown.css */
-
-/* Main dropdown container */
 .custom-dropdown {
     position: relative;
     width: 100%;
 }
 
-/* Dropdown header/trigger */
 .dropdown-header {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -35,7 +32,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Dropdown arrow indicator */
 .dropdown-arrow {
     font-size: 0.8rem;
     transition: transform 0.3s ease;
@@ -46,7 +42,6 @@
     transform: rotate(180deg);
 }
 
-/* Dropdown options list */
 .dropdown-list {
     position: absolute;
     top: 100%;
@@ -63,7 +58,6 @@
     backdrop-filter: blur(10px);
 }
 
-/* Custom scrollbar styling */
 .dropdown-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -86,7 +80,6 @@
     scrollbar-width: none;
 }
 
-/* Fallback for browsers without overlay support */
 @supports not (overflow-y: overlay) {
     .dropdown-list {
         overflow-y: auto;
@@ -106,7 +99,6 @@
     }
 }
 
-/* Individual dropdown options */
 .dropdown-item {
     padding: 12px 16px;
     color: white;
@@ -131,7 +123,6 @@
     font-weight: 400;
 }
 
-/* Mobile responsive styles */
 @media (max-width: 768px) {
     .dropdown-header {
         padding: 14px 16px;
