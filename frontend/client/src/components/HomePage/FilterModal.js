@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import "./FilterModal.css";
 
 const FilterModal = ({ filters, onApply, onClose }) => {
+  // Local state for filter changes before applying
   const [localFilters, setLocalFilters] = useState(filters);
 
+  // Handle changes to filter values
   const handleFilterChange = (filterType, value) => {
     setLocalFilters((prev) => ({
       ...prev,
@@ -11,6 +13,7 @@ const FilterModal = ({ filters, onApply, onClose }) => {
     }));
   };
 
+  // Toggle tag selection
   const handleTagToggle = (tag) => {
     setLocalFilters((prev) => {
       const currentTags = prev.tags || [];
@@ -25,10 +28,12 @@ const FilterModal = ({ filters, onApply, onClose }) => {
     });
   };
 
+  // Apply selected filters
   const handleApply = () => {
     onApply(localFilters);
   };
 
+  // Reset all filters to default values
   const handleReset = () => {
     setLocalFilters({
       minRating: 0,
@@ -38,6 +43,7 @@ const FilterModal = ({ filters, onApply, onClose }) => {
     });
   };
 
+  // Available filter options
   const availableTags = [
     "park",
     "outdoors",
@@ -71,6 +77,7 @@ const FilterModal = ({ filters, onApply, onClose }) => {
   return (
     <div className="filter-modal-overlay">
       <div className="filter-modal">
+        {/* Modal header with close button */}
         <div className="filter-modal-header">
           <h3>Filter Itineraries</h3>
           <button className="close-btn" onClick={onClose}>
@@ -79,16 +86,15 @@ const FilterModal = ({ filters, onApply, onClose }) => {
         </div>
 
         <div className="filter-sections">
-          {/* Rating Filter */}
+          {/* Rating filter section */}
           <div className="filter-section">
             <label>Minimum Rating</label>
             <div className="rating-filter">
               {[0, 1, 2, 3, 4, 5].map((rating) => (
                 <button
                   key={rating}
-                  className={`rating-option ${
-                    localFilters.minRating === rating ? "active" : ""
-                  }`}
+                  className={`rating-option ${localFilters.minRating === rating ? "active" : ""
+                    }`}
                   onClick={() => handleFilterChange("minRating", rating)}
                 >
                   {rating === 0 ? "Any" : `${rating}+`}
@@ -97,16 +103,15 @@ const FilterModal = ({ filters, onApply, onClose }) => {
             </div>
           </div>
 
-          {/* Tags Filter */}
+          {/* Tags filter section */}
           <div className="filter-section">
             <label>Tags</label>
             <div className="tags-filter">
               {availableTags.map((tag) => (
                 <button
                   key={tag}
-                  className={`tag-option ${
-                    (localFilters.tags || []).includes(tag) ? "active" : ""
-                  }`}
+                  className={`tag-option ${(localFilters.tags || []).includes(tag) ? "active" : ""
+                    }`}
                   onClick={() => handleTagToggle(tag)}
                 >
                   {tag}
@@ -115,16 +120,15 @@ const FilterModal = ({ filters, onApply, onClose }) => {
             </div>
           </div>
 
-          {/* Duration Filter */}
+          {/* Duration filter section */}
           <div className="filter-section">
             <label>Maximum Duration</label>
             <div className="duration-filter">
               {durationOptions.map((option) => (
                 <button
                   key={option.value || "any"}
-                  className={`duration-option ${
-                    localFilters.maxDuration === option.value ? "active" : ""
-                  }`}
+                  className={`duration-option ${localFilters.maxDuration === option.value ? "active" : ""
+                    }`}
                   onClick={() =>
                     handleFilterChange("maxDuration", option.value)
                   }
@@ -135,16 +139,15 @@ const FilterModal = ({ filters, onApply, onClose }) => {
             </div>
           </div>
 
-          {/* Price Filter */}
+          {/* Price filter section */}
           <div className="filter-section">
             <label>Maximum Price</label>
             <div className="price-filter">
               {priceOptions.map((option) => (
                 <button
                   key={option.value || "any"}
-                  className={`price-option ${
-                    localFilters.maxPrice === option.value ? "active" : ""
-                  }`}
+                  className={`price-option ${localFilters.maxPrice === option.value ? "active" : ""
+                    }`}
                   onClick={() => handleFilterChange("maxPrice", option.value)}
                 >
                   {option.label}
@@ -154,6 +157,7 @@ const FilterModal = ({ filters, onApply, onClose }) => {
           </div>
         </div>
 
+        {/* Filter action buttons */}
         <div className="filter-modal-actions">
           <button className="reset-btn" onClick={handleReset}>
             Reset All

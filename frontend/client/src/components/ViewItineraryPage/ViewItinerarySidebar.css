@@ -1,4 +1,6 @@
 /* src/components/ViewItineraryPage/ViewItinerarySidebar.css */
+
+/* Main sidebar container for viewing itinerary details */
 .view-itinerary-sidebar {
     padding: 16px;
     display: flex;
@@ -9,6 +11,7 @@
     padding-bottom: 60px;
 }
 
+/* Header section with itinerary title */
 .create-header {
     display: flex;
     justify-content: space-between;
@@ -21,6 +24,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Main itinerary title styling */
 .itinerary-main-title {
     margin: 0;
     font-size: clamp(1.4rem, 2.2vw, 2rem);
@@ -31,6 +35,7 @@
     line-height: 1.3;
 }
 
+/* Main content card for itinerary details */
 .create-form-card {
     display: flex;
     flex-direction: column;
@@ -44,6 +49,7 @@
     flex: 1;
 }
 
+/* Action buttons container */
 .create-actions {
     display: flex;
     gap: 12px;
@@ -52,6 +58,7 @@
     padding-bottom: 20px;
 }
 
+/* Save/action button styling */
 .save-btn {
     flex: 1;
     padding: 16px;
@@ -79,17 +86,20 @@
     box-shadow: none;
 }
 
+/* Spacer for scroll area */
 .scroll-spacer {
     height: 5px;
     flex-shrink: 0;
 }
 
+/* Form section layout */
 .form-section {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
+/* Input group for form fields */
 .input-group {
     display: flex;
     flex-direction: column;
@@ -98,6 +108,7 @@
     width: 100%;
 }
 
+/* Form label styling */
 .form-label {
     color: white;
     font-weight: 400;
@@ -107,6 +118,7 @@
     width: 100%;
 }
 
+/* Row layout for side-by-side fields (duration/price) */
 .form-row {
     display: flex;
     gap: 12px;
@@ -123,6 +135,7 @@
     max-width: 160px;
 }
 
+/* Field display for view mode */
 .view-field {
     display: flex;
     flex-direction: column;
@@ -131,6 +144,7 @@
     align-items: center;
 }
 
+/* Value display boxes for itinerary details */
 .view-value {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -154,6 +168,7 @@
     line-height: 1.4;
 }
 
+/* Rating display with stars */
 .rating-display {
     display: flex;
     align-items: center;
@@ -176,7 +191,7 @@
     margin-left: 4px;
 }
 
-/* Tags */
+/* Tags container and individual tag styling */
 .tags-container {
     display: flex;
     flex-wrap: wrap;
@@ -193,6 +208,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Destinations list styling */
 .destinations-list {
     display: flex;
     flex-direction: column;
@@ -201,6 +217,7 @@
     width: 100%;
 }
 
+/* Individual destination item in view mode */
 .destination-item.view-destination {
     display: flex;
     align-items: flex-start;
@@ -213,6 +230,7 @@
     width: 100%;
 }
 
+/* Destination order number display */
 .destination-order {
     display: flex;
     align-items: center;
@@ -245,6 +263,7 @@
     margin-bottom: 2px;
 }
 
+/* Destination rating display */
 .destination-rating {
     display: flex;
     align-items: center;
@@ -260,6 +279,7 @@
     font-size: 0.9rem;
 }
 
+/* Empty destinations state */
 .no-destinations {
     text-align: center;
     color: rgba(255, 255, 255, 0.6);
@@ -271,6 +291,7 @@
     width: 100%;
 }
 
+/* Error message styling */
 .error-message {
     text-align: center;
     padding: 40px 20px;
@@ -287,6 +308,7 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
+/* Tablet responsive adjustments */
 @media (max-width: 768px) {
     .form-row {
         flex-direction: column;
@@ -304,6 +326,7 @@
     }
 }
 
+/* Mobile responsive adjustments */
 @media (max-width: 480px) {
     .form-row {
         gap: 12px;

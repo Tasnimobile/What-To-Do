@@ -16,6 +16,7 @@ import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
 import { useErrorPopup } from "./hooks/useErrorPopup";
 
 function App() {
+  // State for current page, navigation history, user data, and loading status
   const [currentPage, setCurrentPage] = useState("welcome");
   const [pageHistory, setPageHistory] = useState(["welcome"]);
   const [user, setUser] = useState(null);
@@ -23,6 +24,7 @@ function App() {
   const [selectedItinerary, setSelectedItinerary] = useState(null);
   const { error, showError, clearError } = useErrorPopup();
 
+  // Check for existing user session on app start
   useEffect(() => {
     const checkUserSession = async () => {
       try {
@@ -35,6 +37,7 @@ function App() {
           const data = await res.json();
           if (data.user) {
             setUser(data.user);
+            // Redirect to setup if user profile is incomplete
             if (!data.user.username || !data.user.bio) {
               setCurrentPage("setup");
             } else {
@@ -53,11 +56,13 @@ function App() {
     checkUserSession();
   }, [showError]);
 
+  // Navigation function to switch between pages
   const navigateTo = (page) => {
     setPageHistory((prev) => [...prev, page]);
     setCurrentPage(page);
   };
 
+  // Handle back navigation using page history
   const handleBack = () => {
     if (pageHistory.length > 1) {
       const newHistory = [...pageHistory];
@@ -70,10 +75,12 @@ function App() {
     }
   };
 
+  // Authentication handlers
   const handleLogin = (userData) => {
     setUser(userData);
     console.log("User logged in:", userData);
 
+    // Redirect to setup if profile is incomplete
     if (!userData.username || !userData.bio) {
       navigateTo("setup");
     } else {
@@ -98,6 +105,7 @@ function App() {
     console.log("User profile updated:", userData);
   };
 
+  // Handle Google OAuth login
   const handleGoogleLogin = (googleData) => {
     console.log("Google login successful:", googleData);
     const userObject = parseJwt(googleData.credential);
@@ -111,6 +119,7 @@ function App() {
     setUser(userData);
     console.log("User data:", userData);
 
+    // Redirect to setup if username is missing
     if (!userData.username) {
       navigateTo("setup");
     } else {
@@ -118,6 +127,7 @@ function App() {
     }
   };
 
+  // Parse JWT token from Google OAuth
   const parseJwt = (token) => {
     try {
       return JSON.parse(atob(token.split(".")[1]));
@@ -127,6 +137,7 @@ function App() {
     }
   };
 
+  // Navigation handlers for different pages
   const switchToSignup = () => {
     navigateTo("signup");
   };
@@ -179,6 +190,7 @@ function App() {
     }
   };
 
+  // Show loading screen while checking user session
   if (isLoading) {
     return (
       <div className="app">
@@ -199,6 +211,7 @@ function App() {
     );
   }
 
+  // Handle user logout
   const handleLogout = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/auth/logout", {
@@ -220,6 +233,7 @@ function App() {
     }
   };
 
+  // Render the current active page based on state
   const renderCurrentPage = () => {
     switch (currentPage) {
       case "login":
@@ -358,6 +372,7 @@ function App() {
       <div className="app">
         {renderCurrentPage()}
 
+        {/* Global error popup component */}
         <ErrorPopup
           error={error}
           onClose={clearError}

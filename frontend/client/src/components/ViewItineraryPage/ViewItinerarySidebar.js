@@ -3,6 +3,7 @@ import React from "react";
 import "./ViewItinerarySidebar.css";
 
 function ViewItinerarySidebar({ itinerary, onBack }) {
+  // Handle case where itinerary data is not available
   if (!itinerary) {
     return (
       <div className="view-itinerary-sidebar">
@@ -24,6 +25,7 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
     );
   }
 
+  // Destructure itinerary data with default values for missing properties
   const {
     title = "Untitled Itinerary",
     description = "No description provided.",
@@ -36,10 +38,12 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
 
   return (
     <div className="view-itinerary-sidebar">
+      {/* Itinerary Title Header */}
       <div className="create-header">
         <h1 className="itinerary-main-title">{title}</h1>
       </div>
 
+      {/* Main Itinerary Details Card */}
       <div className="create-form-card">
         {/* Description Section */}
         <div className="form-section">
@@ -50,6 +54,7 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
             </div>
           </div>
 
+          {/* Duration and Price Section */}
           <div className="form-row">
             <div className="input-group duration-dropdown-wrapper">
               <div className="view-field">
@@ -67,7 +72,7 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
           </div>
         </div>
 
-        {/* Rating Section */}
+        {/* Rating Section with Star Display */}
         <div className="form-section">
           <div className="input-group">
             <div className="view-field">
@@ -84,7 +89,7 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
           </div>
         </div>
 
-        {/* Tags Section */}
+        {/* Tags Section (only shown if tags exist) */}
         {tags.length > 0 && (
           <div className="form-section">
             <div className="input-group">
@@ -146,6 +151,7 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
         </div>
       </div>
 
+      {/* Action Button (Save Itinerary) */}
       <div className="create-actions">
         <button className="save-btn">Save Itinerary</button>
       </div>

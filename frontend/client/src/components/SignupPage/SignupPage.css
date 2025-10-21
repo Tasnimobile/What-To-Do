@@ -1,4 +1,6 @@
 /* src/components/SignupPage/SignupPage.css */
+
+/* Main signup page container */
 .signup-page {
     height: 100vh;
     background-color: #FFFDF0;
@@ -9,6 +11,7 @@
     overflow: hidden;
 }
 
+/* Signup form container */
 .signup-container {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
     padding: 40px 35px;
@@ -20,6 +23,7 @@
     color: white;
 }
 
+/* Signup header section */
 .signup-header {
     text-align: center;
     margin-bottom: 25px;
@@ -33,6 +37,7 @@
     letter-spacing: 1px;
 }
 
+/* Main signup form */
 .signup-form {
     display: flex;
     flex-direction: column;
@@ -45,6 +50,7 @@
     flex-direction: column;
 }
 
+/* Form input fields */
 .form-input {
     padding: 16px;
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -61,6 +67,7 @@
     line-height: 1.5;
 }
 
+/* Password input specific styling */
 .password-input-container .form-input {
     width: 100% !important;
     padding: 16px 45px 16px 16px;
@@ -92,6 +99,7 @@
     text-align: center;
 }
 
+/* Signup button */
 .signup-button {
     padding: 12.8px;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
@@ -130,7 +138,7 @@
     transform: translateY(0);
 }
 
-
+/* Google signup button */
 .google-custom-button {
     padding: 12.8px;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
@@ -191,6 +199,7 @@
     width: 100%;
 }
 
+/* Switch between signup and login */
 .signup-switch {
     text-align: center;
     margin-top: 30px;
@@ -218,6 +227,7 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
+/* Password input wrapper with toggle */
 .password-input-wrapper {
     display: flex;
     flex-direction: column;
@@ -273,6 +283,7 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* Hide browser password controls */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
     display: none;
@@ -282,6 +293,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     display: none !important;
 }
 
+/* Back button styling */
 .back-button-container {
     position: absolute;
     top: 20px;
@@ -324,6 +336,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Error popup styling */
 .error-popup {
     position: fixed;
     top: 20px;
@@ -363,6 +376,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     letter-spacing: 0.5px;
 }
 
+/* Slide down animation for popup */
 @keyframes slideDown {
     from {
         transform: translateX(-50%) translateY(-100%);

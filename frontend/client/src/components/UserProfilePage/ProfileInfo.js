@@ -3,6 +3,7 @@ import React from "react";
 import "./ProfileInfo.css";
 
 const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
+  // State for form data and profile picture preview
   const [formData, setFormData] = React.useState({
     username: user.username || "",
     bio: user.bio || "",
@@ -10,6 +11,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   });
   const [previewUrl, setPreviewUrl] = React.useState(user.profilePicture || "");
 
+  // Reset form when user data changes
   React.useEffect(() => {
     setFormData({
       username: user.username || "",
@@ -19,6 +21,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
     setPreviewUrl(user.profilePicture || "");
   }, [user]);
 
+  // Handle text input changes for username and bio
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -26,6 +29,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
     });
   };
 
+  // Handle profile picture file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -44,6 +48,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
         profilePicture: file,
       });
 
+      // Create preview URL for selected image
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewUrl(e.target.result);
@@ -52,6 +57,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
     }
   };
 
+  // Remove selected profile picture
   const removeProfilePicture = () => {
     setFormData({
       ...formData,
@@ -60,6 +66,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
     setPreviewUrl("");
   };
 
+  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     const updatedUser = {
@@ -71,6 +78,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
     onSave(updatedUser);
   };
 
+  // Reset form and exit edit mode
   const handleCancel = () => {
     setFormData({
       username: user.username || "",
@@ -83,12 +91,15 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
 
   return (
     <div className="profile-top-section">
+      {/* Profile Picture Section */}
       <div className="profile-picture-section-modern">
         <div className="profile-picture-container-modern">
           {isEditing ? (
+            // Edit mode: Show upload interface
             <div className="profile-picture-upload-modern">
               <div className="profile-picture-preview-modern">
                 {previewUrl ? (
+                  // New image preview with remove button
                   <div className="preview-container-modern">
                     <img
                       src={previewUrl}
@@ -104,12 +115,14 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
                     </button>
                   </div>
                 ) : user.profilePicture ? (
+                  // Existing profile picture
                   <img
                     src={user.profilePicture}
                     alt="Profile"
                     className="profile-image-modern"
                   />
                 ) : (
+                  // Placeholder when no picture
                   <div className="no-profile-picture-modern">
                     <svg
                       width="64"
@@ -122,6 +135,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
                   </div>
                 )}
               </div>
+              {/* File input for changing profile picture */}
               <label className="file-input-label-modern">
                 <input
                   type="file"
@@ -133,6 +147,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
               </label>
             </div>
           ) : (
+            // View mode: Display only
             <div className="profile-picture-display-modern">
               {user.profilePicture ? (
                 <img
@@ -157,12 +172,14 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
         </div>
       </div>
 
-      {/* User Info beside profile photo */}
+      {/* User Info Section */}
       <div className="profile-info-side">
         {isEditing ? (
+          // Edit Form
           <form className="edit-profile-form" onSubmit={handleSubmit}>
             <div className="edit-form-content">
               <div className="edit-fields-container">
+                {/* Username input field */}
                 <div className="edit-input-group">
                   <input
                     type="text"
@@ -175,6 +192,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
                   />
                 </div>
 
+                {/* Bio text area field */}
                 <div className="edit-input-group">
                   <textarea
                     name="bio"
@@ -187,11 +205,13 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
                   />
                 </div>
 
+                {/* Read-only email display */}
                 <div className="email-section">
                   <span className="email-text">{user.email}</span>
                 </div>
               </div>
 
+              {/* Form action buttons */}
               <div className="edit-actions-side">
                 <button type="submit" className="save-button-modern">
                   Save
@@ -207,6 +227,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
             </div>
           </form>
         ) : (
+          // View Mode Display
           <>
             <div className="username-display">
               <h1 className="username-large">

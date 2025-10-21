@@ -10,6 +10,7 @@ function DestinationManager({
   onStartLocationSelection,
   isSelectingLocation,
 }) {
+  // State for current step and search visibility
   const [currentStep, setCurrentStep] = useState(1);
   const [showSearch, setShowSearch] = useState(false);
 
@@ -18,15 +19,18 @@ function DestinationManager({
     isSelectingLocation,
   });
 
+  // Update current step based on number of destinations
   useEffect(() => {
     setCurrentStep((itineraryData?.destinations?.length || 0) + 1);
   }, [itineraryData?.destinations]);
 
+  // Show search interface for adding destinations
   const handleAddDestination = () => {
     console.log("Add destination clicked");
     setShowSearch(true);
   };
 
+  // Handle when a destination is selected from search
   const handleDestinationSelected = (newDestination) => {
     console.log("Destination selected in manager:", newDestination);
     const updatedDestinations = [
@@ -38,6 +42,7 @@ function DestinationManager({
     setShowSearch(false);
   };
 
+  // Remove a destination from the list
   const handleRemoveDestination = (destinationId) => {
     console.log("Removing destination:", destinationId);
     const updatedDestinations = (itineraryData?.destinations || []).filter(
@@ -47,6 +52,7 @@ function DestinationManager({
     setCurrentStep(updatedDestinations.length + 1);
   };
 
+  // Move destination up or down in the order
   const handleMoveDestination = (index, direction) => {
     console.log("Moving destination:", index, direction);
     const newDestinations = [...(itineraryData?.destinations || [])];
@@ -58,6 +64,7 @@ function DestinationManager({
         newDestinations[index],
       ];
 
+      // Update order property for all destinations
       newDestinations.forEach((dest, idx) => {
         dest.order = idx;
       });
@@ -66,6 +73,7 @@ function DestinationManager({
     }
   };
 
+  // Update destination information (name, etc.)
   const handleUpdateDestination = (destinationId, updates) => {
     console.log("Updating destination:", destinationId, updates);
     const updatedDestinations = (itineraryData?.destinations || []).map(
@@ -74,18 +82,21 @@ function DestinationManager({
     onUpdate("destinations", updatedDestinations);
   };
 
+  // Clear all destinations from the itinerary
   const handleClearDestinations = () => {
     console.log("Clearing all destinations");
     onUpdate("destinations", []);
     setCurrentStep(1);
   };
 
+  // Switch to map selection mode
   const handleMapSelection = () => {
     console.log("Starting map selection from DestinationManager");
     onStartLocationSelection();
     setShowSearch(false);
   };
 
+  // Cancel the search interface
   const cancelSearch = () => {
     console.log("Canceling search");
     setShowSearch(false);
@@ -95,6 +106,7 @@ function DestinationManager({
     <div className="input-group">
       <label className="form-label">Destinations Pathway</label>
 
+      {/* Show either search interface or add button */}
       {!showSearch ? (
         <div className="destination-controls">
           <button
@@ -104,6 +116,7 @@ function DestinationManager({
             Add Destination
           </button>
 
+          {/* Show clear button only when there are destinations */}
           {(itineraryData?.destinations?.length || 0) > 0 && (
             <button
               className="clear-destinations-btn"
@@ -122,6 +135,7 @@ function DestinationManager({
         />
       )}
 
+      {/* Display list of destinations */}
       <DestinationsList
         destinations={itineraryData?.destinations || []}
         onRemoveDestination={handleRemoveDestination}

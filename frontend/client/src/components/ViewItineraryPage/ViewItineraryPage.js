@@ -17,6 +17,7 @@ function ViewItineraryPage({
 }) {
   console.log("ViewItineraryPage received itinerary:", itinerary);
 
+  // Navigation handlers for header component
   const handleNavigateToHome = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
@@ -29,10 +30,12 @@ function ViewItineraryPage({
     }
   };
 
+  // Extract destinations for map display
   const mapDestinations = itinerary?.destinations || [];
 
   return (
     <div className="homepage">
+      {/* Left side: Header and Map */}
       <div className="main-left">
         <Header
           onBack={onBack}
@@ -43,9 +46,11 @@ function ViewItineraryPage({
           onNavigateToSaved={onNavigateToSaved}
           onLogout={onLogout}
         />
+        {/* Map showing itinerary destinations in view-only mode */}
         <Map selectedDestinations={mapDestinations} isViewMode={true} />
       </div>
 
+      {/* Right side: Itinerary details sidebar */}
       <div className="sidebar-container">
         <ViewItinerarySidebar itinerary={itinerary} onBack={onBack} />
       </div>

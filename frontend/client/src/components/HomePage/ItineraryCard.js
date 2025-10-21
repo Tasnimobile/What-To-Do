@@ -15,9 +15,11 @@ function ItineraryCard({
   currentUser,
   onRateItinerary
 }) {
+  // State for expanded view and hover rating
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
 
+  // Process tags safely from various formats
   const safeTags = React.useMemo(() => {
     if (!tags) return [];
 
@@ -38,7 +40,7 @@ function ItineraryCard({
     return [];
   }, [tags]);
 
-  // DEBUG: Check if current user can rate this itinerary
+  // Check if current user can rate this itinerary
   const canRate = currentUser &&
     createdBy !== undefined &&
     currentUser.id !== undefined &&
@@ -55,17 +57,20 @@ function ItineraryCard({
     currentUserIdType: typeof currentUser?.id
   });
 
+  // Toggle expanded/collapsed view
   const handleReadMore = (e) => {
     e.stopPropagation();
     setIsExpanded(!isExpanded);
   };
 
+  // Handle card click for viewing itinerary
   const handleCardClick = () => {
     if (onClick && itineraryId) {
       onClick(itineraryId);
     }
   };
 
+  // Handle star rating click
   const handleRate = (e, newRating) => {
     e.stopPropagation();
     console.log('Rating clicked:', { itineraryId, newRating, canRate });
@@ -77,6 +82,7 @@ function ItineraryCard({
     }
   };
 
+  // Handle hover effects for star ratings
   const handleMouseEnter = (starIndex) => {
     if (canRate) {
       setHoverRating(starIndex + 1);
@@ -97,6 +103,7 @@ function ItineraryCard({
       onClick={handleCardClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
+      {/* Header with title and rating stars */}
       <div className="itinerary-header">
         <h3>{title}</h3>
         <div className="rating">
@@ -118,10 +125,12 @@ function ItineraryCard({
         </div>
       </div>
 
+      {/* Description - collapsed or expanded */}
       <p className={isExpanded ? "expanded-description" : "collapsed-description"}>
         {description}
       </p>
 
+      {/* Expanded details section */}
       {isExpanded && (
         <div className="expanded-content">
           <div className="itinerary-details">
@@ -133,6 +142,7 @@ function ItineraryCard({
               <span className="detail-label">Price:</span>
               <span className="detail-value">{price}</span>
             </div>
+            {/* Display tags if available */}
             {safeTags.length > 0 && (
               <div className="detail-item">
                 <span className="detail-label">Tags:</span>
@@ -151,7 +161,7 @@ function ItineraryCard({
                 {rating || 0} stars {canRate ? '(You can rate this)' : '(You created this)'}
               </span>
             </div>
-            {/* DEBUG INFO - Remove this after testing */}
+            {/* Debug information - can be removed after testing */}
             <div className="detail-item" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
               <span className="detail-label">Debug:</span>
               <span className="detail-value">
@@ -162,6 +172,7 @@ function ItineraryCard({
         </div>
       )}
 
+      {/* Read More/Show Less button */}
       <button
         className="read-more"
         onClick={handleReadMore}

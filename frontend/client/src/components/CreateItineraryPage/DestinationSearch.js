@@ -7,15 +7,18 @@ function DestinationSearch({
   onMapSelection,
   onCancel,
 }) {
+  // State for search functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Refs for DOM elements and Google Maps services
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
   const autocompleteService = useRef(null);
   const placesService = useRef(null);
 
+  // Initialize Google Maps services
   const initializeServices = () => {
     if (!window.google) return;
 
@@ -29,6 +32,7 @@ function DestinationSearch({
     }
   };
 
+  // Handle search input changes
   const handleSearchChange = (query) => {
     setSearchQuery(query);
 
@@ -47,6 +51,7 @@ function DestinationSearch({
         types: ["establishment"],
       };
 
+      // Get place predictions from Google Places API
       autocompleteService.current.getPlacePredictions(
         request,
         (predictions, status) => {
@@ -69,6 +74,7 @@ function DestinationSearch({
     }
   };
 
+  // Fallback search method
   const tryAlternativeSearch = (query) => {
     if (!autocompleteService.current) return;
 
@@ -96,10 +102,12 @@ function DestinationSearch({
     );
   };
 
+  // Handle selection of a search result
   const handleSelectSearchResult = (placePrediction) => {
     initializeServices();
 
     if (placesService.current) {
+      // Get detailed place information
       placesService.current.getDetails(
         {
           placeId: placePrediction.place_id,
@@ -124,6 +132,7 @@ function DestinationSearch({
             onDestinationSelected(newDestination);
             setSearchResults([]);
           } else {
+            // Fallback destination if details fetch fails
             const fallbackDestination = {
               id: Date.now() + Math.random(),
               name: placePrediction.structured_formatting.main_text,
@@ -143,11 +152,13 @@ function DestinationSearch({
     }
   };
 
+  // Switch to map selection mode
   const handleMapSelection = () => {
     console.log("Map selection clicked in DestinationSearch");
     onMapSelection();
   };
 
+  // Close search results when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -166,6 +177,7 @@ function DestinationSearch({
 
   return (
     <div className="destination-search-mode" ref={searchContainerRef}>
+      {/* Search header with close button */}
       <div className="search-header">
         <h4>Search for Destination</h4>
         <button className="close-search-btn" onClick={onCancel}>
@@ -173,6 +185,7 @@ function DestinationSearch({
         </button>
       </div>
 
+      {/* Search input and results */}
       <div className="search-input-container">
         <input
           ref={searchInputRef}
@@ -182,8 +195,10 @@ function DestinationSearch({
           onChange={(e) => handleSearchChange(e.target.value)}
           className="search-input"
         />
+        {/* Loading indicator */}
         {isSearching && <div className="search-loading">Searching...</div>}
 
+        {/* Search results dropdown */}
         {searchResults.length > 0 && (
           <div className="search-results">
             {searchResults.map((result) => (
@@ -206,6 +221,7 @@ function DestinationSearch({
         )}
       </div>
 
+      {/* No results message */}
       {searchQuery.length >= 2 &&
         searchResults.length === 0 &&
         !isSearching && (
@@ -214,6 +230,7 @@ function DestinationSearch({
           </div>
         )}
 
+      {/* Map selection alternative */}
       <div className="search-options">
         <div className="option-divider">or</div>
         <button className="map-selection-btn" onClick={handleMapSelection}>

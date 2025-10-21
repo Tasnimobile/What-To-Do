@@ -17,10 +17,12 @@ function CreatedItinerariesPage({
   onNavigateToCreated,
   showError,
 }) {
+  // State for user's created itineraries
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [userItineraries, setUserItineraries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Process tags from various formats (array, string, JSON string)
   const processTags = (tags) => {
     if (!tags) return [];
 
@@ -41,10 +43,12 @@ function CreatedItinerariesPage({
     return [];
   };
 
+  // Load user's created itineraries on component mount
   useEffect(() => {
     loadUserItineraries();
   }, [user]);
 
+  // Debug function to check itinerary data
   const debugUserItineraries = async () => {
     try {
       const response = await fetch("http://localhost:3000/api/debug/my-itineraries", {
@@ -79,6 +83,7 @@ function CreatedItinerariesPage({
     }
   };
 
+  // Main function to load user itineraries from API
   const loadUserItineraries = async () => {
     setIsLoading(true);
     try {
@@ -103,6 +108,7 @@ function CreatedItinerariesPage({
           userItinerariesFromDB = [];
         }
 
+        // Process and format itinerary data for display
         const processedItineraries = userItinerariesFromDB.map(itinerary => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
@@ -135,12 +141,14 @@ function CreatedItinerariesPage({
     }
   };
 
+  // Navigation handlers
   const handleNavigateToHome = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
     }
   };
 
+  // Handler for viewing itinerary details
   const handleViewItinerary = (itinerary) => {
     console.log('Viewing itinerary:', itinerary);
     if (onViewItinerary) {
@@ -148,6 +156,7 @@ function CreatedItinerariesPage({
     }
   };
 
+  // Handler for creating new itinerary
   const handleCreateNew = () => {
     console.log("Create new clicked in CreatedItinerariesPage");
     if (onNavigateToCreate) {
@@ -157,6 +166,7 @@ function CreatedItinerariesPage({
     }
   };
 
+  // Sidebar component for displaying user's itineraries
   const CreatedItinerariesSidebar = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [showFilterModal, setShowFilterModal] = useState(false);
@@ -167,10 +177,12 @@ function CreatedItinerariesPage({
       maxPrice: "",
     });
 
+    // Search handler
     const handleSearch = (e) => {
       setSearchTerm(e.target.value);
     };
 
+    // Filter modal handlers
     const handleFilterClick = () => {
       setShowFilterModal(true);
     };
@@ -193,6 +205,7 @@ function CreatedItinerariesPage({
       });
     };
 
+    // Handler for clicking on itinerary card
     const handleItineraryClick = (itineraryId) => {
       const itinerary = filteredItineraries.find(
         (item) => item.id === itineraryId
@@ -202,6 +215,7 @@ function CreatedItinerariesPage({
       }
     };
 
+    // Utility functions for filtering
     const durationToHours = (duration) => {
       if (!duration) return 0;
       if (typeof duration !== "string") return 0;
@@ -221,6 +235,7 @@ function CreatedItinerariesPage({
       return price.length;
     };
 
+    // Filter itineraries based on search and filter criteria
     const filteredItineraries = (Array.isArray(userItineraries) ? userItineraries : []).filter((itinerary) => {
       if (!itinerary || typeof itinerary !== 'object') {
         return false;
@@ -276,6 +291,7 @@ function CreatedItinerariesPage({
       <div className="sidebar">
         <h1>My Created Itineraries</h1>
 
+        {/* Create new itinerary header */}
         <h2
           className="create-new-header"
           onClick={handleCreateNew}
@@ -284,6 +300,7 @@ function CreatedItinerariesPage({
           Create New
         </h2>
 
+        {/* Search and filter controls */}
         <div className="search-filter">
           <input
             type="text"
@@ -296,12 +313,14 @@ function CreatedItinerariesPage({
           </button>
         </div>
 
+        {/* Clear filters button */}
         {hasActiveFilters && (
           <button className="clear-filters-btn" onClick={handleClearFilters}>
             Clear Filters
           </button>
         )}
 
+        {/* Itineraries list or loading/empty states */}
         {isLoading ? (
           <div className="no-results">
             Loading your itineraries...
@@ -319,6 +338,7 @@ function CreatedItinerariesPage({
             )}
           </div>
         ) : (
+          // Display filtered itineraries as cards
           filteredItineraries.map((itinerary) => (
             <div
               key={itinerary.id}
@@ -364,6 +384,7 @@ function CreatedItinerariesPage({
           ))
         )}
 
+        {/* Filter modal */}
         {showFilterModal && (
           <div className="filter-modal-overlay">
             <div className="filter-modal">
@@ -375,7 +396,7 @@ function CreatedItinerariesPage({
               </div>
 
               <div className="filter-sections">
-                {/* Rating Filter */}
+                {/* Rating Filter Section */}
                 <div className="filter-section">
                   <label>Minimum Rating</label>
                   <div className="rating-filter">
@@ -394,7 +415,7 @@ function CreatedItinerariesPage({
                   </div>
                 </div>
 
-                {/* Tags Filter */}
+                {/* Tags Filter Section */}
                 <div className="filter-section">
                   <label>Tags</label>
                   <div className="tags-filter">
@@ -427,7 +448,7 @@ function CreatedItinerariesPage({
                   </div>
                 </div>
 
-                {/* Duration Filter */}
+                {/* Duration Filter Section */}
                 <div className="filter-section">
                   <label>Maximum Duration</label>
                   <div className="duration-filter">
@@ -457,7 +478,7 @@ function CreatedItinerariesPage({
                   </div>
                 </div>
 
-                {/* Price Filter */}
+                {/* Price Filter Section */}
                 <div className="filter-section">
                   <label>Maximum Price</label>
                   <div className="price-filter">
@@ -486,6 +507,7 @@ function CreatedItinerariesPage({
                 </div>
               </div>
 
+              {/* Filter modal action buttons */}
               <div className="filter-modal-actions">
                 <button className="reset-btn" onClick={handleClearFilters}>
                   Reset All
@@ -501,6 +523,7 @@ function CreatedItinerariesPage({
     );
   };
 
+  // Main page layout
   return (
     <div className="homepage">
       <div className="main-left">

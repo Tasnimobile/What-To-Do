@@ -1,4 +1,6 @@
 /* src/components/UserProfilePage/ProfileStats.css */
+
+/* Stats container - displays user metrics below profile info */
 .profile-stats-small {
     display: flex;
     gap: 50px;
@@ -8,6 +10,7 @@
     border-top: 1px solid rgba(113, 193, 157, 0.3);
 }
 
+/* Individual stat item with hover effects */
 .stat-item-small {
     text-align: center;
     cursor: pointer;
@@ -21,6 +24,7 @@
     background: rgba(113, 193, 157, 0.1);
 }
 
+/* Stat number display (e.g., "12" for itineraries count) */
 .stat-number-small {
     font-size: 1.3rem;
     font-weight: 400;
@@ -28,6 +32,7 @@
     margin-bottom: 6px;
 }
 
+/* Stat label (e.g., "Itineraries", "Followers") */
 .stat-label-small {
     font-size: 0.85rem;
     color: #71C19D;
@@ -35,6 +40,7 @@
     letter-spacing: 0.5px;
 }
 
+/* Tablet responsive adjustments */
 @media (max-width: 768px) {
     .profile-stats-small {
         gap: 30px;
@@ -42,6 +48,7 @@
     }
 }
 
+/* Mobile responsive adjustments */
 @media (max-width: 480px) {
     .profile-stats-small {
         gap: 25px;

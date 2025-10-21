@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import "./Map.css";
 
+// Render function for different map loading states
 const render = (status, props) => {
   switch (status) {
     case Status.LOADING:
@@ -47,6 +48,7 @@ function Map({
   );
 }
 
+// Main map component with Google Maps functionality
 const MapComponent = ({
   onLocationSelect,
   isSelectingMode,
@@ -64,11 +66,13 @@ const MapComponent = ({
     selectedDestinationsCount: selectedDestinations?.length,
   });
 
+  // Clear all markers from the map
   const clearMarkers = () => {
     markers.forEach((marker) => marker.setMap(null));
     setMarkers([]);
   };
 
+  // Add a marker for a destination
   const addDestinationMarker = (destination) => {
     if (!map) return;
 
@@ -89,6 +93,7 @@ const MapComponent = ({
       },
     });
 
+    // Handle marker dragging to update location
     marker.addListener("dragend", (e) => {
       const newLat = e.latLng.lat();
       const newLng = e.latLng.lng();
@@ -134,6 +139,7 @@ const MapComponent = ({
       );
     });
 
+    // Add info window for marker details
     const infoWindow = new window.google.maps.InfoWindow({
       content: `
                 <div style="padding: 12px; font-family: Arial, sans-serif; min-width: 200px;">
@@ -152,6 +158,7 @@ const MapComponent = ({
     return marker;
   };
 
+  // Handle map clicks for location selection
   const handleMapClick = (e) => {
     console.log("Map clicked!", e.latLng.lat(), e.latLng.lng());
     console.log("isSelectingMode:", isSelectingMode);
@@ -178,6 +185,7 @@ const MapComponent = ({
         },
       });
 
+      // Geocode the clicked location to get address
       const geocoder = new window.google.maps.Geocoder();
       geocoder.geocode({ location: { lat, lng } }, (results, status) => {
         console.log("Geocoding status:", status);
@@ -223,6 +231,7 @@ const MapComponent = ({
     }
   };
 
+  // Handle clicks outside the map to cancel selection
   const handleOutsideClick = (e) => {
     if (
       ref.current &&
@@ -235,6 +244,7 @@ const MapComponent = ({
     }
   };
 
+  // Initialize the map
   React.useEffect(() => {
     if (ref.current && !map) {
       console.log("Initializing map centered on Manhattan...");
@@ -261,6 +271,7 @@ const MapComponent = ({
     }
   }, [ref, map]);
 
+  // Handle selection mode and click listeners
   React.useEffect(() => {
     if (!map) return;
 
@@ -290,6 +301,7 @@ const MapComponent = ({
     };
   }, [map, isSelectingMode, onCancelSelection]);
 
+  // Update markers when destinations change
   React.useEffect(() => {
     if (!map) return;
 
@@ -302,6 +314,7 @@ const MapComponent = ({
         addDestinationMarker(destination);
       });
 
+      // Adjust map view to show all markers
       if (selectedDestinations.length > 1) {
         const bounds = new window.google.maps.LatLngBounds();
         selectedDestinations.forEach((destination) => {
@@ -320,6 +333,7 @@ const MapComponent = ({
 
   return (
     <div className="map-component-wrapper">
+      {/* Selection mode hint */}
       {isSelectingMode && (
         <div className="map-selection-hint">
           <div className="selection-hint-content">

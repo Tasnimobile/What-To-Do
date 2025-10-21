@@ -10,7 +10,7 @@ const ItineraryView = ({
   user,
   onViewItinerary,
 }) => {
-
+  // Handle itinerary card click and pass data to parent component
   const handleItineraryClick = (itineraryId) => {
     console.log("Itinerary clicked:", itineraryId);
     const itinerary = userItineraries.find((item) => item.id === itineraryId);
@@ -19,9 +19,11 @@ const ItineraryView = ({
     }
   };
 
+  // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
       case "itineraries":
+        // Display user's created itineraries or empty state
         if (userItineraries.length === 0) {
           return (
             <div className="grid-placeholder">
@@ -62,6 +64,7 @@ const ItineraryView = ({
         );
 
       case "saved":
+        // Placeholder for saved itineraries feature
         return (
           <div className="grid-placeholder">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
@@ -72,6 +75,7 @@ const ItineraryView = ({
         );
 
       case "recent":
+        // Filter and display itineraries created in the last week
         const recentItineraries = userItineraries.filter((itin) => {
           const oneWeekAgo = new Date();
           oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -113,6 +117,7 @@ const ItineraryView = ({
         );
 
       default:
+        // Fallback for unknown tab
         return (
           <div className="grid-placeholder">
             <p>Select a tab to view content</p>
@@ -123,7 +128,7 @@ const ItineraryView = ({
 
   return (
     <div className="itinerary-container">
-      {/* Profile Tabs */}
+      {/* Tab Navigation */}
       <div className="profile-tabs">
         <button
           className={`tab-button ${activeTab === "itineraries" ? "active" : ""
@@ -155,7 +160,7 @@ const ItineraryView = ({
         </button>
       </div>
 
-      {/* Content based on active tab */}
+      {/* Dynamic Content Area */}
       <div className="content-grid">{renderContent()}</div>
     </div>
   );

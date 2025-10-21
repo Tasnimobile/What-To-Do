@@ -1,3 +1,4 @@
+/* Itinerary card container */
 .itinerary-card {
     display: flex;
     flex-direction: column;
@@ -17,6 +18,7 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
+/* Header section with title and rating */
 .itinerary-header {
     display: flex;
     justify-content: space-between;
@@ -31,6 +33,7 @@
     gap: 20px;
 }
 
+/* Collapsed description preview */
 .collapsed-description {
     font-size: clamp(0.75rem, 1.1vw, 0.9rem);
     margin: 0;
@@ -48,6 +51,7 @@
     -webkit-box-orient: vertical;
 }
 
+/* Star rating display */
 .rating {
     display: flex;
     gap: 3px;
@@ -63,6 +67,7 @@
     color: gold;
 }
 
+/* Action buttons in itinerary card */
 .itinerary-card button {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     color: white;
@@ -85,6 +90,7 @@
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Filter modal overlay */
 .filter-modal-overlay {
     position: fixed;
     top: 0;
@@ -98,6 +104,7 @@
     z-index: 1000;
 }
 
+/* Filter modal container */
 .filter-modal {
     background: #FFFDF0;
     border-radius: 16px;
@@ -110,6 +117,7 @@
     position: relative;
 }
 
+/* Filter modal header */
 .filter-modal-header {
     display: flex;
     justify-content: space-between;
@@ -126,6 +134,7 @@
     font-size: 1.3rem;
 }
 
+/* Close button for modal */
 .close-btn {
     background: none;
     border: none;
@@ -144,12 +153,14 @@
     color: #666;
 }
 
+/* Filter sections container */
 .filter-sections {
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
+/* Filter section labels */
 .filter-section label {
     display: block;
     margin-bottom: 12px;
@@ -160,6 +171,7 @@
     letter-spacing: 0.5px;
 }
 
+/* Filter option containers */
 .rating-filter,
 .tags-filter,
 .duration-filter,
@@ -169,6 +181,7 @@
     gap: 8px;
 }
 
+/* Individual filter options */
 .rating-option,
 .tag-option,
 .duration-option,
@@ -201,6 +214,7 @@
     border-color: rgba(113, 193, 157, 0.5);
 }
 
+/* Filter modal action buttons */
 .filter-modal-actions {
     display: flex;
     gap: 12px;
@@ -220,6 +234,7 @@
     transition: all 0.3s ease;
 }
 
+/* Reset filter button */
 .reset-btn {
     background: rgba(113, 193, 157, 0.1);
     color: #71C19D;
@@ -231,6 +246,7 @@
     transform: translateY(-1px);
 }
 
+/* Apply filter button */
 .apply-btn {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     color: white;
@@ -242,6 +258,7 @@
     box-shadow: 0 4px 12px rgba(113, 193, 157, 0.3);
 }
 
+/* Meta information container */
 .itinerary-meta {
     display: flex;
     gap: 12px;
@@ -250,6 +267,7 @@
     justify-content: center;
 }
 
+/* Individual meta items (duration, price, etc.) */
 .meta-item {
     background: rgba(255, 255, 255, 0.1);
     padding: 6px 12px;
@@ -259,6 +277,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* No results message */
 .no-results {
     text-align: center;
     color: rgba(255, 255, 255, 0.7);

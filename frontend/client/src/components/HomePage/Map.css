@@ -1,4 +1,6 @@
 /* Map.css */
+
+/* Main map container */
 .map-container {
     flex: 1;
     display: flex;
@@ -16,18 +18,21 @@
     position: relative;
 }
 
+/* Wrapper for Google Maps component */
 .map-component-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
+/* Google Maps styling */
 .google-map {
     width: 100%;
     height: 100%;
     border-radius: 14px;
 }
 
+/* Loading and error states */
 .map-loading,
 .map-error {
     display: flex;
@@ -44,6 +49,7 @@
     color: #ff6b6b;
 }
 
+/* Hint message for location selection mode */
 .map-selection-hint {
     position: absolute;
     top: 20px;
@@ -102,6 +108,7 @@
     opacity: 0.9;
 }
 
+/* Slide down animation for hint */
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -111,19 +118,5 @@
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.8;
-    }
-
-    100% {
-        opacity: 1;
     }
 }

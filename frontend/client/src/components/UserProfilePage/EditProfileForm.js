@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import "./EditProfileForm.css";
 
 const EditProfileForm = ({ user, onSave, onCancel }) => {
+  // State for form data and profile picture preview
   const [formData, setFormData] = useState({
     username: user.username || "",
     bio: user.bio || "",
@@ -10,6 +11,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
   });
   const [previewUrl, setPreviewUrl] = useState(user.profilePicture || "");
 
+  // Handle text input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -17,6 +19,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
     });
   };
 
+  // Handle profile picture file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -35,6 +38,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
         profilePicture: file,
       });
 
+      // Create preview URL for the selected image
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewUrl(e.target.result);
@@ -43,6 +47,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
     }
   };
 
+  // Remove selected profile picture
   const removeProfilePicture = () => {
     setFormData({
       ...formData,
@@ -51,6 +56,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
     setPreviewUrl("");
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -69,8 +75,10 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
 
   return (
     <form className="profile-picture-upload-modern" onSubmit={handleSubmit}>
+      {/* Profile picture preview and upload */}
       <div className="profile-picture-preview-modern">
         {previewUrl ? (
+          // Show new profile picture preview
           <div className="preview-container-modern">
             <img
               src={previewUrl}
@@ -86,12 +94,14 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
             </button>
           </div>
         ) : user.profilePicture ? (
+          // Show existing profile picture
           <img
             src={user.profilePicture}
             alt="Profile"
             className="profile-image-modern"
           />
         ) : (
+          // Show placeholder when no profile picture
           <div className="no-profile-picture-modern">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="#71C19D">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -100,6 +110,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
         )}
       </div>
 
+      {/* File input for profile picture */}
       <label className="file-input-label-modern">
         <input
           type="file"
@@ -110,6 +121,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
         Change Photo
       </label>
 
+      {/* Username and bio input fields */}
       <div className="edit-form-fields">
         <input
           type="text"
@@ -131,6 +143,7 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
         />
       </div>
 
+      {/* Save and cancel buttons */}
       <div className="edit-actions-modern">
         <button type="submit" className="save-button-modern">
           Save Changes

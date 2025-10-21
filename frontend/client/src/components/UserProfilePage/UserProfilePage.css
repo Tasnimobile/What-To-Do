@@ -1,4 +1,6 @@
 /* src/components/UserProfilePage/UserProfilePage.css */
+
+/* Main page container */
 .user-profile-page {
     min-height: 100vh;
     background-color: #FFFDF0;
@@ -8,6 +10,7 @@
     height: 100dvh;
 }
 
+/* Hide scrollbar across all browsers */
 .user-profile-page::-webkit-scrollbar {
     width: 8px;
 }
@@ -29,6 +32,7 @@
     scrollbar-width: none;
 }
 
+/* Profile header section */
 .profile-header-full {
     width: 100%;
     padding: 20px;
@@ -40,6 +44,7 @@
     width: 100%;
 }
 
+/* Main content area container */
 .profile-content-main {
     padding: 30px;
     width: 100%;
@@ -48,6 +53,7 @@
     position: relative;
 }
 
+/* Edit profile button positioned top-right */
 .edit-profile-top-right {
     position: absolute;
     top: 30px;
@@ -55,6 +61,7 @@
     z-index: 10;
 }
 
+/* Edit profile button styling */
 .edit-profile-btn-small {
     padding: 12px 24px;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
@@ -76,6 +83,7 @@
     border-color: rgba(113, 193, 157, 0.5);
 }
 
+/* Itinerary container */
 .itinerary-container {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
     padding: 30px;
@@ -88,12 +96,14 @@
     color: white;
 }
 
+/* Ensure proper stacking context */
 .profile-content-main,
 .itinerary-container {
     position: relative;
     z-index: 1;
 }
 
+/* Tablet responsive adjustments */
 @media (max-width: 768px) {
     .profile-content-main {
         padding: 25px 20px;
@@ -121,6 +131,7 @@
     }
 }
 
+/* Mobile responsive adjustments */
 @media (max-width: 480px) {
     .profile-content-main {
         padding: 20px 15px;

@@ -1,3 +1,4 @@
+/* Main header container */
 .header {
     display: flex;
     align-items: center;
@@ -15,6 +16,7 @@
     position: relative;
 }
 
+/* Back button styling */
 .back-button {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -41,6 +43,7 @@
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Header title container */
 .header-title-container {
     position: relative;
     display: flex;
@@ -48,6 +51,7 @@
     flex: 1;
 }
 
+/* Clickable header title */
 .header-title-clickable {
     margin: 0;
     cursor: pointer;
@@ -63,6 +67,7 @@
     transform: translateY(-1px);
 }
 
+/* Tooltip for header title */
 .title-tooltip {
     position: absolute;
     top: -40px;
@@ -89,12 +94,14 @@
     border-top-color: #333;
 }
 
+/* Account section container */
 .account-container {
     position: relative;
     display: flex;
     align-items: center;
 }
 
+/* Account/profile button */
 .account-button {
     font-size: clamp(1rem, 1vw, 1.6rem);
     cursor: pointer;
@@ -120,6 +127,7 @@
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* User profile picture */
 .profile-picture {
     width: 34px;
     height: 34px;
@@ -128,6 +136,7 @@
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Dropdown menu for account options */
 .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -143,6 +152,7 @@
     backdrop-filter: blur(10px);
 }
 
+/* Individual dropdown menu items */
 .dropdown-item {
     display: flex;
     align-items: center;
@@ -165,12 +175,14 @@
     opacity: 0.9;
 }
 
+/* Divider between dropdown items */
 .dropdown-divider {
     height: 1px;
     background: rgba(255, 255, 255, 0.2);
     margin: 4px 0;
 }
 
+/* Logout button specific styling */
 .dropdown-item.logout {
     color: rgba(255, 255, 255, 0.9);
 }

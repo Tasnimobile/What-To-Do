@@ -1,3 +1,4 @@
+/* Filter modal overlay background */
 .filter-modal-overlay {
     position: fixed;
     top: 0;
@@ -11,6 +12,7 @@
     z-index: 1000;
 }
 
+/* Main filter modal container */
 .filter-modal {
     background: #FFFDF0;
     border-radius: 16px;
@@ -23,6 +25,7 @@
     position: relative;
 }
 
+/* Custom scrollbar styling for modal */
 .filter-modal::-webkit-scrollbar {
     width: 8px;
 }
@@ -45,6 +48,7 @@
     scrollbar-width: none;
 }
 
+/* Filter modal header section */
 .filter-modal-header {
     display: flex;
     justify-content: space-between;
@@ -61,6 +65,7 @@
     font-size: 1.3rem;
 }
 
+/* Close button for modal */
 .close-btn {
     background: none;
     border: none;
@@ -79,12 +84,14 @@
     color: #666;
 }
 
+/* Container for filter sections */
 .filter-sections {
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
+/* Filter section labels */
 .filter-section label {
     display: block;
     margin-bottom: 12px;
@@ -95,6 +102,7 @@
     letter-spacing: 0.5px;
 }
 
+/* Filter option containers */
 .rating-filter,
 .tags-filter,
 .duration-filter,
@@ -104,6 +112,7 @@
     gap: 8px;
 }
 
+/* Individual filter option buttons */
 .rating-option,
 .tag-option,
 .duration-option,
@@ -119,6 +128,7 @@
     font-weight: 300;
 }
 
+/* Active state for selected filter options */
 .rating-option.active,
 .tag-option.active,
 .duration-option.active,
@@ -136,11 +146,13 @@
     border-color: rgba(113, 193, 157, 0.5);
 }
 
+/* Price level dot indicators */
 .price-dots {
     margin-left: 4px;
     font-weight: 400;
 }
 
+/* Filter modal action buttons */
 .filter-modal-actions {
     display: flex;
     gap: 12px;
@@ -160,6 +172,7 @@
     transition: all 0.3s ease;
 }
 
+/* Reset filters button */
 .reset-btn {
     background: rgba(113, 193, 157, 0.1);
     color: #71C19D;
@@ -171,6 +184,7 @@
     transform: translateY(-1px);
 }
 
+/* Apply filters button */
 .apply-btn {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     color: white;
@@ -182,6 +196,7 @@
     box-shadow: 0 4px 12px rgba(113, 193, 157, 0.3);
 }
 
+/* Fallback for browsers without overlay support */
 @supports not (overflow-y: overlay) {
     .filter-modal {
         overflow-y: auto;
@@ -201,6 +216,7 @@
     }
 }
 
+/* Mobile responsive styles */
 @media (max-width: 768px) {
     .filter-modal {
         padding: 16px;

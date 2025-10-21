@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import './AccountSetupPage.css';
 
 const AccountSetupPage = ({ user, onComplete, onBack }) => {
+    // State for form data and profile picture preview
     const [formData, setFormData] = useState({
         username: '',
         bio: '',
@@ -10,6 +11,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
     });
     const [previewUrl, setPreviewUrl] = useState('');
 
+    // Handle form submission to complete profile setup
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -40,6 +42,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
         }
     };
 
+    // Handle skip setup option
     const handleSkip = async () => {
         try {
             onComplete(user);
@@ -49,6 +52,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
         }
     };
 
+    // Handle text input changes
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -56,6 +60,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
         });
     };
 
+    // Handle profile picture file selection
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -82,6 +87,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
         }
     };
 
+    // Remove selected profile picture
     const removeProfilePicture = () => {
         setFormData({
             ...formData,
@@ -108,7 +114,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="setup-form">
-                    {/* Profile Picture Upload */}
+                    {/* Profile Picture Upload Section */}
                     <div className="form-group">
                         <div className="profile-picture-upload">
                             <div className="profile-picture-preview">
@@ -139,6 +145,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
                         </div>
                     </div>
 
+                    {/* Username Input Field */}
                     <div className="form-group">
                         <input
                             type="text"
@@ -153,6 +160,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
                         <div className="char-count">{formData.username.length}/30</div>
                     </div>
 
+                    {/* Bio Text area Field */}
                     <div className="form-group">
                         <textarea
                             name="bio"
@@ -166,6 +174,7 @@ const AccountSetupPage = ({ user, onComplete, onBack }) => {
                         <div className="char-count">{formData.bio.length}/150</div>
                     </div>
 
+                    {/* Action Buttons */}
                     <div className="button-container">
                         <button type="submit" className="setup-button">
                             Complete Setup

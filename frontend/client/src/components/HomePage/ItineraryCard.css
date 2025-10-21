@@ -1,4 +1,6 @@
 /* ItineraryCard.css */
+
+/* Main itinerary card container */
 .itinerary-card {
     display: flex;
     flex-direction: column;
@@ -18,10 +20,12 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
+/* Expanded card state */
 .itinerary-card.expanded {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
 }
 
+/* Header section with title and rating */
 .itinerary-header {
     display: flex;
     justify-content: space-between;
@@ -36,6 +40,7 @@
     gap: 20px;
 }
 
+/* Collapsed description preview */
 .collapsed-description {
     font-size: clamp(0.75rem, 1.1vw, 0.9rem);
     margin: 0;
@@ -53,6 +58,7 @@
     -webkit-box-orient: vertical;
 }
 
+/* Expanded full description */
 .expanded-description {
     font-size: clamp(0.75rem, 1.1vw, 0.9rem);
     margin: 0;
@@ -65,6 +71,7 @@
     line-height: 1.4;
 }
 
+/* Star rating display and interaction */
 .rating {
     display: flex;
     gap: 3px;
@@ -104,10 +111,12 @@
     font-style: italic;
 }
 
+/* Expanded content animation */
 .expanded-content {
     animation: fadeIn 0.3s ease;
 }
 
+/* Detailed itinerary information */
 .itinerary-details {
     display: flex;
     flex-direction: column;
@@ -138,6 +147,7 @@
     font-weight: 300;
 }
 
+/* Tags container and individual tags */
 .tags-container {
     display: flex;
     flex-wrap: wrap;
@@ -160,6 +170,7 @@
     transform: translateY(-1px);
 }
 
+/* Action buttons in itinerary card */
 .itinerary-card button {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     color: white;
@@ -182,6 +193,7 @@
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Fade in animation for expanded content */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -194,6 +206,7 @@
     }
 }
 
+/* Mobile responsive styles */
 @media (max-width: 768px) {
     .itinerary-card {
         padding: 16px;

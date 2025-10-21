@@ -1,4 +1,6 @@
 /* src/components/UserProfilePage/ProfileInfo.css */
+
+/* Main profile section layout */
 .profile-top-section {
     display: flex;
     gap: 50px;
@@ -7,6 +9,7 @@
     padding: 0 10px;
 }
 
+/* Profile picture section styling */
 .profile-picture-section-modern {
     flex-shrink: 0;
 }
@@ -18,6 +21,7 @@
     gap: 18px;
 }
 
+/* Profile picture display */
 .profile-picture-display-modern {
     width: 140px;
     height: 140px;
@@ -34,6 +38,7 @@
     object-fit: cover;
 }
 
+/* Placeholder for when no profile picture is set */
 .no-profile-picture-modern {
     width: 100%;
     height: 100%;
@@ -43,6 +48,7 @@
     color: rgba(113, 193, 157, 0.5);
 }
 
+/* Profile picture upload and preview styling */
 .profile-picture-upload-modern {
     display: flex;
     flex-direction: column;
@@ -73,6 +79,7 @@
     object-fit: cover;
 }
 
+/* Remove picture button */
 .remove-picture-btn-modern {
     position: absolute;
     top: 5px;
@@ -91,6 +98,7 @@
     line-height: 1;
 }
 
+/* File input label styled as a button */
 .file-input-label-modern {
     padding: 8px 16px;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
@@ -110,6 +118,7 @@
     transform: translateY(-1px);
 }
 
+/* Profile information section styling */
 .profile-info-side {
     flex: 1;
     display: flex;
@@ -118,6 +127,7 @@
     padding-top: 5px;
 }
 
+/* Username styling with large, elegant typography */
 .username-large {
     font-size: 2.1rem;
     font-weight: 300;
@@ -127,6 +137,7 @@
     line-height: 1.2;
 }
 
+/* Bio text styling */
 .bio-text {
     font-size: 1.05rem;
     color: #71C19D;
@@ -136,6 +147,7 @@
     max-width: 500px;
 }
 
+/* Email text with subtle styling */
 .email-text {
     font-size: 0.95rem;
     color: #71C19D;
@@ -143,6 +155,7 @@
     font-weight: 300;
 }
 
+/* Edit profile form layout */
 .edit-profile-form {
     width: 100%;
 }
@@ -153,6 +166,7 @@
     align-items: flex-start;
 }
 
+/* Form fields container */
 .edit-fields-container {
     flex: 1;
     display: flex;
@@ -166,6 +180,7 @@
     gap: 8px;
 }
 
+/* Input field styling */
 .edit-input-line {
     width: 100%;
     padding: 8px 0;
@@ -190,6 +205,7 @@
     color: rgba(113, 193, 157, 0.5);
 }
 
+/* Text area styling matching the input fields */
 .edit-textarea-line {
     width: 100%;
     padding: 8px 0;
@@ -216,6 +232,7 @@
     color: rgba(113, 193, 157, 0.5);
 }
 
+/* Action buttons container */
 .edit-actions-side {
     display: flex;
     flex-direction: column;
@@ -224,6 +241,7 @@
     min-width: 120px;
 }
 
+/* Save button */
 .save-button-modern {
     padding: 10px 20px;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
@@ -245,6 +263,7 @@
     border-color: rgba(113, 193, 157, 0.5);
 }
 
+/* Cancel button with outlined design */
 .cancel-button-modern {
     padding: 10px 20px;
     background: rgba(113, 193, 157, 0.1);
@@ -266,6 +285,9 @@
     box-shadow: 0 4px 12px rgba(113, 193, 157, 0.2);
 }
 
+/* Responsive design for tablet and mobile screens */
+
+/* Tablet breakpoint */
 @media (max-width: 768px) {
     .profile-top-section {
         flex-direction: column;
@@ -323,6 +345,7 @@
     }
 }
 
+/* Mobile breakpoint */
 @media (max-width: 480px) {
     .edit-input-line {
         font-size: 1.4rem;

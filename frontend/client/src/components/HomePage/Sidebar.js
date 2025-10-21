@@ -12,6 +12,7 @@ function Sidebar({
     currentUser,
     onRateItinerary
 }) {
+    // State for search, filter modal, and filter criteria
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [filters, setFilters] = useState({
@@ -21,10 +22,12 @@ function Sidebar({
         maxPrice: ''
     });
 
+    // Handle search input changes
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
     };
 
+    // Show/hide filter modal
     const handleFilterClick = () => {
         setShowFilterModal(true);
     };
@@ -38,6 +41,7 @@ function Sidebar({
         setShowFilterModal(false);
     };
 
+    // Reset all filters to default
     const handleClearFilters = () => {
         setFilters({
             minRating: 0,
@@ -47,6 +51,7 @@ function Sidebar({
         });
     };
 
+    // Handle clicking on an itinerary card
     const handleItineraryClick = (itineraryId) => {
         if (onViewItinerary) {
             const safeItineraries = Array.isArray(itineraries) ? itineraries : [];
@@ -55,6 +60,7 @@ function Sidebar({
         }
     };
 
+    // Convert duration string to hours for filtering
     const durationToHours = (duration) => {
         if (!duration) return 0;
         if (typeof duration !== 'string') return 0;
@@ -68,12 +74,14 @@ function Sidebar({
         return 0;
     };
 
+    // Convert price string to numeric value for filtering
     const priceToNumber = (price) => {
         if (!price) return 0;
         if (typeof price !== 'string') return 0;
         return price.length;
     };
 
+    // Filter itineraries based on search and filter criteria
     const filteredItineraries = (Array.isArray(itineraries) ? itineraries : []).filter(itinerary => {
         if (!itinerary || typeof itinerary !== 'object') {
             return false;
@@ -114,8 +122,10 @@ function Sidebar({
 
     return (
         <div className="sidebar">
+            {/* Main sidebar header */}
             <h1>Itineraries</h1>
 
+            {/* Create new itinerary button */}
             <h2
                 className="create-new-header"
                 onClick={onCreateNew}
@@ -124,6 +134,7 @@ function Sidebar({
                 Create New
             </h2>
 
+            {/* Search and filter controls */}
             <div className="search-filter">
                 <input
                     type="text"
@@ -136,6 +147,7 @@ function Sidebar({
                 </button>
             </div>
 
+            {/* Clear filters button when filters are active */}
             {hasActiveFilters && (
                 <button
                     className="clear-filters-btn"
@@ -145,6 +157,7 @@ function Sidebar({
                 </button>
             )}
 
+            {/* Itineraries list */}
             <div className="itineraries-list">
                 {isLoading ? (
                     <div className="no-results">
@@ -152,6 +165,7 @@ function Sidebar({
                     </div>
                 ) : (
                     <>
+                        {/* Display filtered itineraries */}
                         {filteredItineraries.map(itinerary => (
                             <ItineraryCard
                                 key={itinerary.id}
@@ -169,6 +183,7 @@ function Sidebar({
                             />
                         ))}
 
+                        {/* No results message */}
                         {filteredItineraries.length === 0 && (
                             <div className="no-results">
                                 No itineraries found. Try adjusting your search or filters.
@@ -178,6 +193,7 @@ function Sidebar({
                 )}
             </div>
 
+            {/* Filter modal */}
             {showFilterModal && (
                 <FilterModal
                     filters={filters}

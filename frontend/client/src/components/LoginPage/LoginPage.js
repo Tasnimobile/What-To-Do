@@ -4,6 +4,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import './LoginPage.css';
 
 const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
+    // State for form data, password visibility, and error messages
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -16,6 +17,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
         general: ''
     });
 
+    // Error popup component for displaying messages
     const ErrorPopup = ({ message, onClose }) => {
         const [isVisible, setIsVisible] = useState(true);
 
@@ -43,10 +45,12 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
         );
     };
 
+    // Clear all error messages
     const clearErrors = () => {
         setErrors({ email: '', password: '', account: '', general: '' });
     };
 
+    // Google OAuth login configuration
     const googleLogin = useGoogleLogin({
         flow: "implicit",
         ux_mode: "popup",
@@ -73,6 +77,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
         onError: () => setErrors({ general: "Google Sign-In failed. Please try again." })
     });
 
+    // Handle form submission for email/password login
     const handleSubmit = async (e) => {
         e.preventDefault();
         clearErrors();
@@ -107,6 +112,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                 const errorMsg = payload.errors?.join(", ") || payload.raw || `Login failed (status ${res.status})`;
                 const lowerMsg = errorMsg.toLowerCase();
 
+                // Handle different error types
                 if (res.status === 404 ||
                     lowerMsg.includes('user not found') ||
                     lowerMsg.includes('no account') ||
@@ -129,6 +135,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
         }
     };
 
+    // Handle input field changes
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -138,10 +145,12 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
         if (e.target.name === 'password') setErrors(prev => ({ ...prev, password: '' }));
     };
 
+    // Toggle password visibility
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
+    // Handle back button click
     const handleBack = () => {
         onBack();
     };
@@ -159,11 +168,14 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                     </button>
                 </div>
 
+                {/* Login Header */}
                 <div className="login-header">
                     <h1>Log In To Your Account</h1>
                 </div>
 
+                {/* Login Form */}
                 <form onSubmit={handleSubmit} className="login-form">
+                    {/* Email Input */}
                     <div className="form-group">
                         <input
                             type="email"
@@ -176,6 +188,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                         />
                     </div>
 
+                    {/* Password Input with Toggle */}
                     <div className="form-group password-input-wrapper">
                         <div className="password-input-container">
                             <input
@@ -205,6 +218,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                         </div>
                     </div>
 
+                    {/* Submit Button */}
                     <div className="button-container">
                         <button type="submit" className="login-button">
                             Log In
@@ -212,7 +226,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                     </div>
                 </form>
 
-                {/* Custom Google Button */}
+                {/* Google Login Button */}
                 <div className="button-container">
                     <button
                         className="google-custom-button"
@@ -231,6 +245,7 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                     </button>
                 </div>
 
+                {/* Switch to Signup Link */}
                 <div className="login-switch">
                     <p>
                         Don't have an account?{' '}

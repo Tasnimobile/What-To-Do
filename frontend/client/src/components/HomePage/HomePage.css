@@ -1,3 +1,4 @@
+/* Global html and body styles */
 html,
 body {
     margin: 0;
@@ -8,6 +9,7 @@ body {
     font-weight: 300;
 }
 
+/* Main homepage container */
 .homepage {
     display: flex;
     height: 100vh;
@@ -19,6 +21,7 @@ body {
     align-items: stretch;
 }
 
+/* Left section containing header and map */
 .main-left {
     flex: 1;
     display: flex;
@@ -27,6 +30,7 @@ body {
     min-width: 0;
 }
 
+/* Mobile responsive styles */
 @media (max-width: 768px) {
     .homepage {
         flex-direction: column;

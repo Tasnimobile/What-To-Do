@@ -6,10 +6,12 @@ import Sidebar from './Sidebar';
 import './HomePage.css';
 
 function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated, onNavigateToSaved, onNavigateToHome, showError, onLogout }) {
+  // State for selected destinations and itineraries
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [allItineraries, setAllItineraries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Process tags from various formats (array, string, JSON string)
   const processTags = (tags) => {
     if (!tags) return [];
 
@@ -30,6 +32,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
     return [];
   };
 
+  // Handle rating an itinerary
   const handleRateItinerary = async (itineraryId, rating) => {
     try {
       console.log(`Rating itinerary ${itineraryId} with ${rating} stars`);
@@ -64,6 +67,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
     }
   };
 
+  // Load all itineraries from API
   const loadItineraries = async () => {
     setIsLoading(true);
     try {
@@ -86,6 +90,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
 
         let itinerariesFromDB = [];
 
+        // Handle different API response structures
         if (Array.isArray(data)) {
           itinerariesFromDB = data;
         } else if (data && Array.isArray(data.itineraries)) {
@@ -109,6 +114,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
           });
         });
 
+        // Process and format itinerary data
         const processedItineraries = itinerariesFromDB.map(itinerary => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
@@ -152,6 +158,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
     }
   };
 
+  // Navigation handlers
   const handleNavigateToHome = () => {
     console.log('Already on homepage');
   };
@@ -169,7 +176,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
     }
   };
 
-
+  // Load itineraries on component mount
   useEffect(() => {
     loadItineraries();
   }, []);
@@ -179,6 +186,7 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
   return (
     <div className="homepage">
       <div className="main-left">
+        {/* Header component with navigation */}
         <Header
           onBack={onBack}
           user={user}
@@ -188,12 +196,14 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
           onNavigateToSaved={onNavigateToSaved}
           onLogout={onLogout}
         />
+        {/* Map component displaying destinations */}
         <Map
           selectedDestinations={selectedDestinations}
         />
       </div>
 
       <div className="sidebar-container">
+        {/* Sidebar with itinerary listings and actions */}
         <Sidebar
           onCreateNew={handleCreateNew}
           onViewItinerary={handleViewItinerary}

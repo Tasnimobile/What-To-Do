@@ -8,14 +8,17 @@ function DestinationsList({
   onMoveDestination,
   onUpdateDestination,
 }) {
+  // State for editing destination names
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
 
+  // Start editing a destination name
   const handleEditStart = (destination) => {
     setEditingId(destination.id);
     setEditName(destination.name);
   };
 
+  // Save edited destination name
   const handleEditSave = (destinationId) => {
     if (editName.trim()) {
       onUpdateDestination(destinationId, { name: editName.trim() });
@@ -24,11 +27,13 @@ function DestinationsList({
     setEditName("");
   };
 
+  // Cancel editing destination name
   const handleEditCancel = () => {
     setEditingId(null);
     setEditName("");
   };
 
+  // Handle keyboard events during editing
   const handleKeyPress = (e, destinationId) => {
     if (e.key === "Enter") {
       handleEditSave(destinationId);
@@ -39,10 +44,12 @@ function DestinationsList({
 
   return (
     <div className="destinations-list">
+      {/* Display destinations sorted by order */}
       {destinations
         .sort((a, b) => a.order - b.order)
         .map((destination, index) => (
           <div key={destination.id} className="destination-item">
+            {/* Order controls and display */}
             <div className="destination-order-container">
               <button
                 className="move-btn"
@@ -62,8 +69,11 @@ function DestinationsList({
                 ↓
               </button>
             </div>
+
+            {/* Destination information */}
             <div className="destination-info">
               {editingId === destination.id ? (
+                // Edit mode for destination name
                 <div className="destination-name-edit">
                   <input
                     type="text"
@@ -90,6 +100,7 @@ function DestinationsList({
                   </div>
                 </div>
               ) : (
+                // Display mode for destination name
                 <div
                   className="destination-name editable"
                   onClick={() => handleEditStart(destination)}
@@ -100,6 +111,8 @@ function DestinationsList({
               )}
               <div className="destination-address">{destination.address}</div>
             </div>
+
+            {/* Remove destination button */}
             <div className="destination-actions">
               <button
                 className="remove-btn"
@@ -112,6 +125,7 @@ function DestinationsList({
           </div>
         ))}
 
+      {/* Empty state when no destinations */}
       {destinations.length === 0 && (
         <div className="no-destinations">
           No destinations added yet. Click "Add Destination" to start building

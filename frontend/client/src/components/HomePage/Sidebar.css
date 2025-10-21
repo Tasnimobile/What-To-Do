@@ -1,4 +1,6 @@
 /* Sidebar.css */
+
+/* Main sidebar container */
 .sidebar-container {
     width: min(400px, 30vw);
     min-width: 280px;
@@ -11,6 +13,7 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Sidebar content area */
 .sidebar {
     padding: 16px;
     display: flex;
@@ -19,6 +22,7 @@
     width: 100%;
 }
 
+/* Sidebar main title */
 .sidebar h1 {
     margin: 0;
     font-size: clamp(1.1rem, 1.8vw, 1.5rem);
@@ -33,6 +37,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Sidebar section headers */
 .sidebar h2 {
     margin: 0;
     font-size: clamp(0.9rem, 1.5vw, 1.2rem);
@@ -47,6 +52,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Search and filter controls */
 .search-filter {
     display: flex;
     gap: 12px;
@@ -54,6 +60,7 @@
     width: 100%;
 }
 
+/* Search input field */
 .search-filter input[type="text"] {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -84,6 +91,7 @@
     text-align: center;
 }
 
+/* Filter button */
 .search-filter button {
     padding: 16px 20px;
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -113,6 +121,7 @@
     border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* Custom scrollbar styling */
 .sidebar-container {
     overflow-y: overlay;
 }
@@ -134,6 +143,7 @@
     background: transparent;
 }
 
+/* Fallback for browsers without overlay support */
 @supports not (overflow-y: overlay) {
     .sidebar-container {
         overflow-y: auto;
@@ -157,11 +167,13 @@
     scrollbar-width: none;
 }
 
+/* Ensure all sidebar components take full width */
 .sidebar>* {
     width: 100%;
     box-sizing: border-box;
 }
 
+/* Create new itinerary header */
 .create-new-header {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -173,6 +185,7 @@
     border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
+/* Clear filters button */
 .clear-filters-btn {
     padding: 14px 16px;
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -196,6 +209,7 @@
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* No results message */
 .no-results {
     text-align: center;
     color: rgba(255, 255, 255, 0.7);

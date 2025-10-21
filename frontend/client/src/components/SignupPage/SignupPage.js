@@ -4,6 +4,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import "./SignupPage.css";
 
 const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
+  // State for form data, password visibility, and error messages
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,6 +19,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
     general: "",
   });
 
+  // Error popup component for displaying messages
   const ErrorPopup = ({ message, onClose }) => {
     const [isVisible, setIsVisible] = useState(true);
 
@@ -45,10 +47,12 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
     );
   };
 
+  // Clear all error messages
   const clearErrors = () => {
     setErrors({ email: "", password: "", confirmPassword: "", general: "" });
   };
 
+  // Google OAuth signup configuration
   const googleLogin = useGoogleLogin({
     flow: "implicit",
     ux_mode: "popup",
@@ -79,10 +83,12 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
       setErrors({ general: "Google Sign-In failed. Please try again." }),
   });
 
+  // Handle form submission for email/password signup
   const handleSubmit = async (e) => {
     e.preventDefault();
     clearErrors();
 
+    // Validate password confirmation
     if (formData.password !== formData.confirmPassword) {
       setErrors({ confirmPassword: "Passwords don't match!" });
       return;
@@ -120,6 +126,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
     }
   };
 
+  // Handle input field changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -133,6 +140,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
       setErrors((prev) => ({ ...prev, confirmPassword: "" }));
   };
 
+  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -141,6 +149,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+  // Handle back button click
   const handleBack = () => {
     onBack();
   };
@@ -158,11 +167,14 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
           </button>
         </div>
 
+        {/* Signup Header */}
         <div className="signup-header">
           <h1>Create Your Account</h1>
         </div>
 
+        {/* Signup Form */}
         <form onSubmit={handleSubmit} className="signup-form">
+          {/* Email Input */}
           <div className="form-group">
             <input
               type="email"
@@ -175,6 +187,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
             />
           </div>
 
+          {/* Password Input with Toggle */}
           <div className="form-group password-input-wrapper">
             <div className="password-input-container">
               <input
@@ -214,6 +227,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
             </div>
           </div>
 
+          {/* Confirm Password Input with Toggle */}
           <div className="form-group password-input-wrapper">
             <div className="password-input-container">
               <input
@@ -222,9 +236,8 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`form-input ${
-                  errors.confirmPassword ? "error" : ""
-                }`}
+                className={`form-input ${errors.confirmPassword ? "error" : ""
+                  }`}
                 required
               />
               <button
@@ -255,6 +268,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
             </div>
           </div>
 
+          {/* Submit Button */}
           <div className="button-container">
             <button type="submit" className="signup-button">
               Create Account
@@ -262,7 +276,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
           </div>
         </form>
 
-        {/* Custom Google Button */}
+        {/* Google Signup Button */}
         <div className="button-container">
           <button
             className="google-custom-button"
@@ -298,6 +312,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
           </button>
         </div>
 
+        {/* Switch to Login Link */}
         <div className="signup-switch">
           <p>
             Already have an account?{" "}

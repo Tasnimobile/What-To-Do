@@ -11,27 +11,32 @@ function Header({
   onNavigateToSaved,
   onLogout,
 }) {
+  // State for dropdown and tooltip visibility
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const dropdownRef = useRef(null);
   const tooltipTimeoutRef = useRef(null);
 
+  // Handle back button click
   const handleBack = () => {
     if (onBack) {
       onBack();
     }
   };
 
+  // Handle title click to navigate home
   const handleTitleClick = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
     }
   };
 
+  // Toggle account dropdown menu
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
 
+  // Navigation handlers that close dropdown
   const handleHomepageClick = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
@@ -60,6 +65,7 @@ function Header({
     setShowDropdown(false);
   };
 
+  // Handle user logout
   const handleLogout = async () => {
     console.log("Logout button clicked");
 
@@ -88,6 +94,7 @@ function Header({
     }
   };
 
+  // Show/hide title tooltip with delay
   const showTitleTooltip = () => {
     if (tooltipTimeoutRef.current) {
       clearTimeout(tooltipTimeoutRef.current);
@@ -101,6 +108,7 @@ function Header({
     }, 100);
   };
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -119,6 +127,7 @@ function Header({
 
   return (
     <div className="header">
+      {/* Back button */}
       <button className="back-button" onClick={handleBack}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
           <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
@@ -126,7 +135,7 @@ function Header({
         Back
       </button>
 
-      {/* Clickable Title */}
+      {/* Clickable title with tooltip */}
       <div
         className="header-title-container"
         onMouseEnter={showTitleTooltip}
@@ -138,6 +147,7 @@ function Header({
         {showTooltip && <div className="title-tooltip">Go to Homepage</div>}
       </div>
 
+      {/* Account dropdown menu */}
       <div className="account-container" ref={dropdownRef}>
         <button className="account-button" onClick={toggleDropdown}>
           {user?.profilePicture ? (
@@ -153,9 +163,10 @@ function Header({
           )}
         </button>
 
+        {/* Dropdown menu options */}
         {showDropdown && (
           <div className="dropdown-menu">
-            {/* Add Homepage option */}
+            {/* Homepage navigation */}
             <div className="dropdown-item" onClick={handleHomepageClick}>
               <svg
                 width="18"
@@ -168,6 +179,8 @@ function Header({
               Homepage
             </div>
             <div className="dropdown-divider"></div>
+
+            {/* Account navigation */}
             <div className="dropdown-item" onClick={handleAccountClick}>
               <svg
                 width="18"
@@ -179,6 +192,8 @@ function Header({
               </svg>
               Account
             </div>
+
+            {/* Created itineraries navigation */}
             <div
               className="dropdown-item"
               onClick={handleCreatedItinerariesClick}
@@ -193,6 +208,8 @@ function Header({
               </svg>
               Created Itineraries
             </div>
+
+            {/* Saved itineraries navigation */}
             <div
               className="dropdown-item"
               onClick={handleSavedItinerariesClick}
@@ -208,6 +225,8 @@ function Header({
               Saved Itineraries
             </div>
             <div className="dropdown-divider"></div>
+
+            {/* Logout option */}
             <div className="dropdown-item logout" onClick={handleLogout}>
               <svg
                 width="18"

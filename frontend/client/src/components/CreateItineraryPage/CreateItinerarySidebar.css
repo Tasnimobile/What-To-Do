@@ -1,4 +1,6 @@
 /* CreateItinerarySidebar.css */
+
+/* Main sidebar container for itinerary creation */
 .create-itinerary-sidebar {
     padding: 16px;
     display: flex;
@@ -9,6 +11,7 @@
     padding-bottom: 60px;
 }
 
+/* Header section for create itinerary page */
 .create-header {
     display: flex;
     justify-content: space-between;
@@ -30,6 +33,7 @@
     width: 100%;
 }
 
+/* Main form card for itinerary details */
 .create-form-card {
     display: flex;
     flex-direction: column;
@@ -43,6 +47,7 @@
     flex: 1;
 }
 
+/* Action buttons container at bottom */
 .create-actions {
     display: flex;
     gap: 12px;
@@ -50,6 +55,7 @@
     margin-bottom: 20px;
 }
 
+/* Cancel and save action buttons */
 .cancel-btn,
 .save-btn {
     flex: 1;
@@ -88,6 +94,7 @@
     box-shadow: none;
 }
 
+/* Spacer for scroll area */
 .scroll-spacer {
     height: 5px;
     flex-shrink: 0;

@@ -4,10 +4,12 @@ import "./FormStyles.css";
 import CustomDropdown from "./CustomDropdown";
 
 function ItineraryForm({ itineraryData, onUpdate }) {
+  // Handle input changes for form fields
   const handleInputChange = (field, value) => {
     onUpdate(field, value);
   };
 
+  // Options for duration dropdown
   const durationOptions = [
     { value: "2 hours", label: "2 hours" },
     { value: "4 hours", label: "4 hours" },
@@ -17,6 +19,7 @@ function ItineraryForm({ itineraryData, onUpdate }) {
     { value: "3+ days", label: "3+ days" },
   ];
 
+  // Options for price level dropdown
   const priceOptions = [
     { value: "$", label: "$ - Budget" },
     { value: "$$", label: "$$ - Moderate" },
@@ -26,6 +29,7 @@ function ItineraryForm({ itineraryData, onUpdate }) {
 
   return (
     <div className="form-section">
+      {/* Itinerary title input */}
       <div className="input-group">
         <input
           type="text"
@@ -36,6 +40,7 @@ function ItineraryForm({ itineraryData, onUpdate }) {
         />
       </div>
 
+      {/* Itinerary description textarea */}
       <div className="input-group">
         <textarea
           placeholder="Describe your amazing itinerary here..."
@@ -46,6 +51,7 @@ function ItineraryForm({ itineraryData, onUpdate }) {
         />
       </div>
 
+      {/* Duration and price level dropdowns */}
       <div className="form-row">
         <div className="input-group duration-dropdown-wrapper">
           <label className="form-label">Duration</label>

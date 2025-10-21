@@ -15,6 +15,7 @@ function CreateItineraryPage({
   onLogout,
   showError,
 }) {
+  // State for location selection mode and itinerary data
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [itineraryData, setItineraryData] = useState({
     title: "",
@@ -31,17 +32,20 @@ function CreateItineraryPage({
     itineraryData,
   });
 
+  // Navigation handler
   const handleNavigateToHome = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
     }
   };
 
+  // Start location selection mode on map
   const handleStartLocationSelection = () => {
     console.log("Starting location selection");
     setIsSelectingLocation(true);
   };
 
+  // Handle location selection from map click
   const handleLocationSelected = (location) => {
     console.log("Location selected in CreateItineraryPage:", location);
 
@@ -67,11 +71,13 @@ function CreateItineraryPage({
     setIsSelectingLocation(false);
   };
 
+  // Cancel location selection mode
   const handleCancelLocationSelection = () => {
     console.log("Location selection canceled by clicking outside map");
     setIsSelectingLocation(false);
   };
 
+  // Handle saving the completed itinerary
   const handleItinerarySave = (itineraryData) => {
     console.log("Saving itinerary in parent:", itineraryData);
 
@@ -91,6 +97,7 @@ function CreateItineraryPage({
     }
   };
 
+  // Handle canceling itinerary creation
   const handleItineraryCancel = () => {
     console.log("Canceling itinerary creation");
     setItineraryData({
@@ -109,6 +116,7 @@ function CreateItineraryPage({
     }
   };
 
+  // Update specific field in itinerary data
   const updateItineraryData = (field, value) => {
     console.log("Updating itinerary data:", field, value);
     setItineraryData((prev) => ({
@@ -117,6 +125,7 @@ function CreateItineraryPage({
     }));
   };
 
+  // Update destination information
   const handleUpdateDestination = (destinationId, updates) => {
     console.log("Updating destination location:", destinationId, updates);
     const updatedDestinations = itineraryData.destinations.map((dest) =>
@@ -128,6 +137,7 @@ function CreateItineraryPage({
     }));
   };
 
+  // Main page layout
   return (
     <div className="homepage">
       <div className="main-left">

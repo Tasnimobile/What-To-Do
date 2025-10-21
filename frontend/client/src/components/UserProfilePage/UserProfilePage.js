@@ -7,12 +7,13 @@ import ItineraryView from "./ItineraryView";
 import "./UserProfilePage.css";
 
 const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated, onNavigateToSaved, onNavigateToHome, showError, onLogout }) => {
+  // State for edit mode, loading, active tab, and user itineraries
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("itineraries");
   const [userItineraries, setUserItineraries] = useState([]);
 
-  // Same helper function as in CreatedItinerariesPage
+  // Helper to process tags from various formats (array, JSON string, etc.)
   const processTags = (tags) => {
     if (!tags) return [];
     if (Array.isArray(tags)) return tags;
@@ -28,6 +29,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
     return [];
   };
 
+  // Load user data and itineraries on component mount
   useEffect(() => {
     if (user) {
       setIsLoading(false);
@@ -43,6 +45,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
     }
   }, [user, onBack]);
 
+  // Fetch user's itineraries from backend API
   const loadUserItineraries = async () => {
     setIsLoading(true);
     try {
@@ -67,6 +70,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
           userItinerariesFromDB = [];
         }
 
+        // Process and normalize itinerary data for consistent display
         const processedItineraries = userItinerariesFromDB.map(itinerary => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
@@ -89,6 +93,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
     }
   };
 
+  // Profile editing handlers
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -102,10 +107,12 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
     setIsEditing(false);
   };
 
+  // Tab navigation handler
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };
 
+  // Navigation handlers
   const handleNavigateToHome = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
@@ -118,6 +125,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
     }
   };
 
+  // Loading state display
   if (isLoading || !user) {
     return (
       <div className="user-profile-page">
@@ -159,8 +167,9 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
         />
       </div>
 
-      {/* Profile Content */}
+      {/* Main Profile Content Area */}
       <div className="profile-content-main">
+        {/* Edit Profile Button (only shown when not editing) */}
         {!isEditing && (
           <div className="edit-profile-top-right">
             <button className="edit-profile-btn-small" onClick={handleEdit}>
@@ -169,7 +178,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
           </div>
         )}
 
-        {/* Profile Info Section */}
+        {/* Profile Info Section (handles both view and edit modes) */}
         <ProfileInfo
           user={user}
           isEditing={isEditing}
@@ -177,11 +186,11 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
           onCancel={handleCancel}
         />
 
-        {/* Profile Stats Section */}
+        {/* Profile Stats Section (itineraries count, saved, recent) */}
         <ProfileStats userItineraries={userItineraries} />
       </div>
 
-      {/* Itinerary View Options */}
+      {/* Itinerary Display Section with Tabs */}
       <ItineraryView
         activeTab={activeTab}
         onTabClick={handleTabClick}

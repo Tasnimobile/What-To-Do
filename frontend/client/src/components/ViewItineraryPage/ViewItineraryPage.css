@@ -1,4 +1,6 @@
 /* src/components/ViewItineraryPage/ViewItineraryPage.css */
+
+/* Sidebar container for itinerary details and navigation */
 .view-itinerary-page .sidebar-container {
     width: min(400px, 30vw);
     min-width: 280px;
@@ -11,6 +13,7 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Hide scrollbar */
 .view-itinerary-page .sidebar-container::-webkit-scrollbar {
     width: 8px;
 }

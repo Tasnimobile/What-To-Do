@@ -1,4 +1,6 @@
 /* DestinationManager.css */
+
+/* Container for destination control buttons */
 .destination-controls {
     display: flex;
     gap: 12px;
@@ -6,6 +8,7 @@
     width: 100%;
 }
 
+/* Primary button to add new destinations */
 .add-destination-btn {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.8) 0%, rgba(113, 193, 157, 0.95) 100%);
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -35,7 +38,7 @@
     transform: none;
 }
 
-
+/* Secondary button to clear all destinations */
 .clear-destinations-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -55,6 +58,7 @@
     transform: translateY(-1px);
 }
 
+/* Mobile responsive layout */
 @media (max-width: 768px) {
     .destination-controls {
         flex-direction: column;

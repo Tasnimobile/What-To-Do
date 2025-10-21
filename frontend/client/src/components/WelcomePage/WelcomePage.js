@@ -6,13 +6,16 @@ const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup, onSwitchToHomepage, on
     return (
         <div className="welcome-page">
             <div className="welcome-container">
+                {/* Welcome header with app title and description */}
                 <div className="welcome-header">
                     <h2 className="welcome-subtitle">Welcome to</h2>
                     <h1 className="welcome-title">What To Do</h1>
                     <p className="welcome-description">A community that wants to find and share fun new things to do</p>
                 </div>
 
+                {/* Authentication and navigation buttons */}
                 <div className="welcome-buttons">
+                    {/* Main login button */}
                     <button
                         className="welcome-button login-button"
                         onClick={onSwitchToLogin}
@@ -20,6 +23,7 @@ const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup, onSwitchToHomepage, on
                         Log In
                     </button>
 
+                    {/* Main signup button */}
                     <button
                         className="welcome-button signup-button"
                         onClick={onSwitchToSignup}
@@ -27,7 +31,7 @@ const WelcomePage = ({ onSwitchToLogin, onSwitchToSignup, onSwitchToHomepage, on
                         Sign Up
                     </button>
 
-                    {/* Temp Bypass Buttons */}
+                    {/* Temporary bypass buttons for development/testing */}
                     <button
                         className="welcome-button temp-bypass-button"
                         onClick={onSwitchToHomepage}

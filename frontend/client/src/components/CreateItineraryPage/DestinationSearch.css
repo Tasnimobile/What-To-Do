@@ -1,4 +1,6 @@
 /* DestinationSearch.css */
+
+/* Main container for destination search interface */
 .destination-search-mode {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -7,6 +9,7 @@
     margin-bottom: 12px;
 }
 
+/* Header with title and close button */
 .search-header {
     display: flex;
     justify-content: space-between;
@@ -21,6 +24,7 @@
     font-size: 1rem;
 }
 
+/* Close search button */
 .close-search-btn {
     background: none;
     border: none;
@@ -41,11 +45,13 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* Search input container */
 .search-input-container {
     position: relative;
     margin-bottom: 12px;
 }
 
+/* Search input field */
 .search-input {
     width: 100%;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
@@ -72,6 +78,7 @@
     font-weight: 300;
 }
 
+/* Loading indicator during search */
 .search-loading {
     position: absolute;
     top: 100%;
@@ -88,6 +95,7 @@
     font-weight: 300;
 }
 
+/* Search results dropdown */
 .search-results {
     position: absolute;
     top: 100%;
@@ -104,6 +112,7 @@
     backdrop-filter: blur(10px);
 }
 
+/* Custom scrollbar styling */
 .search-results::-webkit-scrollbar {
     width: 6px;
 }
@@ -126,6 +135,7 @@
     scrollbar-width: none;
 }
 
+/* Fallback for browsers without overlay support */
 @supports not (overflow-y: overlay) {
     .search-results {
         overflow-y: auto;
@@ -145,6 +155,7 @@
     }
 }
 
+/* Individual search result item */
 .search-result-item {
     display: flex;
     align-items: center;
@@ -167,12 +178,14 @@
     transform: translateX(4px);
 }
 
+/* Icon for search result items */
 .result-icon {
     font-size: 1.2rem;
     flex-shrink: 0;
     opacity: 0.8;
 }
 
+/* Details container for search results */
 .result-details {
     flex: 1;
     min-width: 0;
@@ -191,11 +204,13 @@
     font-weight: 300;
 }
 
+/* Search options section */
 .search-options {
     text-align: center;
     margin-top: 12px;
 }
 
+/* Divider between search and map options */
 .option-divider {
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.8rem;
@@ -214,6 +229,7 @@
     z-index: 1;
 }
 
+/* Button for map selection mode */
 .map-selection-btn {
     width: 100%;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
@@ -235,6 +251,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* No results message */
 .no-results {
     text-align: center;
     color: rgba(255, 255, 255, 0.7);
@@ -246,6 +263,7 @@
     font-weight: 300;
 }
 
+/* Mobile responsive styles */
 @media (max-width: 768px) {
     .search-input {
         padding: 14px 16px;

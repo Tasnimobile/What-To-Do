@@ -1,4 +1,6 @@
 /* src/components/WelcomePage/WelcomePage.css */
+
+/* Main welcome page container */
 .welcome-page {
     height: 100vh;
     background-color: #FFFDF0;
@@ -9,6 +11,7 @@
     overflow: hidden;
 }
 
+/* Centered content container s*/
 .welcome-container {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.56) 0%, rgba(113, 193, 157, 0.8) 100%);
     padding: 60px 35px;
@@ -21,6 +24,7 @@
     text-align: center;
 }
 
+/* Header section styling */
 .welcome-header {
     margin-bottom: 30px;
 }
@@ -54,6 +58,7 @@
     line-height: 1;
 }
 
+/* Button container layout */
 .welcome-buttons {
     display: flex;
     flex-direction: column;
@@ -61,6 +66,7 @@
     align-items: center;
 }
 
+/* Main action buttons styling */
 .welcome-button {
     padding: 16px;
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
@@ -77,11 +83,13 @@
     display: block;
 }
 
+/* Temporary bypass button for testing */
 .temp-bypass-button {
     background: linear-gradient(135deg, rgba(255, 165, 0, 0.7) 0%, rgba(255, 140, 0, 0.9) 100%) !important;
     font-size: 18px !important;
 }
 
+/* Hover effects for buttons */
 .welcome-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
@@ -93,6 +101,7 @@
     background: linear-gradient(135deg, rgba(255, 165, 0, 0.8) 0%, rgba(255, 140, 0, 0.95) 100%) !important;
 }
 
+/* Focus states for accessibility */
 .welcome-button:focus {
     outline: none;
     box-shadow: 0 0 0 4px rgba(113, 193, 157, 0.4);
@@ -100,6 +109,7 @@
     border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* Active state for button press */
 .welcome-button:active {
     transform: translateY(0);
 }

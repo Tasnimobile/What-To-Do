@@ -16,6 +16,7 @@ function CreateItinerarySidebar({
     user,
     showError,
 }) {
+    // Local state for itinerary data if parent doesn't provide it
     const [localItineraryData, setLocalItineraryData] = useState({
         title: "",
         description: "",
@@ -26,6 +27,7 @@ function CreateItinerarySidebar({
         destinations: [],
     });
 
+    // Use parent data if available, otherwise use local state
     const actualItineraryData = {
         title: itineraryData?.title || localItineraryData.title,
         description: itineraryData?.description || localItineraryData.description,
@@ -36,14 +38,16 @@ function CreateItinerarySidebar({
         destinations: itineraryData?.destinations || localItineraryData.destinations,
     };
 
+    // Error handling function
     const handleShowError = (message, type = 'error') => {
         if (typeof showError === 'function') {
             showError(message, type);
         } else {
-            console.log(`${type}:`, message);
+            console.log(`${type}: `, message);
         }
     };
 
+    // Handle saving itinerary to server
     const handleSave = async () => {
         console.log('Saving itinerary with data:', actualItineraryData);
 
@@ -103,6 +107,7 @@ function CreateItinerarySidebar({
                     onItinerarySave(newItinerary);
                     handleShowError('Itinerary created successfully!', 'success');
 
+                    // Reset form data after successful save
                     setLocalItineraryData({
                         title: "",
                         description: "",
@@ -128,6 +133,7 @@ function CreateItinerarySidebar({
         }
     };
 
+    // Update itinerary data in parent or local state
     const updateItineraryData = (field, value) => {
         console.log("Updating itinerary data:", field, value);
         if (onUpdate) {
@@ -140,6 +146,7 @@ function CreateItinerarySidebar({
         }
     };
 
+    // Check if itinerary can be saved (has title and destinations)
     const canSave = actualItineraryData.title?.trim() && actualItineraryData.destinations?.length > 0;
 
     return (
@@ -149,11 +156,13 @@ function CreateItinerarySidebar({
             </div>
 
             <div className="create-form-card">
+                {/* Form for itinerary basic info (title, description, etc.) */}
                 <ItineraryForm
                     itineraryData={actualItineraryData}
                     onUpdate={updateItineraryData}
                 />
 
+                {/* Component for managing destinations */}
                 <DestinationManager
                     itineraryData={actualItineraryData}
                     onUpdate={updateItineraryData}
@@ -161,12 +170,14 @@ function CreateItinerarySidebar({
                     isSelectingLocation={isSelectingLocation}
                 />
 
+                {/* Component for managing tags */}
                 <TagsManager
                     itineraryData={actualItineraryData}
                     onUpdate={updateItineraryData}
                 />
             </div>
 
+            {/* Action buttons at bottom */}
             <div className="create-actions">
                 <button className="cancel-btn" onClick={onItineraryCancel}>
                     Cancel

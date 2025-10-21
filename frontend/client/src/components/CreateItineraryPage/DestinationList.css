@@ -1,4 +1,6 @@
 /* DestinationList.css */
+
+/* Main container for destinations list */
 .destinations-list {
     display: flex;
     flex-direction: column;
@@ -6,6 +8,7 @@
     margin-top: 8px;
 }
 
+/* Individual destination item */
 .destination-item {
     display: flex;
     align-items: flex-start;
@@ -26,6 +29,7 @@
     transform: translateY(-1px);
 }
 
+/* Container for order controls and number */
 .destination-order-container {
     display: flex;
     flex-direction: column;
@@ -35,6 +39,7 @@
     margin-top: 4px;
 }
 
+/* Move up/down buttons */
 .move-btn {
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -61,6 +66,7 @@
     cursor: not-allowed;
 }
 
+/* Destination order number display */
 .destination-order {
     display: flex;
     align-items: center;
@@ -73,11 +79,13 @@
     margin: 2px 0;
 }
 
+/* Main destination information area */
 .destination-info {
     flex: 1;
     min-width: 0;
 }
 
+/* Destination name display and edit */
 .destination-name {
     color: white;
     font-weight: 500;
@@ -100,6 +108,7 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+/* Container for name editing interface */
 .destination-name-edit {
     display: flex;
     flex-direction: column;
@@ -107,6 +116,7 @@
     margin-bottom: 16px;
 }
 
+/* Input field for editing destination name */
 .name-edit-input {
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
     border: 2px solid rgba(255, 255, 255, 0.2);
@@ -136,6 +146,7 @@
     font-weight: 300;
 }
 
+/* Action buttons for editing */
 .edit-actions {
     display: flex;
     gap: 8px;
@@ -172,6 +183,7 @@
     background: linear-gradient(135deg, rgba(113, 193, 157, 0.7) 0%, rgba(113, 193, 157, 0.9) 100%);
 }
 
+/* Destination address display */
 .destination-address {
     color: rgba(255, 255, 255, 0.8);
     font-size: 0.8rem;
@@ -179,6 +191,7 @@
     margin-bottom: 2px;
 }
 
+/* Destination rating display */
 .destination-rating {
     display: flex;
     align-items: center;
@@ -194,6 +207,7 @@
     font-size: 0.9rem;
 }
 
+/* Action buttons container (remove, etc.) */
 .destination-actions {
     display: flex;
     gap: 6px;
@@ -201,6 +215,7 @@
     margin-top: 4px;
 }
 
+/* Remove destination button */
 .remove-btn {
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -221,6 +236,7 @@
     transform: translateY(-1px);
 }
 
+/* Empty state when no destinations */
 .no-destinations {
     text-align: center;
     color: rgba(255, 255, 255, 0.6);
@@ -231,6 +247,7 @@
     border: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
+/* Mobile responsive styles */
 @media (max-width: 768px) {
     .destination-item {
         flex-wrap: wrap;
