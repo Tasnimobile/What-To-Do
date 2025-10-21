@@ -99,12 +99,6 @@ function DestinationsList({
                 </div>
               )}
               <div className="destination-address">{destination.address}</div>
-              {destination.rating && (
-                <div className="destination-rating">
-                  <span className="star-icon">★</span>
-                  {destination.rating}
-                </div>
-              )}
             </div>
             <div className="destination-actions">
               <button
