@@ -26,6 +26,7 @@ const createTables = db.transaction(() => {
         duration TEXT NOT NULL,
         price TEXT NOT NULL,
         authorid INTEGER,
+        rating INTEGER,
         FOREIGN KEY (authorid) REFERENCES user (id)
         )
         `).run()
@@ -383,7 +384,7 @@ app.post("/api/create-itinerary", (req, res) => {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
 
-  const { title, description, tags, duration, price } = req.body;
+  const { title, description, tags, duration, rating, price } = req.body;
 
   // Validate required fields
   if (!title || !description || !duration || !price) {
@@ -391,8 +392,8 @@ app.post("/api/create-itinerary", (req, res) => {
   }
 
   try {
-    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, authorid) VALUES (?, ?, ?, ?, ?, ?)");
-    const result = ourStatement.run(title, description, tags || '[]', duration, price, req.user.userid);
+    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, authorid) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, req.user.userid);
 
     console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
 
@@ -406,6 +407,36 @@ app.post("/api/create-itinerary", (req, res) => {
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
+
+app.post("/api/give-rating", (req, res) => {
+  try {
+    const { id, rating } = req.body || {};
+
+  
+    const itineraryId = Number(id);
+    const ratingNum = Number(rating);
+    if (!Number.isFinite(itineraryId)) {
+      return res.status(400).json({ ok: false, errors: ["Missing or invalid itinerary id"] });
+    }
+    if (!Number.isFinite(ratingNum) || ratingNum < 0 || ratingNum > 5) {
+      return res.status(400).json({ ok: false, errors: ["Rating must be a number between 0 and 5"] });
+    }
+
+    const stmt = db.prepare("UPDATE itineraries SET rating = ? WHERE id = ?");
+    const result = stmt.run(ratingNum, itineraryId);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
+    }
+
+    console.log("Itinerary rated:", { itineraryId, rating: ratingNum, byUser: req.user?.userid });
+    return res.json({ ok: true, message: "Itinerary rated successfully" });
+  } catch (err) {
+    console.error("Error rating itinerary:", err);
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
 
 // Get itineraries for the logged-in user
 app.get("/api/my-itineraries", (req, res) => {

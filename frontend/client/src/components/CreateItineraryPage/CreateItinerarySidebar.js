@@ -23,7 +23,7 @@ function CreateItinerarySidebar({
         tags: [],
         duration: "1 day",
         price: "$$",
-        customTag: "",
+        rating: 0,
         destinations: [],
     });
 
@@ -34,8 +34,8 @@ function CreateItinerarySidebar({
         tags: itineraryData?.tags || localItineraryData.tags,
         duration: itineraryData?.duration || localItineraryData.duration,
         price: itineraryData?.price || localItineraryData.price,
-        customTag: itineraryData?.customTag || localItineraryData.customTag,
         destinations: itineraryData?.destinations || localItineraryData.destinations,
+        rating: itineraryData?.rating || localItineraryData.rating,
     };
 
     // Error handling function
@@ -80,10 +80,11 @@ function CreateItinerarySidebar({
                     tags: JSON.stringify(actualItineraryData.tags || []),
                     duration: actualItineraryData.duration,
                     price: actualItineraryData.price,
+                    rating: actualItineraryData.rating,
                     destinations: JSON.stringify(actualItineraryData.destinations || [])
                 }),
             });
-
+            console.log(res.status)
             if (res.ok) {
                 const response = await res.json();
                 console.log('Itinerary saved to server:', response);
@@ -114,7 +115,7 @@ function CreateItinerarySidebar({
                         tags: [],
                         duration: "1 day",
                         price: "$$",
-                        customTag: "",
+                        rating: 0,
                         destinations: [],
                     });
 

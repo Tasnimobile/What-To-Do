@@ -34,38 +34,38 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
 
   // Handle rating an itinerary
   const handleRateItinerary = async (itineraryId, rating) => {
-    try {
-      console.log(`Rating itinerary ${itineraryId} with ${rating} stars`);
+  try {
+    const payload = { id: Number(itineraryId), rating: Number(rating) };
 
-      const response = await fetch(`http://localhost:3000/api/itineraries/${itineraryId}/rate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ rating })
-      });
+    console.log(`Rating itinerary ${payload.id} with ${payload.rating} stars`);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Rating submitted:', result);
+    const res = await fetch("http://localhost:3000/api/give-rating", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
 
-        loadItineraries();
-
-        if (typeof showError === 'function') {
-          showError(`Thanks for your ${rating}-star rating!`);
-        }
-      } else {
-        console.error('Failed to submit rating');
-        if (typeof showError === 'function') {
-          showError('Failed to submit rating. Please try again.');
-        }
+    if (!res.ok) {
+      const msg = await res.text().catch(() => "");
+      console.error("Failed to submit rating:", res.status, res.statusText, msg);
+      if (typeof showError === "function") {
+        showError(`Failed to submit rating (${res.status}). ${msg || "Please try again."}`, "error");
       }
-    } catch (error) {
-      console.error('Error submitting rating:', error);
-      if (typeof showError === 'function') {
-        showError('Error submitting rating. Please check your connection.');
-      }
+      return;
     }
-  };
+
+    const data = await res.json();
+    console.log("Rating submitted:", data);
+
+    loadItineraries?.();
+    showError?.(`Thanks for your ${payload.rating}-star rating!`, "success");
+  } catch (err) {
+    console.error("Error submitting rating:", err);
+    showError?.("Error submitting rating. Please check your connection.", "error");
+  }
+};
+
 
   // Load all itineraries from API
   const loadItineraries = async () => {
