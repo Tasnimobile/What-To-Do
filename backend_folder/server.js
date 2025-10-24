@@ -6,6 +6,10 @@ const express = require("express")
 const db = require("better-sqlite3")("ourApp.db")
 db.pragma("journal_mode = WAL")
 const cors = require("cors");
+const multer = require("multer"); 
+
+//multer handles form data
+
 
 // Database setup here
 const createTables = db.transaction(() => {
@@ -52,11 +56,24 @@ const app = express()
 
 app.use(express.json());
 
-app.use(cors({
-  origin: "http://localhost:3001", // React dev server
-  credentials: true
-}));
+//configure multer for handling multipart/form-data
+const upload = multer();
 
+//for display names
+try { db.prepare("ALTER TABLE user ADD COLUMN display_name TEXT").run(); }
+catch { }
+
+app.use(cors({
+  origin: ["http://localhost:3001", "http://localhost:3002"], // React dev server
+  credentials: true
+})); //added 3002 bc it kept putting me in that for now, will fix later
+//TODO: Get rid of 3002 origin
+
+//log all incoming requests
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.url}`);
+  next();
+});
 
 app.set("view engine", "ejs")
 app.use(express.urlencoded({ extended: false }))
@@ -327,26 +344,48 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 //profile route to update bio
-app.post("/api/profile", (req, res) => {
+//frontend used user/setup so had to change from profile
+
+app.post("/api/user/setup", upload.fields([{ name: 'profilePicture' }]), (req, res) => {
+  console.log("=== USER SETUP ATTEMPT ===");
+  console.log("Content-Type:", req.headers['content-type']);
+  console.log("Request body:", req.body);
+  console.log("Request files:", req.files);
+  console.log("User auth status:", req.user);
+
+  //check if user is authenticated
+  if (!req.user) {
+    console.log("❌ User not authenticated");
+    return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+  }
 
   let errors = [];
 
-  if (typeof req.body.bio !== "string") req.body.bio = "";
+  // Handle both JSON and form data - map username to display_name
+  const bio = req.body.bio || "";
+
+  //frontend and backend uses either/or, so this takes whichever is provided
+  const display_name = req.body.username || req.body.display_name || "";
+
+  console.log("Received bio:", bio);
+  console.log("Received display_name:", display_name);
 
   //validate length
-  //TODO: validate the length of bio
+  if (bio.length > 500) errors.push("Bio must be 500 characters or less");
+  if (display_name.length > 50) errors.push("Display name must be 50 characters or less");
 
   if (errors.length) {
     return res.status(400).json({ ok: false, errors });
   }
 
   try {
-    // Update the user's bio in the database
-    const updateStatement = db.prepare("UPDATE user SET bio = ? WHERE id = ?");
-    updateStatement.run(req.body.bio, req.user.userid);
+    // Update the user's bio and display name in the database
+    console.log("Updating user ID:", req.user.userid, "with bio:", bio, "display_name:", display_name);
+    const updateStatement = db.prepare("UPDATE user SET bio = ?, display_name = ? WHERE id = ?");
+    updateStatement.run(bio, display_name, req.user.userid);
 
     // Get the updated user info
-    const userStatement = db.prepare("SELECT id, username, email, bio FROM user WHERE id = ?");
+    const userStatement = db.prepare("SELECT id, username, email, bio, display_name FROM user WHERE id = ?");
     const updatedUser = userStatement.get(req.user.userid);
 
     res.json({
@@ -362,6 +401,23 @@ app.post("/api/profile", (req, res) => {
 
 
 
+// Get current user info
+//frontend kept asking for this
+app.get("/api/user/me", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+  }
+  
+  const userStatement = db.prepare("SELECT id, username, email, bio, display_name FROM user WHERE id = ?");
+  const userData = userStatement.get(req.user.userid);
+  
+  if (!userData) {
+    return res.status(404).json({ ok: false, errors: ["User not found"] });
+  }
+  
+  res.json({ ok: true, user: userData });
+});
+
 app.post("/api/logout", (req, res) => {
   res.clearCookie("ourSimpleApp");
   res.json({ ok: true, message: "Logged out" });
@@ -372,7 +428,7 @@ app.get("/api/itineraries", (req, res) => {
   const itineraries = statement.all()
 
   res.json({ ok: true, itineraries });
-})
+}) 
 
 app.post("/api/create-itinerary", (req, res) => {
   console.log("Create itinerary request received");
@@ -384,7 +440,7 @@ app.post("/api/create-itinerary", (req, res) => {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
 
-  const { title, description, tags, duration, rating, price } = req.body;
+  const { title, description, tags, duration, rating, rating_count, total_rating, price } = req.body;
 
   // Validate required fields
   if (!title || !description || !duration || !price) {
@@ -392,8 +448,8 @@ app.post("/api/create-itinerary", (req, res) => {
   }
 
   try {
-    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, authorid) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, req.user.userid);
+    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, authorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, req.user.userid);
 
     console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
 
@@ -410,11 +466,16 @@ app.post("/api/create-itinerary", (req, res) => {
 
 app.post("/api/give-rating", (req, res) => {
   try {
-    const { id, rating } = req.body || {};
-
-  
+    const { id, rating, rating_count, total_rating} = req.body || {};
     const itineraryId = Number(id);
-    const ratingNum = Number(rating);
+    const ratingTemp = Number(rating);
+    const statement = db.prepare("SELECT rating_count, total_rating from itineraries WHERE id = ?")
+    const ratingTally = statement.get(req.body.id)
+    console.log(ratingTally.rating_count)
+    const ratingCount = ratingTally.rating_count + 1
+    const totalTemp = ratingTally.total_rating
+    const totalRating = totalTemp + ratingTemp
+    const ratingNum = totalRating/ratingCount
     if (!Number.isFinite(itineraryId)) {
       return res.status(400).json({ ok: false, errors: ["Missing or invalid itinerary id"] });
     }
@@ -424,7 +485,10 @@ app.post("/api/give-rating", (req, res) => {
 
     const stmt = db.prepare("UPDATE itineraries SET rating = ? WHERE id = ?");
     const result = stmt.run(ratingNum, itineraryId);
-
+    const stmt2 = db.prepare("UPDATE itineraries SET total_rating = ? WHERE id = ?");
+    const result2 = stmt2.run(totalRating, itineraryId)
+    const stmt3 = db.prepare("UPDATE itineraries SET rating_count = ? WHERE id = ?");
+    const result3 = stmt3.run(ratingCount, itineraryId)
     if (result.changes === 0) {
       return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
     }
@@ -529,6 +593,28 @@ app.get("/api/create-test-itineraries", (req, res) => {
 });
 
 
+// Global error handler - always send JSON
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  
+  // Always send JSON error response
+  if (!res.headersSent) {
+    res.status(500).json({ 
+      ok: false, 
+      errors: ["Internal server error"] 
+    });
+  }
+});
+
+// 404 handler for API routes
+app.use('/api', (req, res, next) => {
+  if (!res.headersSent) {
+    res.status(404).json({ 
+      ok: false, 
+      errors: ["API endpoint not found"] 
+    });
+  }
+});
 
 
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));

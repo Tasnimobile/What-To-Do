@@ -33,9 +33,9 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
   };
 
   // Handle rating an itinerary
-  const handleRateItinerary = async (itineraryId, rating) => {
+  const handleRateItinerary = async (itineraryId, rating, rating_count, total_rating) => {
   try {
-    const payload = { id: Number(itineraryId), rating: Number(rating) };
+    const payload = { id: Number(itineraryId), rating: Number(rating), rating_count: Number(rating_count), total_rating: Number(total_rating) };
 
     console.log(`Rating itinerary ${payload.id} with ${payload.rating} stars`);
 

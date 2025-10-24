@@ -24,6 +24,8 @@ function CreateItinerarySidebar({
         duration: "1 day",
         price: "$$",
         rating: 0,
+        rating_count: 0,
+        total_rating: 0,
         destinations: [],
     });
 
@@ -36,6 +38,8 @@ function CreateItinerarySidebar({
         price: itineraryData?.price || localItineraryData.price,
         destinations: itineraryData?.destinations || localItineraryData.destinations,
         rating: itineraryData?.rating || localItineraryData.rating,
+        rating_count: itineraryData?.rating_count || localItineraryData.rating_count,
+        total_rating: itineraryData?.total_rating || localItineraryData.total_rating,
     };
 
     // Error handling function
@@ -81,6 +85,8 @@ function CreateItinerarySidebar({
                     duration: actualItineraryData.duration,
                     price: actualItineraryData.price,
                     rating: actualItineraryData.rating,
+                    rating_count: actualItineraryData.rating_count,
+                    total_rating: actualItineraryData.total_rating,
                     destinations: JSON.stringify(actualItineraryData.destinations || [])
                 }),
             });
@@ -99,6 +105,8 @@ function CreateItinerarySidebar({
                         price: actualItineraryData.price,
                         destinations: actualItineraryData.destinations || [],
                         rating: 0,
+                        rating_count: 0,
+                        total_rating: 0,
                         createdAt: new Date().toISOString(),
                         createdBy: user.id,
                         authorid: user.id
@@ -116,6 +124,8 @@ function CreateItinerarySidebar({
                         duration: "1 day",
                         price: "$$",
                         rating: 0,
+                        rating_count: 0,
+                        total_rating: 0,
                         destinations: [],
                     });
 
