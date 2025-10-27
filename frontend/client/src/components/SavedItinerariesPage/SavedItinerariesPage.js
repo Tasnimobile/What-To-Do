@@ -13,15 +13,33 @@ function SavedItinerariesPage({
   onNavigateToSaved,
   onNavigateToCreated,
   onLogout,
+  showError,
 }) {
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [savedItineraries, setSavedItineraries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const processTags = (tags) => {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    if (typeof tags === "string") {
+      try {
+        const parsed = JSON.parse(tags);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        console.warn("Failed to parse tags as JSON:", e);
+        return [];
+      }
+    }
+    return [];
+  };
 
   useEffect(() => {
     loadSavedItineraries();
   }, [user]);
 
   const loadSavedItineraries = () => {
+    setIsLoading(true);
     try {
       const saved = localStorage.getItem("savedItineraries");
       if (saved) {
@@ -29,7 +47,18 @@ function SavedItinerariesPage({
         const userSaved = allSaved.filter(
           (itinerary) => itinerary.savedBy === (user?.id || "current-user")
         );
+        const processedItineraries = userSaved.map((itinerary) => ({
+          ...itinerary,
+          tags: processTags(itinerary.tags),
+          title: itinerary.title || "Untitled Itinerary",
+          description: itinerary.description || "",
+          duration: itinerary.duration || "1 day",
+          price: itinerary.price || "$$",
+          rating: itinerary.rating || 0,
+          destinations: itinerary.destinations || [],
+        }));
         setSavedItineraries(userSaved);
+        setSavedItineraries(processedItineraries);
         console.log("User saved itineraries loaded:", userSaved);
       } else {
         console.log("No saved itineraries found in localStorage");
@@ -38,6 +67,9 @@ function SavedItinerariesPage({
     } catch (error) {
       console.error("Error loading saved itineraries:", error);
       setSavedItineraries([]);
+      if (showError) showError("Failed to load saved itineraries.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -167,7 +199,9 @@ function SavedItinerariesPage({
           </button>
         )}
 
-        {filteredItineraries.length === 0 ? (
+        {isLoading ? (
+          <div className="no-results">Loading saved itineraries...</div>
+        ) : filteredItineraries.length === 0 ? (
           <div className="no-results">
             {savedItineraries.length === 0
               ? "You haven't saved any itineraries yet."
@@ -197,6 +231,13 @@ function SavedItinerariesPage({
                 </div>
               </div>
               <p className="collapsed-description">{itinerary.description}</p>
+              <div className="itinerary-meta">
+                <span className="meta-item">{itinerary.duration}</span>
+                <span className="meta-item">{itinerary.price}</span>
+                <span className="meta-item">
+                  {(itinerary.destinations || []).length} destinations
+                </span>
+              </div>
               <button
                 className="read-more"
                 onClick={(e) => {
@@ -219,8 +260,129 @@ function SavedItinerariesPage({
                   ×
                 </button>
               </div>
-              {/* Same filter sections as CreatedItinerariesSidebar */}
-              {/* ...reuse your existing filter modal JSX here... */}
+              <div className="filter-sections">
+                <div className="filter-section">
+                  <label>Minimum Rating</label>
+                  <div className="rating-filter">
+                    {[0, 1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        className={`rating-option ${
+                          filters.minRating === rating ? "active" : ""
+                        }`}
+                        onClick={() =>
+                          setFilters((prev) => ({ ...prev, minRating: rating }))
+                        }
+                      >
+                        {rating === 0 ? "Any" : `${rating}+`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-section">
+                  <label>Tags</label>
+                  <div className="tags-filter">
+                    {[
+                      "park",
+                      "outdoors",
+                      "family",
+                      "food",
+                      "cultural",
+                      "walking",
+                      "museums",
+                      "educational",
+                      "indoor",
+                    ].map((tag) => (
+                      <button
+                        key={tag}
+                        className={`tag-option ${
+                          (filters.tags || []).includes(tag) ? "active" : ""
+                        }`}
+                        onClick={() => {
+                          const currentTags = filters.tags || [];
+                          const newTags = currentTags.includes(tag)
+                            ? currentTags.filter((t) => t !== tag)
+                            : [...currentTags, tag];
+                          setFilters((prev) => ({ ...prev, tags: newTags }));
+                        }}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-section">
+                  <label>Maximum Duration</label>
+                  <div className="duration-filter">
+                    {[
+                      { value: "", label: "Any Duration" },
+                      { value: "2 hours", label: "2 hours" },
+                      { value: "4 hours", label: "4 hours" },
+                      { value: "6 hours", label: "6 hours" },
+                      { value: "1 day", label: "1 day" },
+                      { value: "2 days", label: "2 days" },
+                      { value: "3+ days", label: "3+ days" },
+                    ].map((option) => (
+                      <button
+                        key={option.value || "any"}
+                        className={`duration-option ${
+                          filters.maxDuration === option.value ? "active" : ""
+                        }`}
+                        onClick={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            maxDuration: option.value,
+                          }))
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="filter-section">
+                  <label>Maximum Price</label>
+                  <div className="price-filter">
+                    {[
+                      { value: "", label: "Any Price" },
+                      { value: "$", label: "$ - Budget" },
+                      { value: "$$", label: "$$ - Moderate" },
+                      { value: "$$$", label: "$$$ - Expensive" },
+                      { value: "$$$$", label: "$$$$ - Luxury" },
+                    ].map((option) => (
+                      <button
+                        key={option.value || "any"}
+                        className={`price-option ${
+                          filters.maxPrice === option.value ? "active" : ""
+                        }`}
+                        onClick={() =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            maxPrice: option.value,
+                          }))
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="filter-modal-actions">
+                <button className="reset-btn" onClick={handleClearFilters}>
+                  Reset All
+                </button>
+                <button
+                  className="apply-btn"
+                  onClick={() => handleApplyFilters(filters)}
+                >
+                  Apply Filters
+                </button>
+              </div>
             </div>
           </div>
         )}
