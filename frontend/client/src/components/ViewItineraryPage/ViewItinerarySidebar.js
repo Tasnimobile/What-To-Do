@@ -1,10 +1,17 @@
 // src/components/ViewItineraryPage/ViewItinerarySidebar.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ViewItinerarySidebar.css";
 
-function ViewItinerarySidebar({ itinerary, onBack }) {
+function ViewItinerarySidebar({ itinerary, onBack, user }) {
   // State for completed status
   const [completed, setCompleted] = useState(false);
+
+  useEffect(() => {
+    if (itinerary) {
+      console.log("Current user ID:", user?.id);
+      console.log("Itinerary author ID:", itinerary.authorid);
+    }
+  }, [user, itinerary]);
 
   // Handle case where itinerary data is not available
   if (!itinerary) {
@@ -30,6 +37,7 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
 
   // Destructure itinerary data with default values for missing properties
   const {
+    id,
     title = "Untitled Itinerary",
     description = "No description provided.",
     rating = 0,
@@ -37,11 +45,41 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
     duration = "Not specified",
     price = "Not specified",
     destinations = [],
+    authorid,
   } = itinerary;
 
   // Handler for toggling completed itineraries
   const handleToggleCompleted = () => {
     setCompleted((prev) => !prev);
+  };
+
+  // Only show author options to edit/delete
+  const isAuthor = String(user?.id) === String(authorid);
+  const handleEdit = () => {
+    console.log("Edit button clicked for itinerary:", id);
+    // Navigate to edit page
+  };
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this itinerary?"))
+      return;
+
+    try {
+      const res = await fetch(`/api/itinerary/${itinerary.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+
+      if (data.errors) {
+        alert(data.errors[0]);
+      } else {
+        alert("Itinerary deleted.");
+        onBack(); // go back to previous screen if itinerary is deleted
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting itinerary");
+    }
   };
 
   return (
@@ -165,6 +203,16 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
         <button className="completed-btn" onClick={handleToggleCompleted}>
           {completed ? "Completed!" : "Completed?"}
         </button>
+        {isAuthor && (
+          <>
+            <button className="save-btn" onClick={handleEdit}>
+              Edit
+            </button>
+            <button className="save-btn" onClick={handleDelete}>
+              Delete
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

@@ -67,11 +67,14 @@
   margin-top: auto;
   margin-bottom: 20px;
   padding-bottom: 20px;
+  flex-direction: column;
 }
 
 /* Save/action button styling */
 .save-btn,
-.completed-btn {
+.completed-btn,
+.edit-btn,
+.delete-btn {
   flex: 1;
   padding: 16px;
   border-radius: 12px;
@@ -92,7 +95,9 @@
 }
 
 .save-btn:hover:not(:disabled),
-.completed-btn:hover:not(:disabled) {
+.completed-btn:hover:not(:disabled),
+.edit-btn:hover:not(:disabled),
+.delete-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   background: linear-gradient(
@@ -103,7 +108,9 @@
 }
 
 .save-btn:disabled,
-.completed-btn:disabled {
+.completed-btn:disabled,
+.edit-btn:disabled,
+.delete-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;

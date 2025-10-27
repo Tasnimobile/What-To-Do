@@ -52,7 +52,12 @@ function ViewItineraryPage({
 
       {/* Right side: Itinerary details sidebar */}
       <div className="sidebar-container">
-        <ViewItinerarySidebar itinerary={itinerary} onBack={onBack} />
+        <ViewItinerarySidebar
+          itinerary={itinerary}
+          onBack={onBack}
+          user={user}
+          onItineraryUpdated={() => window.location.reload()}
+        />
       </div>
     </div>
   );
