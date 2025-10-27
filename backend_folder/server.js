@@ -475,7 +475,7 @@ app.post("/api/give-rating", (req, res) => {
     const ratingCount = ratingTally.rating_count + 1
     const totalTemp = ratingTally.total_rating
     const totalRating = totalTemp + ratingTemp
-    const ratingNum = totalRating/ratingCount
+    const ratingNum = Number((totalRating/ratingCount).toFixed(2))
     if (!Number.isFinite(itineraryId)) {
       return res.status(400).json({ ok: false, errors: ["Missing or invalid itinerary id"] });
     }
@@ -593,28 +593,6 @@ app.get("/api/create-test-itineraries", (req, res) => {
 });
 
 
-// Global error handler - always send JSON
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  
-  // Always send JSON error response
-  if (!res.headersSent) {
-    res.status(500).json({ 
-      ok: false, 
-      errors: ["Internal server error"] 
-    });
-  }
-});
-
-// 404 handler for API routes
-app.use('/api', (req, res, next) => {
-  if (!res.headersSent) {
-    res.status(404).json({ 
-      ok: false, 
-      errors: ["API endpoint not found"] 
-    });
-  }
-});
 
 
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));

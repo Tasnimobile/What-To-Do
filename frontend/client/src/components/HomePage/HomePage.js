@@ -5,11 +5,32 @@ import Map from './Map';
 import Sidebar from './Sidebar';
 import './HomePage.css';
 
+const LS_KEY = "rated_itins";
+const getMap = () => JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+const setMap = (m) => localStorage.setItem(LS_KEY, JSON.stringify(m));
+
+function hasRatedLocal(userId, itineraryId) {
+  const u = String(userId || "anon");
+  const m = getMap();
+  return !!m[u]?.[String(itineraryId)];
+}
+
+function markRatedLocal(userId, itineraryId) {
+  const u = String(userId || "anon");
+  const m = getMap();
+  m[u] = m[u] || {};
+  m[u][String(itineraryId)] = true;
+  setMap(m);
+}
+
+
 function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated, onNavigateToSaved, onNavigateToHome, showError, onLogout }) {
   // State for selected destinations and itineraries
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [allItineraries, setAllItineraries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [ratedMap, setRatedMap] = useState({});   
+const [ratingBusy, setRatingBusy] = useState(false);
 
   // Process tags from various formats (array, string, JSON string)
   const processTags = (tags) => {
@@ -33,11 +54,16 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
   };
 
   // Handle rating an itinerary
-  const handleRateItinerary = async (itineraryId, rating, rating_count, total_rating) => {
+ const handleRateItinerary = async (itineraryId, rating, rating_count, total_rating) => {
+ 
+  if (ratedMap[itineraryId]) {
+    showError?.("You’ve already rated this itinerary", "info");
+    return;
+  }
+
+  setRatingBusy(true);
   try {
     const payload = { id: Number(itineraryId), rating: Number(rating), rating_count: Number(rating_count), total_rating: Number(total_rating) };
-
-    console.log(`Rating itinerary ${payload.id} with ${payload.rating} stars`);
 
     const res = await fetch("http://localhost:3000/api/give-rating", {
       method: "POST",
@@ -48,23 +74,33 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
 
     if (!res.ok) {
       const msg = await res.text().catch(() => "");
-      console.error("Failed to submit rating:", res.status, res.statusText, msg);
-      if (typeof showError === "function") {
-        showError(`Failed to submit rating (${res.status}). ${msg || "Please try again."}`, "error");
+      if (res.status === 409) {
+        // Server says already rated → lock locally too
+        markRatedLocal(user?.id, itineraryId);
+        setRatedMap(m => ({ ...m, [itineraryId]: true }));
+        showError?.("You’ve already rated this itinerary.", "info");
+        return;
       }
+      showError?.(`Failed to submit rating (${res.status}). ${msg || "Please try again."}`, "error");
       return;
     }
 
-    const data = await res.json();
-    console.log("Rating submitted:", data);
+    await res.json();
+
+    // Success → remember locally and disable UI
+    markRatedLocal(user?.id, itineraryId);
+    setRatedMap(m => ({ ...m, [itineraryId]: true }));
 
     loadItineraries?.();
     showError?.(`Thanks for your ${payload.rating}-star rating!`, "success");
   } catch (err) {
     console.error("Error submitting rating:", err);
     showError?.("Error submitting rating. Please check your connection.", "error");
+  } finally {
+    setRatingBusy(false);
   }
 };
+
 
 
   // Load all itineraries from API
@@ -139,6 +175,14 @@ function HomePage({ onBack, user, onNavigateToProfile, onNavigateToCreate, onVie
         });
 
         setAllItineraries(processedItineraries);
+
+       
+        const primed = {};
+        for (const it of processedItineraries) {
+          primed[it.id] = hasRatedLocal(user?.id, it.id);
+        }
+        setRatedMap(primed);
+
 
       } else {
         console.error('Failed to fetch itineraries from server, status:', response.status);

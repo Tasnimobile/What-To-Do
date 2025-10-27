@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './RatingStars.css';
 
-function RatingStars({ itineraryId, currentRating, overallRating, onRate, canRate = true }) {
+function RatingStars({ itineraryId, currentRating, overallRating, on, canRate = true }) {
     // State for user's current rating
     const [userRating, setUserRating] = useState(currentRating || 0);
 
