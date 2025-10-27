@@ -23,7 +23,8 @@
   );
   padding: 20px;
   border-radius: 16px;
-  color: white;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -32,7 +33,8 @@
 .itinerary-main-title {
   margin: 0;
   font-size: clamp(1.4rem, 2.2vw, 2rem);
-  font-weight: 300;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   letter-spacing: 0.5px;
   text-align: center;
   width: 100%;
@@ -51,7 +53,8 @@
   );
   padding: 20px;
   border-radius: 16px;
-  color: white;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex: 1;
@@ -73,7 +76,8 @@
   padding: 16px;
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  font-weight: 300;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: clamp(0.9rem, 1.2vw, 1.1rem);
@@ -83,7 +87,8 @@
     rgba(113, 193, 157, 0.7) 0%,
     rgba(113, 193, 157, 0.9) 100%
   );
-  color: white;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
 }
 
 .save-btn:hover:not(:disabled),
@@ -129,8 +134,10 @@
 
 /* Form label styling */
 .form-label {
-  color: white;
-  font-weight: 400;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   font-size: clamp(0.9rem, 1.2vw, 1.1rem);
   letter-spacing: 0.3px;
   text-align: center;
@@ -173,8 +180,10 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 12px 16px;
-  color: white;
-  font-weight: 300;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   font-size: clamp(0.8rem, 1.2vw, 1rem);
   width: 100%;
   min-height: 44px;
@@ -227,7 +236,8 @@
   padding: 6px 12px;
   border-radius: 16px;
   font-size: 0.8rem;
-  color: white;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -266,7 +276,8 @@
   height: 24px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: white;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
   margin: 2px 0;
   flex-shrink: 0;
 }
@@ -277,8 +288,10 @@
 }
 
 .destination-name {
-  color: white;
-  font-weight: 500;
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 4px;
 }
@@ -286,7 +299,8 @@
 .destination-address {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.8rem;
-  font-weight: 300;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   margin-bottom: 2px;
 }
 
@@ -297,7 +311,8 @@
   gap: 4px;
   color: #ffd700;
   font-size: 0.8rem;
-  font-weight: 500;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
   margin-top: 2px;
 }
 
@@ -309,13 +324,16 @@
 /* Empty destinations state */
 .no-destinations {
   text-align: center;
-  color: rgba(255, 255, 255, 0.6);
+  /*TEMP FONT COLOR CHANGE*/
+  color: #5f5f5f;
   font-style: italic;
   padding: 20px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   border: 1px dashed rgba(255, 255, 255, 0.2);
   width: 100%;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
 }
 
 /* Error message styling */
@@ -327,7 +345,8 @@
 .error-message h2 {
   margin: 0 0 16px 0;
   font-size: 1.5rem;
-  font-weight: 300;
+  /*TEMP FONT WEIGHT CHANGE*/
+  font-weight: 600;
 }
 
 .error-message p {
