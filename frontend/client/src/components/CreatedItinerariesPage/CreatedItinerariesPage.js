@@ -1,4 +1,4 @@
-// CreatedItinerariesPage.js 
+// CreatedItinerariesPage.js
 import React, { useState, useEffect } from "react";
 import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
@@ -30,12 +30,12 @@ function CreatedItinerariesPage({
       return tags;
     }
 
-    if (typeof tags === 'string') {
+    if (typeof tags === "string") {
       try {
         const parsed = JSON.parse(tags);
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.warn('Failed to parse tags as JSON:', e);
+        console.warn("Failed to parse tags as JSON:", e);
         return [];
       }
     }
@@ -51,26 +51,29 @@ function CreatedItinerariesPage({
   // Debug function to check itinerary data
   const debugUserItineraries = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/debug/my-itineraries", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include"
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/debug/my-itineraries",
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       const debugData = await response.json();
-      console.log('Debug API response:', debugData);
+      console.log("Debug API response:", debugData);
 
       if (debugData.itineraries && Array.isArray(debugData.itineraries)) {
-        const processed = debugData.itineraries.map(itinerary => ({
+        const processed = debugData.itineraries.map((itinerary) => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
-          title: itinerary.title || 'Untitled Itinerary',
-          description: itinerary.description || '',
-          duration: itinerary.duration || '1 day',
-          price: itinerary.price || '$$',
+          title: itinerary.title || "Untitled Itinerary",
+          description: itinerary.description || "",
+          duration: itinerary.duration || "1 day",
+          price: itinerary.price || "$$",
           rating: 0,
           destinations: [],
-          createdBy: itinerary.authorid || user?.id
+          createdBy: itinerary.authorid || user?.id,
         }));
 
         setUserItineraries(processed);
@@ -78,7 +81,7 @@ function CreatedItinerariesPage({
         setUserItineraries([]);
       }
     } catch (error) {
-      console.error('Debug fetch failed:', error);
+      console.error("Debug fetch failed:", error);
       setUserItineraries([]);
     }
   };
@@ -87,54 +90,63 @@ function CreatedItinerariesPage({
   const loadUserItineraries = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching user itineraries for user:', user?.id);
+      console.log("Fetching user itineraries for user:", user?.id);
 
       const response = await fetch("http://localhost:3000/api/my-itineraries", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        credentials: "include"
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('API Response for user itineraries:', data);
+        console.log("API Response for user itineraries:", data);
 
         let userItinerariesFromDB = [];
 
         if (data.ok && Array.isArray(data.itineraries)) {
           userItinerariesFromDB = data.itineraries;
         } else {
-          console.error('Unexpected API response structure:', data);
+          console.error("Unexpected API response structure:", data);
           userItinerariesFromDB = [];
         }
 
         // Process and format itinerary data for display
-        const processedItineraries = userItinerariesFromDB.map(itinerary => ({
+        const processedItineraries = userItinerariesFromDB.map((itinerary) => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
-          title: itinerary.title || 'Untitled Itinerary',
-          description: itinerary.description || '',
-          duration: itinerary.duration || '1 day',
-          price: itinerary.price || '$$',
+          title: itinerary.title || "Untitled Itinerary",
+          description: itinerary.description || "",
+          duration: itinerary.duration || "1 day",
+          price: itinerary.price || "$$",
           rating: itinerary.rating || 0,
           destinations: itinerary.destinations || [],
-          createdBy: itinerary.createdBy || itinerary.authorid || user?.id || 'unknown'
+          createdBy:
+            itinerary.createdBy || itinerary.authorid || user?.id || "unknown",
         }));
 
-        console.log('User itineraries loaded from database:', processedItineraries);
+        console.log(
+          "User itineraries loaded from database:",
+          processedItineraries
+        );
         setUserItineraries(processedItineraries);
       } else {
-        console.error('Failed to fetch user itineraries from server, status:', response.status);
+        console.error(
+          "Failed to fetch user itineraries from server, status:",
+          response.status
+        );
         setUserItineraries([]);
         if (showError) {
-          showError('Failed to load your itineraries from server.');
+          showError("Failed to load your itineraries from server.");
         }
       }
     } catch (error) {
-      console.error('Error loading user itineraries from server:', error);
+      console.error("Error loading user itineraries from server:", error);
       setUserItineraries([]);
       if (showError) {
-        showError('Error loading your itineraries. Please check your connection.');
+        showError(
+          "Error loading your itineraries. Please check your connection."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -150,7 +162,7 @@ function CreatedItinerariesPage({
 
   // Handler for viewing itinerary details
   const handleViewItinerary = (itinerary) => {
-    console.log('Viewing itinerary:', itinerary);
+    console.log("Viewing itinerary:", itinerary);
     if (onViewItinerary) {
       onViewItinerary(itinerary);
     }
@@ -236,8 +248,10 @@ function CreatedItinerariesPage({
     };
 
     // Filter itineraries based on search and filter criteria
-    const filteredItineraries = (Array.isArray(userItineraries) ? userItineraries : []).filter((itinerary) => {
-      if (!itinerary || typeof itinerary !== 'object') {
+    const filteredItineraries = (
+      Array.isArray(userItineraries) ? userItineraries : []
+    ).filter((itinerary) => {
+      if (!itinerary || typeof itinerary !== "object") {
         return false;
       }
 
@@ -322,9 +336,7 @@ function CreatedItinerariesPage({
 
         {/* Itineraries list or loading/empty states */}
         {isLoading ? (
-          <div className="no-results">
-            Loading your itineraries...
-          </div>
+          <div className="no-results">Loading your itineraries...</div>
         ) : filteredItineraries.length === 0 ? (
           <div className="no-results">
             {userItineraries.length === 0
@@ -347,7 +359,7 @@ function CreatedItinerariesPage({
               style={{ cursor: "pointer" }}
             >
               <div className="itinerary-header">
-                <h3>{itinerary.title || 'Untitled Itinerary'}</h3>
+                <h3>{itinerary.title || "Untitled Itinerary"}</h3>
                 <div className="rating">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <span
@@ -362,7 +374,7 @@ function CreatedItinerariesPage({
                 </div>
               </div>
               <p className="collapsed-description">
-                {itinerary.description || 'No description provided.'}
+                {itinerary.description || "No description provided."}
               </p>
               <div className="itinerary-meta">
                 <span className="meta-item">{itinerary.duration}</span>
@@ -403,8 +415,9 @@ function CreatedItinerariesPage({
                     {[0, 1, 2, 3, 4, 5].map((rating) => (
                       <button
                         key={rating}
-                        className={`rating-option ${filters.minRating === rating ? "active" : ""
-                          }`}
+                        className={`rating-option ${
+                          filters.minRating === rating ? "active" : ""
+                        }`}
                         onClick={() =>
                           setFilters((prev) => ({ ...prev, minRating: rating }))
                         }
@@ -432,8 +445,9 @@ function CreatedItinerariesPage({
                     ].map((tag) => (
                       <button
                         key={tag}
-                        className={`tag-option ${(filters.tags || []).includes(tag) ? "active" : ""
-                          }`}
+                        className={`tag-option ${
+                          (filters.tags || []).includes(tag) ? "active" : ""
+                        }`}
                         onClick={() => {
                           const currentTags = filters.tags || [];
                           const newTags = currentTags.includes(tag)
@@ -463,8 +477,9 @@ function CreatedItinerariesPage({
                     ].map((option) => (
                       <button
                         key={option.value || "any"}
-                        className={`duration-option ${filters.maxDuration === option.value ? "active" : ""
-                          }`}
+                        className={`duration-option ${
+                          filters.maxDuration === option.value ? "active" : ""
+                        }`}
                         onClick={() =>
                           setFilters((prev) => ({
                             ...prev,
@@ -491,8 +506,9 @@ function CreatedItinerariesPage({
                     ].map((option) => (
                       <button
                         key={option.value || "any"}
-                        className={`price-option ${filters.maxPrice === option.value ? "active" : ""
-                          }`}
+                        className={`price-option ${
+                          filters.maxPrice === option.value ? "active" : ""
+                        }`}
                         onClick={() =>
                           setFilters((prev) => ({
                             ...prev,
@@ -512,7 +528,10 @@ function CreatedItinerariesPage({
                 <button className="reset-btn" onClick={handleClearFilters}>
                   Reset All
                 </button>
-                <button className="apply-btn" onClick={handleApplyFilters}>
+                <button
+                  className="apply-btn"
+                  onClick={() => handleApplyFilters(filters)}
+                >
                   Apply Filters
                 </button>
               </div>
