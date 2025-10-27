@@ -1,8 +1,11 @@
 // src/components/ViewItineraryPage/ViewItinerarySidebar.js
-import React from "react";
+import React, { useState } from "react";
 import "./ViewItinerarySidebar.css";
 
 function ViewItinerarySidebar({ itinerary, onBack }) {
+  // State for completed status
+  const [completed, setCompleted] = useState(false);
+
   // Handle case where itinerary data is not available
   if (!itinerary) {
     return (
@@ -35,6 +38,11 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
     price = "Not specified",
     destinations = [],
   } = itinerary;
+
+  // Handler for toggling completed itineraries
+  const handleToggleCompleted = () => {
+    setCompleted((prev) => !prev);
+  };
 
   return (
     <div className="view-itinerary-sidebar">
@@ -151,9 +159,12 @@ function ViewItinerarySidebar({ itinerary, onBack }) {
         </div>
       </div>
 
-      {/* Action Button (Save Itinerary) */}
+      {/* Action Button (Save Itinerary and Mark as Completed) */}
       <div className="create-actions">
         <button className="save-btn">Save Itinerary</button>
+        <button className="completed-btn" onClick={handleToggleCompleted}>
+          {completed ? "Completed!" : "Completed?"}
+        </button>
       </div>
     </div>
   );
