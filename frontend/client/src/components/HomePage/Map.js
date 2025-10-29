@@ -3,6 +3,17 @@ import React, { useState, useEffect } from "react";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import "./Map.css";
 
+const toArray = (v) => {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string") {
+    try {
+      const parsed = JSON.parse(v);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  }
+  return [];
+};
+
 // Render function for different map loading states
 const render = (status, props) => {
   switch (status) {
@@ -61,9 +72,15 @@ const MapComponent = ({
   const [markers, setMarkers] = React.useState([]);
   const [clickListener, setClickListener] = React.useState(null);
 
+  const destinations = React.useMemo(
+    () => toArray(selectedDestinations),
+    [selectedDestinations]
+  );
+
   console.log("MapComponent state:", {
     isSelectingMode,
     selectedDestinationsCount: selectedDestinations?.length,
+    selectedDestinationsCount: destinations.length,
   });
 
   // Clear all markers from the map
@@ -309,27 +326,27 @@ const MapComponent = ({
 
     clearMarkers();
 
-    if (selectedDestinations && selectedDestinations.length > 0) {
-      selectedDestinations.forEach((destination) => {
+    if (destinations.length > 0) {
+      destinations.forEach((destination) => {
         addDestinationMarker(destination);
       });
 
       // Adjust map view to show all markers
-      if (selectedDestinations.length > 1) {
+      if (destinations.length > 1) {
         const bounds = new window.google.maps.LatLngBounds();
-        selectedDestinations.forEach((destination) => {
+        destinations.forEach((destination) => {
           bounds.extend({ lat: destination.lat, lng: destination.lng });
         });
         map.fitBounds(bounds);
-      } else if (selectedDestinations.length === 1) {
+      } else if (destinations.length === 1) {
         map.setCenter({
-          lat: selectedDestinations[0].lat,
-          lng: selectedDestinations[0].lng,
+          lat: destinations[0].lat,
+          lng: destinations[0].lng,
         });
         map.setZoom(14);
       }
     }
-  }, [selectedDestinations, map, onUpdateDestination]);
+  }, [destinations, map, onUpdateDestination]);
 
   return (
     <div className="map-component-wrapper">

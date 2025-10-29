@@ -2,6 +2,20 @@
 import React, { useState, useEffect } from "react";
 import "./ViewItinerarySidebar.css";
 
+const toArray = (v) => {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string") {
+    let s = v.trim();
+    if (s.startsWith("`") && s.endsWith("`")) s = s.slice(1, -1); // strip stray backticks
+    try {
+      const p = JSON.parse(s);
+      return Array.isArray(p) ? p : [];
+    } catch { return []; }
+  }
+  return [];
+};
+const toNumber = (v, d = 0) => (v == null ? d : Number(v) || d);
+
 function ViewItinerarySidebar({ itinerary, onBack, user }) {
   // State for completed status
   const [completed, setCompleted] = useState(false);
@@ -13,8 +27,19 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
     }
   }, [user, itinerary]);
 
-  // Handle case where itinerary data is not available
-  if (!itinerary) {
+  
+  const normalized = React.useMemo(() => {
+   if (!itinerary) return null;
+    return {
+      ...itinerary,
+      tags: toArray(itinerary.tags),
+      destinations: toArray(itinerary.destinations),
+      rating: toNumber(itinerary.rating, 0),
+    };
+  }, [itinerary]);
+
+
+  if (!normalized) {
     return (
       <div className="view-itinerary-sidebar">
         <div className="create-header">
@@ -27,15 +52,13 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
           </div>
         </div>
         <div className="create-actions">
-          <button className="save-btn" onClick={onBack}>
-            Back to Home
-          </button>
+          <button className="save-btn" onClick={onBack}>Back to Home</button>
         </div>
-      </div>
+     </div>
     );
   }
 
-  // Destructure itinerary data with default values for missing properties
+ 
   const {
     id,
     title = "Untitled Itinerary",
@@ -46,7 +69,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
     price = "Not specified",
     destinations = [],
     authorid,
-  } = itinerary;
+  } = normalized;
 
   // Handler for toggling completed itineraries
   const handleToggleCompleted = () => {
@@ -64,7 +87,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
       return;
 
     try {
-      const res = await fetch(`/api/itinerary/${itinerary.id}`, {
+      const res = await fetch(`/api/itinerary/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });

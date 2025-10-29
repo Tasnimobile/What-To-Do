@@ -20,7 +20,7 @@ const createTables = db.transaction(() => {
         password STRING NOT NULL
         )
         `).run()
-
+ 
   db.prepare(`
         CREATE TABLE IF NOT EXISTS itineraries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +31,10 @@ const createTables = db.transaction(() => {
         price TEXT NOT NULL,
         authorid INTEGER,
         rating INTEGER,
-        FOREIGN KEY (authorid) REFERENCES user (id)
+        rating_count INTEGER,
+        total_rating INTEGER,
+        destinations TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(destinations)),
+        FOREIGN KEY (authorid) REFERENCES user (id) 
         )
         `).run()
 })
@@ -440,7 +443,7 @@ app.post("/api/create-itinerary", (req, res) => {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
 
-  const { title, description, tags, duration, rating, rating_count, total_rating, price } = req.body;
+  const { title, description, tags, duration, rating, rating_count, total_rating, destinations, price } = req.body;
 
   // Validate required fields
   if (!title || !description || !duration || !price) {
@@ -448,8 +451,8 @@ app.post("/api/create-itinerary", (req, res) => {
   }
 
   try {
-    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, authorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, req.user.userid);
+    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, destinations, authorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, destinations || '[]', req.user.userid);
 
     console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
 
@@ -579,10 +582,10 @@ app.get("/api/create-test-itineraries", (req, res) => {
       }
     ];
 
-    const statement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, authorid) VALUES (?, ?, ?, ?, ?, ?)");
+    const statement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, destinations, authorid) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
     testItineraries.forEach(itinerary => {
-      statement.run(itinerary.title, itinerary.description, itinerary.tags, itinerary.duration, itinerary.price, itinerary.authorid);
+      statement.run(itinerary.title, itinerary.description, itinerary.tags, itinerary.duration, itinerary.price, itinerary.destinations, itinerary.authorid);
     });
 
     res.json({ message: "Test itineraries created", count: testItineraries.length });

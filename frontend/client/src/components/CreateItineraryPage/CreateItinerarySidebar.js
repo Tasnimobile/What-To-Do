@@ -90,7 +90,7 @@ function CreateItinerarySidebar({
                     destinations: JSON.stringify(actualItineraryData.destinations || [])
                 }),
             });
-            console.log(res.status)
+            console.log(res.body.destinations)
             if (res.ok) {
                 const response = await res.json();
                 console.log('Itinerary saved to server:', response);
