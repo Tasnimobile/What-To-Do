@@ -109,7 +109,8 @@ function CreateItinerarySidebar({
                         total_rating: 0,
                         createdAt: new Date().toISOString(),
                         createdBy: user.id,
-                        authorid: user.id
+                        authorid: user.id,
+                        authorname: user.display_name
                     };
 
                     console.log('Calling onItinerarySave with:', newItinerary);

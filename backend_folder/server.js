@@ -30,6 +30,7 @@ const createTables = db.transaction(() => {
         duration TEXT NOT NULL,
         price TEXT NOT NULL,
         authorid INTEGER,
+        authorname TEXT,
         rating INTEGER,
         rating_count INTEGER,
         total_rating INTEGER,
@@ -432,7 +433,6 @@ app.get("/api/itineraries", (req, res) => {
 
   res.json({ ok: true, itineraries });
 }) 
-
 app.post("/api/create-itinerary", (req, res) => {
   console.log("Create itinerary request received");
   console.log("User from session:", req.user);
@@ -451,9 +451,9 @@ app.post("/api/create-itinerary", (req, res) => {
   }
 
   try {
-    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, destinations, authorid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, destinations || '[]', req.user.userid);
-
+    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, destinations, authorid, authorname) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, destinations || '[]', req.user.userid, req.user.username);
+    console.log(req.user.display_name)
     console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
 
     res.json({
