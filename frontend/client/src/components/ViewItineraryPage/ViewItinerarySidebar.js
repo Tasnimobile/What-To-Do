@@ -10,7 +10,9 @@ const toArray = (v) => {
     try {
       const p = JSON.parse(s);
       return Array.isArray(p) ? p : [];
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   }
   return [];
 };
@@ -23,13 +25,12 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
   useEffect(() => {
     if (itinerary) {
       console.log("Current user ID:", user?.id);
-      console.log("Itinerary author ID:", itinerary.authorid);
+      console.log("Itinerary author username:", itinerary.authorname);
     }
   }, [user, itinerary]);
 
-  
   const normalized = React.useMemo(() => {
-   if (!itinerary) return null;
+    if (!itinerary) return null;
     return {
       ...itinerary,
       tags: toArray(itinerary.tags),
@@ -37,7 +38,6 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
       rating: toNumber(itinerary.rating, 0),
     };
   }, [itinerary]);
-
 
   if (!normalized) {
     return (
@@ -52,16 +52,18 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
           </div>
         </div>
         <div className="create-actions">
-          <button className="save-btn" onClick={onBack}>Back to Home</button>
+          <button className="save-btn" onClick={onBack}>
+            Back to Home
+          </button>
         </div>
-     </div>
+      </div>
     );
   }
 
- 
   const {
     id,
     title = "Untitled Itinerary",
+    authorname = "",
     description = "No description provided.",
     rating = 0,
     tags = [],
@@ -110,6 +112,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
       {/* Itinerary Title Header */}
       <div className="create-header">
         <h1 className="itinerary-main-title">{title}</h1>
+        <p className="author-username">Created by: {authorname}</p>
       </div>
 
       {/* Main Itinerary Details Card */}

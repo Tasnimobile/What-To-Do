@@ -8,6 +8,7 @@ import "../HomePage/HomePage.css";
 function ViewItineraryPage({
   onBack,
   user,
+  username,
   onNavigateToProfile,
   onNavigateToHome,
   onNavigateToCreated,
@@ -56,6 +57,7 @@ function ViewItineraryPage({
           itinerary={itinerary}
           onBack={onBack}
           user={user}
+          username={username}
           onItineraryUpdated={() => window.location.reload()}
         />
       </div>
