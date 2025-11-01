@@ -18,30 +18,6 @@ const toArray = (v) => {
 };
 const toNumber = (v, d = 0) => (v == null ? d : Number(v) || d);
 
-function ItineraryBookmark() {
-  const [bookmarked, setBookmarked] = useState(false);
-
-  const toggleBookmark = () => {
-    setBookmarked(!bookmarked);
-  };
-
-  return (
-    <button className="bookmark-icon" onClick={toggleBookmark}>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
-          fill={bookmarked ? "#E71D36" : "#5f5f5f"}
-        />
-      </svg>
-    </button>
-  );
-}
-
 function ViewItinerarySidebar({ itinerary, onBack, user }) {
   // State for completed status
   const [completed, setCompleted] = useState(false);
@@ -49,7 +25,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
   useEffect(() => {
     if (itinerary) {
       console.log("Current user ID:", user?.id);
-      console.log("Itinerary author username:", itinerary.authorname);
+      console.log("Itinerary author ID:", itinerary.authorid);
     }
   }, [user, itinerary]);
 
@@ -87,7 +63,6 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
   const {
     id,
     title = "Untitled Itinerary",
-    authorname = "",
     description = "No description provided.",
     rating = 0,
     tags = [],
@@ -135,11 +110,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
     <div className="view-itinerary-sidebar">
       {/* Itinerary Title Header */}
       <div className="create-header">
-        <div className="title-row">
-          <ItineraryBookmark />
-          <h1 className="itinerary-main-title">{title}</h1>
-        </div>
-        <p className="itinerary-author">Created by: {authorname}</p>
+        <h1 className="itinerary-main-title">{title}</h1>
       </div>
 
       {/* Main Itinerary Details Card */}
@@ -252,6 +223,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
 
       {/* Action Button (Save Itinerary and Mark as Completed) */}
       <div className="create-actions">
+        <button className="save-btn">Save Itinerary</button>
         <button className="completed-btn" onClick={handleToggleCompleted}>
           {completed ? "Completed!" : "Completed?"}
         </button>

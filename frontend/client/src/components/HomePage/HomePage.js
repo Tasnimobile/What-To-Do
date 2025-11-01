@@ -169,9 +169,9 @@ function HomePage({
             id: it.id,
             title: it.title,
             authorid: it.authorid,
-            createdBy: it.authorname,
+            createdBy: it.createdBy,
             hasAuthorId: !!it.authorid,
-            hasCreatedBy: !!it.authorname,
+            hasCreatedBy: !!it.createdBy,
           });
         });
 
