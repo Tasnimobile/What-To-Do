@@ -104,7 +104,7 @@ function DestinationManager({
 
   return (
     <div className="input-group">
-      <label className="form-label">Destinations Pathway</label>
+      <label className="form-label">Destinations</label>
 
       {/* Show either search interface or add button */}
       {!showSearch ? (
