@@ -252,7 +252,6 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
 
       {/* Action Button (Save Itinerary and Mark as Completed) */}
       <div className="create-actions">
-        <button className="save-btn">Save Itinerary</button>
         <button className="completed-btn" onClick={handleToggleCompleted}>
           {completed ? "Completed!" : "Completed?"}
         </button>
