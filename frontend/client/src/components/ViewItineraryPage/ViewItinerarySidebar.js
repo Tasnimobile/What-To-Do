@@ -35,7 +35,7 @@ function ItineraryBookmark() {
       >
         <path
           d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
-          fill={bookmarked ? "#e92d2dff" : "#5f5f5f"}
+          fill={bookmarked ? "#E71D36" : "#5f5f5f"}
         />
       </svg>
     </button>

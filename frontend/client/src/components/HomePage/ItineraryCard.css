@@ -26,11 +26,7 @@
 
 /* Expanded card state */
 .itinerary-card.expanded {
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #8eccb1;
 }
 
 /* Header section with title and rating */
@@ -80,11 +76,7 @@
   margin: 0;
   padding: 16px;
   border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #80c6a8;
   border: 2px solid rgba(255, 255, 255, 0.2);
   font-weight: 300;
   letter-spacing: 0.3px;
@@ -142,11 +134,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #80c6a8;
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
@@ -160,14 +148,14 @@
 .detail-label {
   font-weight: 500;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #525252;
   min-width: 60px;
   flex-shrink: 0;
 }
 
 .detail-value {
   font-size: 0.8rem;
-  color: white;
+  color: #525252;
   font-weight: 300;
 }
 

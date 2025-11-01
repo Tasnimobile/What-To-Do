@@ -18,16 +18,12 @@
   position: relative;
   justify-content: space-between;
   align-items: stretch;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #8eccb1;
   padding: 10px;
   border-radius: 16px;
   gap: 6px;
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -83,7 +79,7 @@
 .bookmark-icon svg {
   width: 24px;
   height: 24px;
-  fill: #5f5f5f;
+  fill: #525252;
   transition: fill 0.2s ease, transform 0.2s ease;
 }
 
@@ -97,15 +93,11 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #8eccb1;
   padding: 20px;
   border-radius: 16px;
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   flex: 1;
@@ -136,11 +128,7 @@
   transition: all 0.3s ease;
   font-size: clamp(0.9rem, 1.2vw, 1.1rem);
   letter-spacing: 0.5px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #8eccb1;
   /*TEMP FONT COLOR CHANGE*/
   color: #5f5f5f;
 }
@@ -151,11 +139,7 @@
 .delete-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.8) 0%,
-    rgba(113, 193, 157, 0.95) 100%
-  );
+  background: #80c6a8;
 }
 
 .save-btn:disabled,
@@ -193,7 +177,7 @@
 /* Form label styling */
 .form-label {
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   /*TEMP FONT WEIGHT CHANGE*/
   font-weight: 600;
   font-size: clamp(0.9rem, 1.2vw, 1.1rem);
@@ -230,16 +214,12 @@
 
 /* Value display boxes for itinerary details */
 .view-value {
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #80c6a8;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 12px 16px;
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   /*TEMP FONT WEIGHT CHANGE*/
   font-weight: 600;
   font-size: clamp(0.8rem, 1.2vw, 1rem);
@@ -277,7 +257,7 @@
 
 .rating-text {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #525252;
   margin-left: 4px;
 }
 
@@ -290,12 +270,12 @@
 }
 
 .tag {
-  background: rgba(255, 255, 255, 0.15);
+  background: #80c6a8;
   padding: 6px 12px;
   border-radius: 16px;
   font-size: 0.8rem;
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -313,11 +293,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #80c6a8;
   padding: 14px;
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -335,7 +311,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   margin: 2px 0;
   flex-shrink: 0;
 }
@@ -347,7 +323,7 @@
 
 .destination-name {
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   /*TEMP FONT WEIGHT CHANGE*/
   font-weight: 600;
   font-size: 0.95rem;
@@ -355,7 +331,7 @@
 }
 
 .destination-address {
-  color: rgba(255, 255, 255, 0.8);
+  color: #666666;
   font-size: 0.8rem;
   /*TEMP FONT WEIGHT CHANGE*/
   font-weight: 600;
@@ -383,7 +359,7 @@
 .no-destinations {
   text-align: center;
   /*TEMP FONT COLOR CHANGE*/
-  color: #5f5f5f;
+  color: #525252;
   font-style: italic;
   padding: 20px;
   background: rgba(255, 255, 255, 0.05);

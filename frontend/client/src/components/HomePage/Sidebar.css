@@ -5,12 +5,8 @@
   width: min(400px, 30vw);
   min-width: 280px;
   max-width: 450px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
-  color: white;
+  background: #aadac4;
+  color: #525252;
   overflow-y: overlay;
   padding: 20px;
   border-radius: 16px;
@@ -33,11 +29,7 @@
   text-align: center;
   padding: 16px;
   border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #8eccb1;
   /*TEMP FONT COLOR CHANGE*/
   color: #5f5f5f;
   /*TEMP FONT WEIGHT CHANGE*/
@@ -54,11 +46,7 @@
   text-align: center;
   padding: 12px;
   border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #8eccb1;
   /*TEMP FONT COLOR CHANGE*/
   color: #5f5f5f;
   /*TEMP FONT WEIGHT CHANGE*/
@@ -78,11 +66,7 @@
 
 /* Search input field */
 .search-filter input[type="text"] {
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #8eccb1;
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   font-size: clamp(1rem, 1.5vw, 1.2rem);
@@ -103,11 +87,7 @@
   outline: none;
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 0 0 4px rgba(113, 193, 157, 0.4);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.8) 0%,
-    rgba(113, 193, 157, 0.95) 100%
-  );
+  background: #80c6a8;
 }
 
 .search-filter input::placeholder {
@@ -121,11 +101,7 @@
 .search-filter button {
   padding: 16px 20px;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #8eccb1;
   /*TEMP FONT COLOR CHANGE*/
   color: #5f5f5f;
   /*TEMP FONT WEIGHT CHANGE*/
@@ -142,22 +118,14 @@
 .search-filter button:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.8) 0%,
-    rgba(113, 193, 157, 0.95) 100%
-  );
+  background: #80c6a8;
   border-color: rgba(255, 255, 255, 0.3);
 }
 
 .search-filter button:focus {
   outline: none;
   box-shadow: 0 0 0 4px rgba(113, 193, 157, 0.4);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.8) 0%,
-    rgba(113, 193, 157, 0.95) 100%
-  );
+  background: #80c6a8;
   border-color: rgba(255, 255, 255, 0.4);
 }
 
@@ -220,11 +188,7 @@
 }
 
 .create-new-header:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  ) !important;
+  background: #80c6a8 !important;
   transform: translateY(-1px);
   border-color: rgba(255, 255, 255, 0.3) !important;
 }
@@ -266,15 +230,11 @@
 /* No results message */
 .no-results {
   text-align: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: #525252;
   font-style: italic;
   padding: 20px;
   font-weight: 300;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: #80c6a8;
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
