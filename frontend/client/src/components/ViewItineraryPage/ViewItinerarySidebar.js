@@ -18,6 +18,30 @@ const toArray = (v) => {
 };
 const toNumber = (v, d = 0) => (v == null ? d : Number(v) || d);
 
+function ItineraryBookmark() {
+  const [bookmarked, setBookmarked] = useState(false);
+
+  const toggleBookmark = () => {
+    setBookmarked(!bookmarked);
+  };
+
+  return (
+    <button className="bookmark-icon" onClick={toggleBookmark}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
+          fill={bookmarked ? "#e92d2dff" : "#5f5f5f"}
+        />
+      </svg>
+    </button>
+  );
+}
+
 function ViewItinerarySidebar({ itinerary, onBack, user }) {
   // State for completed status
   const [completed, setCompleted] = useState(false);
@@ -112,11 +136,7 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
       {/* Itinerary Title Header */}
       <div className="create-header">
         <div className="title-row">
-          <button className="bookmark-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V5h10v13z" />
-            </svg>
-          </button>
+          <ItineraryBookmark />
           <h1 className="itinerary-main-title">{title}</h1>
         </div>
         <p className="itinerary-author">Created by: {authorname}</p>
