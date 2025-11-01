@@ -133,11 +133,7 @@
 .account-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #8eccb1;
   border-color: rgba(255, 255, 255, 0.3);
 }
 
