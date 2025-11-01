@@ -40,7 +40,23 @@
   font-weight: 600;
   letter-spacing: 0.3px;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  gap: 20px;
+}
+
+.itinerary-header h3 {
+  flex: 0 1 55%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.itinerary-header .rating {
+  flex: 0 1 45%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+  align-items: center;
+  font-size: 1rem;
+  min-width: 0;
 }
 
 /* Collapsed description preview */
@@ -67,15 +83,20 @@
 }
 
 /* Star rating display */
-.rating {
+/* .rating {
   display: flex;
   gap: 3px;
   flex-shrink: 0;
+  font-size: 0.6rem;
+} */
+
+.rating .star {
+  font-size: 1em; /* this makes it relative to .rating */
+  flex-shrink: 1; /* allow individual stars to shrink */
 }
 
 .star {
   color: rgba(255, 255, 255, 0.3);
-  font-size: clamp(0.9rem, 1.4vw, 1.2rem);
 }
 
 .star.filled {
