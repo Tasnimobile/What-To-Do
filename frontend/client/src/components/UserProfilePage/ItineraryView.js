@@ -9,6 +9,9 @@ const ItineraryView = ({
   userItineraries = [],
   user,
   onViewItinerary,
+  onNavigateToCreated,
+  onNavigateToSaved,
+  onNavigateToCompleted,
 }) => {
   // Handle itinerary card click and pass data to parent component
   const handleItineraryClick = (itineraryId) => {
@@ -16,6 +19,43 @@ const ItineraryView = ({
     const itinerary = userItineraries.find((item) => item.id === itineraryId);
     if (itinerary && onViewItinerary) {
       onViewItinerary(itinerary);
+    }
+  };
+
+  // Handle "See More" button click based on active tab
+  const handleSeeMore = () => {
+    switch (activeTab) {
+      case "itineraries":
+        if (onNavigateToCreated) {
+          onNavigateToCreated();
+        }
+        break;
+      case "saved":
+        if (onNavigateToSaved) {
+          onNavigateToSaved();
+        }
+        break;
+      case "completed":
+        if (onNavigateToCompleted) {
+          onNavigateToCompleted();
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Determine if "See More" button should be shown
+  const shouldShowSeeMore = () => {
+    switch (activeTab) {
+      case "itineraries":
+        return userItineraries.length > 3;
+      case "saved":
+        return false; // No saved itineraries yet
+      case "completed":
+        return false; // No completed itineraries yet
+      default:
+        return false;
     }
   };
 
@@ -46,7 +86,7 @@ const ItineraryView = ({
         }
         return (
           <div className="itineraries-grid">
-            {userItineraries.map((itinerary) => (
+            {userItineraries.slice(0, 3).map((itinerary) => (
               <div key={itinerary.id} className="itinerary-grid-item">
                 <ItineraryCard
                   itineraryId={itinerary.id}
@@ -93,13 +133,13 @@ const ItineraryView = ({
               >
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm5.04-11.28V8.7c-.4-.39-1.03-.39-1.42 0L10.33 14l-2.6-2.62a.996.996 0 0 0-1.41 0 .984.984 0 0 0-.01 1.4l.01.01 3.3 3.34a1 1 0 0 0 1.42.01l6-6.01a.996.996 0 0 0 0-1.41" />
               </svg>
-              <p>No recently completed itineraries</p>
+              <p>No completed itineraries</p>
             </div>
           );
         }
         return (
           <div className="itineraries-grid">
-            {completedItineraries.map((itinerary) => (
+            {completedItineraries.slice(0, 3).map((itinerary) => (
               <div key={itinerary.id} className="itinerary-grid-item">
                 <ItineraryCard
                   itineraryId={itinerary.id}
@@ -163,6 +203,13 @@ const ItineraryView = ({
 
       {/* Dynamic Content Area */}
       <div className="content-grid">{renderContent()}</div>
+
+      {/* See More Button - conditionally rendered */}
+      {shouldShowSeeMore() && (
+        <button className="see-more-button" onClick={handleSeeMore}>
+          See More
+        </button>
+      )}
     </div>
   );
 };

@@ -215,6 +215,9 @@ const UserProfilePage = ({
         userItineraries={userItineraries}
         user={user}
         onViewItinerary={handleViewItinerary}
+        onNavigateToCreated={onNavigateToCreated}
+        onNavigateToSaved={onNavigateToSaved}
+        onNavigateToCompleted={onNavigateToCompleted}
       />
     </div>
   );
