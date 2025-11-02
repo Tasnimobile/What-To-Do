@@ -9,6 +9,7 @@ function Header({
   onNavigateToHome,
   onNavigateToCreated,
   onNavigateToSaved,
+  onNavigateToCompleted,
   onLogout,
 }) {
   // State for dropdown and tooltip visibility
@@ -61,6 +62,13 @@ function Header({
   const handleSavedItinerariesClick = () => {
     if (onNavigateToSaved) {
       onNavigateToSaved();
+    }
+    setShowDropdown(false);
+  };
+
+  const handleCompletedItienrariesClick = () => {
+    if (onNavigateToCompleted) {
+      onNavigateToCompleted();
     }
     setShowDropdown(false);
   };
