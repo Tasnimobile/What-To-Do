@@ -27,7 +27,6 @@
 /* Stat number display (e.g., "12" for itineraries count) */
 .stat-number-small {
   font-size: 1.3rem;
-  font-weight: 400;
   color: #469b76;
   margin-bottom: 6px;
 }
@@ -36,7 +35,6 @@
 .stat-label-small {
   font-size: 0.85rem;
   color: #469b76;
-  font-weight: 300;
   letter-spacing: 0.5px;
 }
 

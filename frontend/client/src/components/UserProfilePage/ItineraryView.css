@@ -38,7 +38,6 @@
   font-size: 0.95rem;
   color: #525252;
   transition: all 0.3s ease;
-  font-weight: 300;
   border-radius: 8px 8px 0 0;
   margin: 0 2px;
 }
@@ -52,7 +51,7 @@
   color: #525252;
   border-bottom-color: #80c6a8;
   background: #80c6a8;
-  font-weight: 400;
+  font-weight: 600;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
@@ -84,7 +83,6 @@
 .grid-placeholder p {
   margin: 0;
   font-size: 1rem;
-  font-weight: 300;
   line-height: 1.6;
 }
 
@@ -221,7 +219,6 @@
   padding: 14px 32px;
   border-radius: 12px;
   font-size: 1rem;
-  font-weight: 400;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;

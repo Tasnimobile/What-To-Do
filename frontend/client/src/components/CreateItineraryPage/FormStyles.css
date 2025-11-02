@@ -19,7 +19,6 @@
 /* Label styling for form inputs */
 .form-label {
   color: white;
-  font-weight: 400;
   font-size: clamp(0.9rem, 1.2vw, 1.1rem);
   letter-spacing: 0.3px;
   text-align: center;
@@ -90,7 +89,6 @@
   border-radius: 12px;
   padding: 12px 16px;
   color: #525252;
-  font-weight: 300;
   font-size: clamp(0.8rem, 1.2vw, 1rem);
   transition: all 0.3s ease;
   font-family: inherit;
@@ -108,7 +106,6 @@
 .form-input::placeholder,
 .form-textarea::placeholder {
   color: #525252;
-  font-weight: 300;
 }
 
 /* Text area specific styling */

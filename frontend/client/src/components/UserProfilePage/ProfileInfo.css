@@ -113,7 +113,6 @@
   transition: all 0.3s ease;
   font-size: 0.85rem;
   text-align: center;
-  font-weight: 300;
 }
 
 .file-input-label-modern:hover {
@@ -138,7 +137,6 @@
 /* Username styling with large, elegant typography */
 .username-large {
   font-size: 2.1rem;
-  font-weight: 300;
   color: #469b76;
   margin: 0;
   letter-spacing: 0.8px;
@@ -151,7 +149,6 @@
   color: #469b76;
   line-height: 1.6;
   margin: 0;
-  font-weight: 300;
   max-width: 500px;
 }
 
@@ -160,7 +157,6 @@
   font-size: 0.95rem;
   color: #469b76;
   font-style: italic;
-  font-weight: 300;
 }
 
 /* Edit profile form layout */
@@ -197,7 +193,6 @@
   background: transparent;
   font-size: 1.4rem;
   color: #469b76;
-  font-weight: 300;
   font-family: inherit;
   transition: all 0.3s ease;
   letter-spacing: 0.5px;
@@ -225,7 +220,6 @@
   font-family: inherit;
   resize: vertical;
   min-height: 50px;
-  font-weight: 300;
   line-height: 1.5;
   transition: all 0.3s ease;
 }
@@ -259,7 +253,6 @@
   font-size: 13px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 300;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
@@ -281,7 +274,6 @@
   font-size: 13px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 300;
   letter-spacing: 0.5px;
   white-space: nowrap;
 }

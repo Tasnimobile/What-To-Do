@@ -36,7 +36,6 @@
   white-space: normal;
   overflow-wrap: break-word;
   font-size: clamp(1.1rem, 1.8vw, 1.5rem);
-  font-weight: 300;
   letter-spacing: 0.5px;
   width: 100%;
 }
@@ -74,7 +73,6 @@
   padding: 16px;
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  font-weight: 300;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: clamp(0.9rem, 1.2vw, 1.1rem);

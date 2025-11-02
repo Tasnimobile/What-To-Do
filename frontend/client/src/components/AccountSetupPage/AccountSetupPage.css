@@ -33,7 +33,6 @@
   color: #525252;
   margin: 0;
   font-size: 3.5rem;
-  font-weight: 300;
   letter-spacing: 1px;
 }
 
@@ -59,7 +58,6 @@
   transition: all 0.3s ease;
   background: #8eccb1;
   color: #525252;
-  font-weight: 300;
   text-align: center;
   width: 80%;
   margin: 0 auto;
@@ -74,7 +72,6 @@
   transition: all 0.3s ease;
   background: #8eccb1;
   color: #525252;
-  font-weight: 300;
   font-family: inherit;
   resize: vertical;
   min-height: 70px;
@@ -95,7 +92,6 @@
 .account-setup-page .form-input::placeholder,
 .account-setup-page .form-textarea::placeholder {
   color: #525252;
-  font-weight: 500;
   text-align: center;
 }
 
@@ -105,7 +101,6 @@
   color: #525252;
   font-size: 12px;
   margin-top: 3px;
-  font-weight: 300;
   width: 80%;
   margin: 3px auto 0 auto;
 }
@@ -118,7 +113,6 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   font-size: 16px;
-  font-weight: 300;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 5px;
@@ -168,7 +162,6 @@
   border-radius: 10px;
   padding: 8px 15px;
   font-size: 14px;
-  font-weight: 300;
   cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 1px;
@@ -257,7 +250,6 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 13px;
-  font-weight: 300;
   text-align: center;
 }
 
@@ -280,7 +272,6 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 300;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 5px;
