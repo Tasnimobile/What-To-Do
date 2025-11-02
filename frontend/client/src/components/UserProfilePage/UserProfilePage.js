@@ -6,7 +6,20 @@ import ProfileStats from "./ProfileStats";
 import ItineraryView from "./ItineraryView";
 import "./UserProfilePage.css";
 
-const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNavigateToCreate, onViewItinerary, onNavigateToCreated, onNavigateToSaved, onNavigateToHome, showError, onLogout }) => {
+const UserProfilePage = ({
+  onBack,
+  onUpdate,
+  user,
+  onNavigateToProfile,
+  onNavigateToCreate,
+  onViewItinerary,
+  onNavigateToCreated,
+  onNavigateToSaved,
+  onNavigateToHome,
+  onNavigateToCompleted,
+  showError,
+  onLogout,
+}) => {
   // State for edit mode, loading, active tab, and user itineraries
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,12 +30,12 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
   const processTags = (tags) => {
     if (!tags) return [];
     if (Array.isArray(tags)) return tags;
-    if (typeof tags === 'string') {
+    if (typeof tags === "string") {
       try {
         const parsed = JSON.parse(tags);
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.warn('Failed to parse tags as JSON:', e);
+        console.warn("Failed to parse tags as JSON:", e);
         return [];
       }
     }
@@ -49,45 +62,49 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
   const loadUserItineraries = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching user itineraries for profile:', user?.id);
+      console.log("Fetching user itineraries for profile:", user?.id);
 
       const response = await fetch("http://localhost:3000/api/my-itineraries", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        credentials: "include"
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Profile API Response:', data);
+        console.log("Profile API Response:", data);
 
         let userItinerariesFromDB = [];
 
         if (data.ok && Array.isArray(data.itineraries)) {
           userItinerariesFromDB = data.itineraries;
         } else {
-          console.error('Unexpected API response structure:', data);
+          console.error("Unexpected API response structure:", data);
           userItinerariesFromDB = [];
         }
 
         // Process and normalize itinerary data for consistent display
-        const processedItineraries = userItinerariesFromDB.map(itinerary => ({
+        const processedItineraries = userItinerariesFromDB.map((itinerary) => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
-          title: itinerary.title || 'Untitled Itinerary',
-          description: itinerary.description || '',
-          duration: itinerary.duration || '1 day',
-          price: itinerary.price || '$$',
+          title: itinerary.title || "Untitled Itinerary",
+          description: itinerary.description || "",
+          duration: itinerary.duration || "1 day",
+          price: itinerary.price || "$$",
           rating: itinerary.rating || 0,
           destinations: itinerary.destinations || [],
-          createdBy: itinerary.createdBy || itinerary.authorid || user?.id || 'unknown'
+          createdBy:
+            itinerary.createdBy || itinerary.authorid || user?.id || "unknown",
         }));
 
-        console.log('User itineraries loaded for profile:', processedItineraries);
+        console.log(
+          "User itineraries loaded for profile:",
+          processedItineraries
+        );
         setUserItineraries(processedItineraries);
       }
     } catch (error) {
-      console.error('Error loading user itineraries for profile:', error);
+      console.error("Error loading user itineraries for profile:", error);
     } finally {
       setIsLoading(false);
     }
@@ -163,6 +180,7 @@ const UserProfilePage = ({ onBack, onUpdate, user, onNavigateToProfile, onNaviga
           onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
       </div>

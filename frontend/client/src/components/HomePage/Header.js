@@ -66,7 +66,7 @@ function Header({
     setShowDropdown(false);
   };
 
-  const handleCompletedItienrariesClick = () => {
+  const handleCompletedItinerariesClick = () => {
     if (onNavigateToCompleted) {
       onNavigateToCompleted();
     }
@@ -223,14 +223,31 @@ function Header({
               onClick={handleSavedItinerariesClick}
             >
               <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
+                width="18px"
+                height="18px"
+                viewBox="0 -960 960 960"
                 fill="currentColor"
               >
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                <path d="M240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h480q33 0 56.5 23.5T800-800v640q0 33-23.5 56.5T720-80H240Zm200-440 100-60 100 60v-280H440v280Z" />
               </svg>
               Saved Itineraries
+            </div>
+            <div className="dropdown-divider"></div>
+
+            {/* Completed itineraries navigation */}
+            <div
+              className="dropdown-item"
+              onClick={handleCompletedItinerariesClick}
+            >
+              <svg
+                width="18px"
+                height="18px"
+                viewBox="0 -960 960 960"
+                fill="currentColor"
+              >
+                <path d="m424-318 282-282-56-56-226 226-114-114-56 56 170 170ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h168q13-36 43.5-58t68.5-22q38 0 68.5 22t43.5 58h168q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm280-670q13 0 21.5-8.5T510-820q0-13-8.5-21.5T480-850q-13 0-21.5 8.5T450-820q0 13 8.5 21.5T480-790Z" />
+              </svg>
+              Completed Itineraries
             </div>
             <div className="dropdown-divider"></div>
 

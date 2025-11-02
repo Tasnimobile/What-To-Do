@@ -12,6 +12,7 @@ function ViewItineraryPage({
   onNavigateToHome,
   onNavigateToCreated,
   onNavigateToSaved,
+  onNavigateToCompleted,
   itinerary,
   onLogout,
 }) {
@@ -44,6 +45,7 @@ function ViewItineraryPage({
           onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
         {/* Map showing itinerary destinations in view-only mode */}

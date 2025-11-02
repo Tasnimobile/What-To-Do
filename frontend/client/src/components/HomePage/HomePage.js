@@ -31,6 +31,7 @@ function HomePage({
   onViewItinerary,
   onNavigateToCreated,
   onNavigateToSaved,
+  onNavigateToCompleted,
   onNavigateToHome,
   showError,
   onLogout,
@@ -263,6 +264,7 @@ function HomePage({
           onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
         {/* Map component displaying destinations */}

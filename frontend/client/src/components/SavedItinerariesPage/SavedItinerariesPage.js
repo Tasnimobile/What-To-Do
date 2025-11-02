@@ -12,6 +12,7 @@ function SavedItinerariesPage({
   onViewItinerary,
   onNavigateToSaved,
   onNavigateToCreated,
+  onNavigateToCompleted,
   onLogout,
   showError,
 }) {
@@ -400,6 +401,7 @@ function SavedItinerariesPage({
           onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
         <Map selectedDestinations={selectedDestinations} />

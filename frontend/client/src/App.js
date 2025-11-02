@@ -14,6 +14,7 @@ import CreatedItinerariesPage from "./components/CreatedItinerariesPage/CreatedI
 import SavedItinerariesPage from "./components/SavedItinerariesPage/SavedItinerariesPage.js";
 import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
 import { useErrorPopup } from "./hooks/useErrorPopup";
+import CompletedItinerariesPage from "./components/CompletedItinerariesPage/CompletedItinerariesPage.js";
 
 function App() {
   // State for current page, navigation history, user data, and loading status
@@ -190,6 +191,15 @@ function App() {
     }
   };
 
+  const switchToCompletedItineraries = () => {
+    if (user) {
+      navigateTo("completed-itineraries");
+    } else {
+      showError("Please log in to view your completed itineraries.");
+      navigateTo("login");
+    }
+  };
+
   // Show loading screen while checking user session
   if (isLoading) {
     return (
@@ -276,6 +286,7 @@ function App() {
             onNavigateToHome={switchToHomepage}
             onLogout={handleLogout}
             onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
           />
         );
@@ -289,6 +300,7 @@ function App() {
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
             onLogout={handleLogout}
           />
@@ -302,6 +314,7 @@ function App() {
             onNavigateToHome={switchToHomepage}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
             onLogout={handleLogout}
           />
@@ -316,6 +329,7 @@ function App() {
             onNavigateToHome={switchToHomepage}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
             onLogout={handleLogout}
           />
@@ -333,6 +347,7 @@ function App() {
             onNavigateToCreate={switchToCreateItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
           />
         );
@@ -347,6 +362,23 @@ function App() {
             onViewItinerary={switchToViewItinerary}
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
+            showError={showError}
+            onLogout={handleLogout}
+          />
+        );
+
+      case "completed-itineraries":
+        return (
+          <CompletedItinerariesPage
+            onBack={handleBack}
+            user={user}
+            onNavigateToProfile={switchToProfile}
+            onNavigateToHome={switchToHomepage}
+            onViewItinerary={switchToViewItinerary}
+            onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
             onLogout={handleLogout}
           />
@@ -373,10 +405,7 @@ function App() {
         {renderCurrentPage()}
 
         {/* Global error popup component */}
-        <ErrorPopup
-          error={error}
-          onClose={clearError}
-        />
+        <ErrorPopup error={error} onClose={clearError} />
       </div>
     </GoogleOAuthProvider>
   );

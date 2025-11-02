@@ -15,6 +15,7 @@ function CreatedItinerariesPage({
   onNavigateToSaved,
   onLogout,
   onNavigateToCreated,
+  onNavigateToCompleted,
   showError,
 }) {
   // State for user's created itineraries
@@ -553,6 +554,7 @@ function CreatedItinerariesPage({
           onNavigateToHome={onNavigateToHome}
           onNavigateToCreated={onNavigateToCreated}
           onNavigateToSaved={onNavigateToSaved}
+          onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
         <Map selectedDestinations={selectedDestinations} />
