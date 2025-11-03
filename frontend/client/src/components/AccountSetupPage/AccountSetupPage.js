@@ -62,7 +62,7 @@ const AccountSetupPage = ({ user, onComplete, onBack, showError }) => {
             formDataToSend.append('username', displayName);
             formDataToSend.append('bio', '');
 
-            const res = await fetch("http://localhost:3000/api/user/setup", {
+            const res = await fetch("http://localhost:3000", {
                 method: "POST",
                 credentials: "include",
                 body: formDataToSend

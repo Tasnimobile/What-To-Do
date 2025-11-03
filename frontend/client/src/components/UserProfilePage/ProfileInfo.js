@@ -5,17 +5,17 @@ import "./ProfileInfo.css";
 const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   // State for form data and profile picture preview
   const [formData, setFormData] = React.useState({
-    username: user.username || "",
-    bio: user.bio || "",
+    display_name: user.display_name ,
+    bio: user.bio ,
     profilePicture: null,
   });
-  const [previewUrl, setPreviewUrl] = React.useState(user.profilePicture || "");
+  const [previewUrl, setPreviewUrl] = React.useState(user.profilePicture);
 
   // Reset form when user data changes
   React.useEffect(() => {
     setFormData({
-      username: user.username || "",
-      bio: user.bio || "",
+      display_name: user.display_name,
+      bio: user.bio,
       profilePicture: null,
     });
     setPreviewUrl(user.profilePicture || "");
@@ -71,9 +71,9 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
     e.preventDefault();
     const updatedUser = {
       ...user,
-      username: formData.username,
+      display_name: formData.display_name,
       bio: formData.bio,
-      profilePicture: previewUrl || user.profilePicture,
+      profilePicture: formData.profilePicture || user.profilePicture,
     };
     onSave(updatedUser);
   };
@@ -81,8 +81,8 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   // Reset form and exit edit mode
   const handleCancel = () => {
     setFormData({
-      username: user.username || "",
-      bio: user.bio || "",
+      display_name: user.display_name,
+      bio: user.bio,
       profilePicture: null,
     });
     setPreviewUrl(user.profilePicture || "");
@@ -183,9 +183,9 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
                 <div className="edit-input-group">
                   <input
                     type="text"
-                    name="username"
+                    name="display_name"
                     placeholder="Username"
-                    value={formData.username}
+                    value={formData.display_name}
                     onChange={handleChange}
                     className="edit-input-line"
                     maxLength="30"
@@ -231,7 +231,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
           <>
             <div className="username-display">
               <h1 className="username-large">
-                {user.username || "Your Username"}
+                {user.display_name}
               </h1>
             </div>
 
@@ -241,9 +241,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
               </p>
             </div>
 
-            <div className="email-section">
-              <span className="email-text">{user.email}</span>
-            </div>
+            
           </>
         )}
       </div>

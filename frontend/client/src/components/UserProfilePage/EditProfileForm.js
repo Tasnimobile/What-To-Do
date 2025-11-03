@@ -5,7 +5,7 @@ import "./EditProfileForm.css";
 const EditProfileForm = ({ user, onSave, onCancel }) => {
   // State for form data and profile picture preview
   const [formData, setFormData] = useState({
-    username: user.username || "",
+    username: user.display_name || "",
     bio: user.bio || "",
     profilePicture: null,
   });

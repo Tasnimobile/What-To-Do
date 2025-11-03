@@ -221,10 +221,14 @@ app.post("/api/login", (req, res) => {
   const match = bcrypt.compareSync(req.body.password, user.password);
   if (!match) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
 
-  const token = jwt.sign(
-    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: user.id, username: user.username },
-    process.env.JWTSECRET
-  );
+  const tokenPayload = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    userid: user.id,
+    username: user.username,        
+    display_name: user.display_name 
+  };
+
+  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -233,8 +237,18 @@ app.post("/api/login", (req, res) => {
     maxAge: 1000 * 60 * 60 * 24
   });
 
-  res.json({ ok: true, user: { id: user.id, username: user.username } });
+  res.json({
+    ok: true,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email || null,
+      bio: user.bio || "",
+      display_name: user.display_name || user.username
+    }
+  });
 });
+
 
 
 // Register route for React frontend
@@ -248,8 +262,6 @@ app.post("/api/register", (req, res) => {
   if (!req.body.username) errors.push("You must provide a username.");
   if (req.body.username.length < 3) errors.push("Username must be at least 3 characters.");
 
-
-
   const usernameCheck = db.prepare("SELECT * FROM user WHERE username = ?").get(req.body.username);
   if (usernameCheck) errors.push("That username is already taken.");
 
@@ -262,13 +274,22 @@ app.post("/api/register", (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   req.body.password = bcrypt.hashSync(req.body.password, salt);
 
-  const result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(req.body.username, req.body.password);
-  const newUser = db.prepare("SELECT * FROM user WHERE rowid = ?").get(result.lastInsertRowid);
+  const result = db
+    .prepare("INSERT INTO user (username, password) VALUES (?, ?)")
+    .run(req.body.username, req.body.password);
 
-  const token = jwt.sign(
-    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: newUser.id, username: newUser.username },
-    process.env.JWTSECRET
-  );
+  const newUser = db
+    .prepare("SELECT * FROM user WHERE rowid = ?")
+    .get(result.lastInsertRowid);
+
+  const tokenPayload = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    userid: newUser.id,
+    username: newUser.username,
+    display_name: newUser.display_name 
+  };
+
+  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -277,65 +298,120 @@ app.post("/api/register", (req, res) => {
     maxAge: 1000 * 60 * 60 * 24
   });
 
-  res.json({ ok: true, user: { id: newUser.id, username: newUser.username } });
+  res.json({
+    ok: true,
+    user: {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email || null,
+      bio: newUser.bio || "",
+      display_name: newUser.display_name || newUser.username
+    }
+  });
 });
+
 
 app.post("/api/oauth/google", async (req, res) => {
   try {
     const { access_token } = req.body;
-    if (!access_token) return res.status(400).json({ ok: false, errors: ["Missing access_token"] });
+    if (!access_token) {
+      return res.status(400).json({ ok: false, errors: ["Missing access_token"] });
+    }
 
     const g = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${access_token}` }
+      headers: { Authorization: `Bearer ${access_token}` },
     });
-    if (!g.ok) return res.status(401).json({ ok: false, errors: ["Invalid Google token"] });
+
+    if (!g.ok) {
+      return res.status(401).json({ ok: false, errors: ["Invalid Google token"] });
+    }
 
     const profile = await g.json();
     if (!profile.email || profile.email_verified === false) {
       return res.status(400).json({ ok: false, errors: ["Google email not verified"] });
     }
 
+  
     let user =
       db.prepare("SELECT * FROM user WHERE google_sub = ?").get(profile.sub) ||
       db.prepare("SELECT * FROM user WHERE email = ?").get(profile.email) ||
       db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email);
 
     if (user) {
-      if (!user.email) db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
-      if (!user.google_sub) db.prepare("UPDATE user SET google_sub = ? WHERE id = ?").run(profile.sub, user.id);
+    
+      if (!user.email) {
+        db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
+        user.email = profile.email;
+      }
+      if (!user.google_sub) {
+        db.prepare("UPDATE user SET google_sub = ? WHERE id = ?").run(profile.sub, user.id);
+        user.google_sub = profile.sub;
+      }
     } else {
       const base = profile.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
       let username = base.slice(0, 10);
       while (db.prepare("SELECT 1 FROM user WHERE username = ?").get(username)) {
         username = base.slice(0, 9) + Math.floor(Math.random() * 10);
       }
+
       const salt = bcrypt.genSaltSync(10);
       const randomPass = bcrypt.hashSync(Math.random().toString(36), salt);
 
-      const ins = db.prepare(
-        "INSERT INTO user (username, password, email, google_sub) VALUES (?, ?, ?, ?)"
-      ).run(username, randomPass, profile.email, profile.sub);
+      const ins = db
+        .prepare(
+          "INSERT INTO user (username, password, email, google_sub, display_name) VALUES (?, ?, ?, ?, ?)"
+        )
+        .run(
+          username,
+          randomPass,
+          profile.email,
+          profile.sub,
+          profile.name || username
+        );
 
       user = db.prepare("SELECT * FROM user WHERE rowid = ?").get(ins.lastInsertRowid);
     }
 
+    // Make sure display_name is set for existing users too
+    if (!user.display_name) {
+      const display = profile.name || user.username;
+      db.prepare("UPDATE user SET display_name = ? WHERE id = ?").run(display, user.id);
+      user.display_name = display;
+    }
+
     const token = jwt.sign(
-      { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: user.id, username: user.username },
+      {
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+        userid: user.id,
+        username: user.username,
+        display_name: user.display_name,
+      },
       process.env.JWTSECRET
     );
+
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24
+      maxAge: 1000 * 60 * 60 * 24,
     });
 
-    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email } });
+    res.json({
+      ok: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email || null,
+        bio: user.bio || "",
+        display_name: user.display_name || user.username,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
+
 
 app.post('/api/auth/logout', (req, res) => {
   req.session.destroy((err) => {
