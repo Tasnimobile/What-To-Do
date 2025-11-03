@@ -6,7 +6,7 @@ const express = require("express")
 const db = require("better-sqlite3")("ourApp.db")
 db.pragma("journal_mode = WAL")
 const cors = require("cors");
-const multer = require("multer"); 
+const multer = require("multer");
 
 //multer handles form data
 
@@ -20,7 +20,7 @@ const createTables = db.transaction(() => {
         password STRING NOT NULL
         )
         `).run()
- 
+
   db.prepare(`
         CREATE TABLE IF NOT EXISTS itineraries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -411,14 +411,14 @@ app.get("/api/user/me", (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
-  
+
   const userStatement = db.prepare("SELECT id, username, email, bio, display_name FROM user WHERE id = ?");
   const userData = userStatement.get(req.user.userid);
-  
+
   if (!userData) {
     return res.status(404).json({ ok: false, errors: ["User not found"] });
   }
-  
+
   res.json({ ok: true, user: userData });
 });
 
@@ -432,7 +432,7 @@ app.get("/api/itineraries", (req, res) => {
   const itineraries = statement.all()
 
   res.json({ ok: true, itineraries });
-}) 
+})
 app.post("/api/create-itinerary", (req, res) => {
   console.log("Create itinerary request received");
   console.log("User from session:", req.user);
@@ -469,7 +469,7 @@ app.post("/api/create-itinerary", (req, res) => {
 
 app.post("/api/give-rating", (req, res) => {
   try {
-    const { id, rating, rating_count, total_rating} = req.body || {};
+    const { id, rating, rating_count, total_rating } = req.body || {};
     const itineraryId = Number(id);
     const ratingTemp = Number(rating);
     const statement = db.prepare("SELECT rating_count, total_rating from itineraries WHERE id = ?")
@@ -478,7 +478,7 @@ app.post("/api/give-rating", (req, res) => {
     const ratingCount = ratingTally.rating_count + 1
     const totalTemp = ratingTally.total_rating
     const totalRating = totalTemp + ratingTemp
-    const ratingNum = Number((totalRating/ratingCount).toFixed(2))
+    const ratingNum = Number((totalRating / ratingCount).toFixed(2))
     if (!Number.isFinite(itineraryId)) {
       return res.status(400).json({ ok: false, errors: ["Missing or invalid itinerary id"] });
     }

@@ -17,12 +17,12 @@ import { useErrorPopup } from "./hooks/useErrorPopup";
 import CompletedItinerariesPage from "./components/CompletedItinerariesPage/CompletedItinerariesPage.js";
 
 function App() {
-  // State for current page, navigation history, user data, and loading status
   const [currentPage, setCurrentPage] = useState("welcome");
   const [pageHistory, setPageHistory] = useState(["welcome"]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItinerary, setSelectedItinerary] = useState(null);
+  const [isNewAccount, setIsNewAccount] = useState(false);
   const { error, showError, clearError } = useErrorPopup();
 
   // Check for existing user session on app start
@@ -38,12 +38,7 @@ function App() {
           const data = await res.json();
           if (data.user) {
             setUser(data.user);
-            // Redirect to setup if user profile is incomplete
-            if (!data.user.username || !data.user.bio) {
-              setCurrentPage("setup");
-            } else {
-              setCurrentPage("homepage");
-            }
+            setCurrentPage("homepage");
           }
         }
       } catch (error) {
@@ -79,36 +74,27 @@ function App() {
   // Authentication handlers
   const handleLogin = (userData) => {
     setUser(userData);
-    console.log("User logged in:", userData);
-
-    // Redirect to setup if profile is incomplete
-    if (!userData.username || !userData.bio) {
-      navigateTo("setup");
-    } else {
-      navigateTo("homepage");
-    }
+    navigateTo("homepage");
   };
 
   const handleSignup = (userData) => {
     setUser(userData);
-    console.log("User signed up:", userData);
+    setIsNewAccount(true);
     navigateTo("setup");
   };
 
   const handleSetupComplete = (userData) => {
     setUser(userData);
-    console.log("User setup completed:", userData);
+    setIsNewAccount(false);
     navigateTo("homepage");
   };
 
   const handleProfileUpdate = (userData) => {
     setUser(userData);
-    console.log("User profile updated:", userData);
   };
 
   // Handle Google OAuth login
   const handleGoogleLogin = (googleData) => {
-    console.log("Google login successful:", googleData);
     const userObject = parseJwt(googleData.credential);
     const userData = {
       id: userObject.sub,
@@ -118,14 +104,7 @@ function App() {
       provider: "google",
     };
     setUser(userData);
-    console.log("User data:", userData);
-
-    // Redirect to setup if username is missing
-    if (!userData.username) {
-      navigateTo("setup");
-    } else {
-      navigateTo("homepage");
-    }
+    navigateTo("homepage");
   };
 
   // Parse JWT token from Google OAuth
@@ -138,7 +117,7 @@ function App() {
     }
   };
 
-  // Navigation handlers for different pages
+  // Navigation handlers
   const switchToSignup = () => {
     navigateTo("signup");
   };
@@ -224,16 +203,16 @@ function App() {
   // Handle user logout
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/logout", {
+      const res = await fetch("http://localhost:3000/api/logout", {
         method: "POST",
         credentials: "include",
       });
 
       if (res.ok) {
         setUser(null);
+        setIsNewAccount(false);
         setCurrentPage("welcome");
         setPageHistory(["welcome"]);
-        console.log("User logged out successfully");
       } else {
         showError("Logout failed. Please try again.");
       }
@@ -267,14 +246,19 @@ function App() {
           />
         );
       case "setup":
-        return (
-          <AccountSetupPage
-            user={user}
-            onComplete={handleSetupComplete}
-            onBack={handleBack}
-            showError={showError}
-          />
-        );
+        if (isNewAccount) {
+          return (
+            <AccountSetupPage
+              user={user}
+              onComplete={handleSetupComplete}
+              onBack={handleBack}
+              showError={showError}
+            />
+          );
+        } else {
+          navigateTo("homepage");
+          return null;
+        }
       case "profile":
         return (
           <UserProfilePage
