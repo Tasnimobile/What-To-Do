@@ -445,27 +445,53 @@ app.post("/api/create-itinerary", (req, res) => {
 
   const { title, description, tags, duration, rating, rating_count, total_rating, destinations, price } = req.body;
 
-  // Validate required fields
   if (!title || !description || !duration || !price) {
     return res.status(400).json({ ok: false, errors: ["Missing required fields"] });
   }
 
   try {
-    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, destinations, authorid, authorname) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, destinations || '[]', req.user.userid, req.user.username);
-    console.log(req.user.display_name)
-    console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
+    const userRow = db
+      .prepare(`SELECT display_name, username FROM user WHERE id = ?`)
+      .get(req.user.userid);
+
+    const authorname =
+      (userRow && (userRow.display_name || userRow.username)) || null;
+
+    const stmt = db.prepare(`
+      INSERT INTO itineraries
+        (title, description, tags, duration, price,
+         rating, rating_count, total_rating,
+         destinations, authorid, authorname)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      title,
+      description,
+      tags || "[]",
+      duration,
+      price,
+      rating,
+      rating_count,
+      total_rating,
+      destinations || "[]",
+      req.user.userid,
+      authorname
+    );
+
+    console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid, "authorname:", authorname);
 
     res.json({
       ok: true,
       message: "Itinerary created successfully",
-      itineraryId: result.lastInsertRowid
+      itineraryId: result.lastInsertRowid,
     });
   } catch (error) {
     console.error("Error creating itinerary:", error);
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
+
 
 app.post("/api/give-rating", (req, res) => {
   try {
