@@ -1,6 +1,7 @@
 // src/components/ViewItineraryPage/ViewItinerarySidebar.js
 import React, { useState, useEffect } from "react";
 import "./ViewItinerarySidebar.css";
+import { useNavigate } from "react-router-dom";
 
 const toArray = (v) => {
   if (Array.isArray(v)) return v;
@@ -45,7 +46,6 @@ function ItineraryBookmark() {
 function ViewItinerarySidebar({ itinerary, onBack, user }) {
   // State for completed status
   const [completed, setCompleted] = useState(false);
-
   useEffect(() => {
     if (itinerary) {
       console.log("Current user ID:", user?.id);
@@ -111,20 +111,18 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this itinerary?"))
       return;
-
     try {
-      const res = await fetch(`/api/itinerary/${id}`, {
-        method: "DELETE",
+      const res = await fetch(`http://localhost:3000/api/delete-itinerary`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+            id: id
+        }),
       });
-      const data = await res.json();
-
-      if (data.errors) {
-        alert(data.errors[0]);
-      } else {
-        alert("Itinerary deleted.");
-        onBack(); // go back to previous screen if itinerary is deleted
-      }
+      onBack()
+     
+      
     } catch (err) {
       console.error(err);
       alert("Error deleting itinerary");

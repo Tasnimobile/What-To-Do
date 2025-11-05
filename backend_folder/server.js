@@ -697,6 +697,24 @@ app.get("/api/create-test-itineraries", (req, res) => {
   }
 });
 
+app.post("/api/delete-itinerary", (req, res) => {
+  try {
+    const { id } = req.body;
+
+    const deletion = db.prepare("DELETE FROM itineraries WHERE id = ?");
+    const result = deletion.run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ ok: false, error: "Itinerary not found" });
+    }
+
+    // ✅ IMPORTANT: send a response so fetch can resolve
+    res.json({ ok: true, deleted: result.changes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: "Delete failed" });
+  }
+});
 
 
 
