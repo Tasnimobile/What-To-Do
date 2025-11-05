@@ -11,6 +11,8 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
   });
   const [previewUrl, setPreviewUrl] = useState(user.profilePicture || "");
 
+  const [saving, setSaving] = useState(false);
+
   // Handle text input changes
   const handleChange = (e) => {
     setFormData({
@@ -59,17 +61,39 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
+
     try {
-      const mockUser = {
-        ...user,
-        username: formData.username,
-        bio: formData.bio,
-        profilePicture: previewUrl || user.profilePicture,
-      };
-      onSave(mockUser);
+      const fd = new FormData();
+      fd.append("username", formData.username || "");
+      fd.append("bio", formData.bio || "");
+      fd.append("display_name", formData.username || "");
+
+      if (formData.profilePicture) {
+        fd.append("profilePicture", formData.profilePicture);
+      }
+
+      const res = await fetch("http://localhost:3000/api/user/setup", {
+        method: "POST",
+        credentials: "include",
+        body: fd
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        onSave(data.user);
+      } else {
+        const msg = data && data.errors ? data.errors.join(", ") : "Failed to update profile";
+        alert(msg);
+        console.error("EditProfileForm save error:", data);
+      }
     } catch (err) {
-      console.error("Update error:", err);
-      alert("Profile updated successfully! (Offline mode)");
+      console.error("Network error updating profile:", err);
+      alert("Network error while saving profile.");
+    } finally {
+      setSaving(false);
     }
   };
 

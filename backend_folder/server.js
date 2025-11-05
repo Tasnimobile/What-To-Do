@@ -160,49 +160,66 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/register", (req, res) => {
-  const errors = []
+  let errors = []
 
-  if (typeof req.body.username != "string") req.body.username = ""
-  if (typeof req.body.password != "string") req.body.password = ""
+  if (typeof req.body.username !== "string") req.body.username = "";
+  if (typeof req.body.password !== "string") req.body.password = "";
+  const raw = req.body.username.trim()
+  const isEmail = raw.includes("@")
+  let usernameCandidate = raw
+  let emailValue = null
 
-  req.body.username = req.body.username.trim()
-
-  if (!req.body.username) errors.push("You must provide a username.")
-  if (req.body.username && req.body.username.length < 3) errors.push("Username must be at least 3 characters.")
-  if (req.body.username && req.body.username.length > 10) errors.push("Username cannot exceed 10 characters.")
-  if (req.body.username && !req.body.username.match(/^[a-zA-Z0-9]+$/)) errors.push("Username can only contain letters and numbers.")
-
-  //check if username is already taken
-  const usernameStatement = db.prepare("SELECT * FROM user WHERE USERNAME = ?")
-  const usernameCheck = usernameStatement.get(req.body.username)
-
-  if (usernameCheck) errors.push("That username is already taken.")
-
-  if (!req.body.password) errors.push("You must provide a password.")
-  if (req.body.password && req.body.password.length < 8) errors.push("Password must be at least 8 characters.")
-  if (req.body.password && req.body.password.length > 70) errors.push("password cannot exceed 70 characters.")
-
-  if (errors.length) {
-    return res.render("homepage", { errors })
+  if (isEmail) {
+    emailValue = raw.toLowerCase()
+    const base = emailValue.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user"
+    usernameCandidate = base.slice(0, 10)
+    while (db.prepare("SELECT 1 FROM user WHERE username = ?").get(usernameCandidate)) {
+      usernameCandidate = (base.slice(0, 9) + Math.floor(Math.random() * 10)).slice(0, 10)
+    }
+  } else {
+    usernameCandidate = raw
   }
-  // save the new user
-  const salt = bcrypt.genSaltSync(10)
-  req.body.password = bcrypt.hashSync(req.body.password, salt)
-  const ourStatement = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)")
-  const result = ourStatement.run(req.body.username, req.body.password)
 
-  const lookupStatement = db.prepare("SELECT * FROM user WHERE ROWID = ?")
-  const ourUser = lookupStatement.get(result.lastInsertRowid)
-  // log the user in by giving them a cookie
-  const ourTokenValue = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, skyColor: "blue", userid: ourUser.id, username: ourUser.username }, process.env.JWTSECRET)
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  if (!usernameCandidate) errors.push("You must provide a username or email.")
+  if (!isEmail && usernameCandidate.length < 3) errors.push("Username must be at least 3 characters.")
+  if (!isEmail && usernameCandidate.length > 10) errors.push("Username cannot exceed 10 characters.")
+  if (!isEmail && !usernameCandidate.match(/^[a-zA-Z0-9]+$/)) errors.push("Username can only contain letters and numbers.")
+
+  const usernameCheck = db.prepare("SELECT * FROM user WHERE username = ?").get(usernameCandidate);
+  if (usernameCheck) errors.push("That username is already taken.");
+
+  if (!req.body.password) errors.push("You must provide a password.");
+  if (req.body.password.length < 8) errors.push("Password must be at least 8 characters.");
+  if (req.body.password.length > 70) errors.push("Password cannot exceed 70 characters.");
+
+  if (errors.length) return res.status(400).json({ ok: false, errors });
+
+  const salt = bcrypt.genSaltSync(10);
+  const hashed = bcrypt.hashSync(req.body.password, salt);
+
+  let result;
+  if (emailValue) {
+    result = db.prepare("INSERT INTO user (username, password, email) VALUES (?, ?, ?)").run(usernameCandidate, hashed, emailValue);
+  } else {
+    result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(usernameCandidate, hashed);
+  }
+
+  const newUser = db.prepare("SELECT * FROM user WHERE rowid = ?").get(result.lastInsertRowid);
+
+  const token = jwt.sign(
+    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: newUser.id, username: newUser.username },
+    process.env.JWTSECRET
+  );
+
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: false,
     sameSite: "strict",
     maxAge: 1000 * 60 * 60 * 24
-  })
-  res.redirect("/")
-})
+  });
+
+  res.json({ ok: true, user: { id: newUser.id, username: newUser.username, email: newUser.email } });
+});
 
 app.post("/api/login", (req, res) => {
   let errors = [];
@@ -243,14 +260,28 @@ app.post("/api/register", (req, res) => {
 
   if (typeof req.body.username !== "string") req.body.username = "";
   if (typeof req.body.password !== "string") req.body.password = "";
-  req.body.username = req.body.username.trim();
+  const raw = req.body.username.trim();
+  const isEmail = raw.includes("@");
+  let usernameCandidate = raw;
+  let emailValue = null;
 
-  if (!req.body.username) errors.push("You must provide a username.");
-  if (req.body.username.length < 3) errors.push("Username must be at least 3 characters.");
+  if (isEmail) {
+    emailValue = raw.toLowerCase();
+    const base = emailValue.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
+    usernameCandidate = base.slice(0, 10);
+    while (db.prepare("SELECT 1 FROM user WHERE username = ?").get(usernameCandidate)) {
+      usernameCandidate = (base.slice(0, 9) + Math.floor(Math.random() * 10)).slice(0, 10);
+    }
+  } else {
+    usernameCandidate = raw;
+  }
 
+  if (!usernameCandidate) errors.push("You must provide a username or email.");
+  if (!isEmail && usernameCandidate.length < 3) errors.push("Username must be at least 3 characters.");
+  if (!isEmail && usernameCandidate.length > 10) errors.push("Username cannot exceed 10 characters.");
+  if (!isEmail && !usernameCandidate.match(/^[a-zA-Z0-9]+$/)) errors.push("Username can only contain letters and numbers.");
 
-
-  const usernameCheck = db.prepare("SELECT * FROM user WHERE username = ?").get(req.body.username);
+  const usernameCheck = db.prepare("SELECT * FROM user WHERE username = ?").get(usernameCandidate);
   if (usernameCheck) errors.push("That username is already taken.");
 
   if (!req.body.password) errors.push("You must provide a password.");
@@ -260,9 +291,15 @@ app.post("/api/register", (req, res) => {
   if (errors.length) return res.status(400).json({ ok: false, errors });
 
   const salt = bcrypt.genSaltSync(10);
-  req.body.password = bcrypt.hashSync(req.body.password, salt);
+  const hashed = bcrypt.hashSync(req.body.password, salt);
 
-  const result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(req.body.username, req.body.password);
+  let result;
+  if (emailValue) {
+    result = db.prepare("INSERT INTO user (username, password, email) VALUES (?, ?, ?)").run(usernameCandidate, hashed, emailValue);
+  } else {
+    result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(usernameCandidate, hashed);
+  }
+
   const newUser = db.prepare("SELECT * FROM user WHERE rowid = ?").get(result.lastInsertRowid);
 
   const token = jwt.sign(
@@ -274,10 +311,10 @@ app.post("/api/register", (req, res) => {
     httpOnly: true,
     secure: false,
     sameSite: "strict",
-    maxAge: 1000 * 60 * 60 * 24
+    maxAge: 1000 * 60 * 60 * 24,
   });
 
-  res.json({ ok: true, user: { id: newUser.id, username: newUser.username } });
+  res.json({ ok: true, user: { id: newUser.id, username: newUser.username, email: newUser.email } });
 });
 
 app.post("/api/oauth/google", async (req, res) => {
@@ -357,55 +394,123 @@ app.post("/api/user/setup", upload.fields([{ name: 'profilePicture' }]), (req, r
   console.log("Request files:", req.files);
   console.log("User auth status:", req.user);
 
-  //check if user is authenticated
+  // Auth check
   if (!req.user) {
     console.log("❌ User not authenticated");
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
 
-  let errors = [];
+  const errors = [];
 
-  // Handle both JSON and form data - map username to display_name
-  const bio = req.body.bio || "";
-
-  //frontend and backend uses either/or, so this takes whichever is provided
-  const display_name = req.body.username || req.body.display_name || "";
-
-  console.log("Received bio:", bio);
-  console.log("Received display_name:", display_name);
+  //normalize
+  const bio = typeof req.body.bio === "string" ? req.body.bio.trim() : "";
+  const newUsername = typeof req.body.username === "string" ? req.body.username.trim() : "";
+  const display_name = typeof req.body.display_name === "string" && req.body.display_name.trim()
+    ? req.body.display_name.trim()
+    : (newUsername || "");
 
   //validate length
   if (bio.length > 500) errors.push("Bio must be 500 characters or less");
   if (display_name.length > 50) errors.push("Display name must be 50 characters or less");
+  if (newUsername && newUsername.length > 70) errors.push("Username cannot exceed 70 characters.");
+
+  // If a username value was provided and it's different from the current one,
+  // determine whether the value looks like an email (contains '@'). If so,
+  // we'll write it to the email column; otherwise we'll treat it as a username.
+  const isEmail = newUsername.includes("@");
+
+  if (newUsername && ((isEmail && newUsername !== req.user.email) || (!isEmail && newUsername !== req.user.username))) {
+    try {
+      if (isEmail) {
+        // Check email uniqueness
+        const existingEmail = db.prepare("SELECT id FROM user WHERE email = ?").get(newUsername);
+        if (existingEmail && existingEmail.id !== req.user.userid) {
+          errors.push("That email is already taken.");
+        }
+      } else {
+        // Check username uniqueness
+        const existing = db.prepare("SELECT id FROM user WHERE username = ?").get(newUsername);
+        if (existing && existing.id !== req.user.userid) {
+          errors.push("That username is already taken.");
+        }
+      }
+    } catch (err) {
+      console.error("Error checking uniqueness:", err);
+      errors.push("Server error while checking availability.");
+    }
+  }
 
   if (errors.length) {
     return res.status(400).json({ ok: false, errors });
   }
 
   try {
-    // Update the user's bio and display name in the database
-    console.log("Updating user ID:", req.user.userid, "with bio:", bio, "display_name:", display_name);
-    const updateStatement = db.prepare("UPDATE user SET bio = ?, display_name = ? WHERE id = ?");
-    updateStatement.run(bio, display_name, req.user.userid);
+    // Build UPDATE statement dynamically (only change provided fields)
+    const updates = [];
+    const params = [];
 
-    // Get the updated user info
+    // Always update bio and display_name to keep behavior consistent with frontend
+    updates.push("bio = ?");
+    params.push(bio);
+
+    updates.push("display_name = ?");
+    params.push(display_name);
+
+    if (newUsername) {
+      // If the submitted value looks like an email, update the email column;
+      // otherwise update the username column. We only add the update if the
+      // value actually differs from the stored value (checked above via errors logic).
+      if (isEmail) {
+        updates.push("email = ?");
+        params.push(newUsername);
+      } else {
+        updates.push("username = ?");
+        params.push(newUsername);
+      }
+    }
+
+    if (updates.length > 0) {
+      const sql = `UPDATE user SET ${updates.join(", ")} WHERE id = ?`;
+      params.push(req.user.userid);
+      db.prepare(sql).run(...params);
+    }
+
+    // Read back canonical user data
     const userStatement = db.prepare("SELECT id, username, email, bio, display_name FROM user WHERE id = ?");
     const updatedUser = userStatement.get(req.user.userid);
 
-    res.json({
+    // If username changed, reissue JWT so the cookie and req.user reflect the change immediately
+    const token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+        userid: updatedUser.id,
+        username: updatedUser.username
+      },
+      process.env.JWTSECRET
+    );
+
+    res.cookie("ourSimpleApp", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24
+    });
+
+    return res.json({
       ok: true,
       message: "Profile updated successfully",
       user: updatedUser
     });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+  catch (err) {
+    console.error("Error updating profile:", err);
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
 
 
 
-// Get current user info
+//get current user info
 //frontend kept asking for this
 app.get("/api/user/me", (req, res) => {
   if (!req.user) {

@@ -11,6 +11,8 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   });
   const [previewUrl, setPreviewUrl] = React.useState(user.profilePicture || "");
 
+  const [saving, setSaving] = React.useState(false);
+
   // Reset form when user data changes
   React.useEffect(() => {
     setFormData({
@@ -67,15 +69,45 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const updatedUser = {
-      ...user,
-      username: formData.username,
-      bio: formData.bio,
-      profilePicture: previewUrl || user.profilePicture,
-    };
-    onSave(updatedUser);
+    if (saving) return;
+    setSaving(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("username", formData.username || "");
+      fd.append("bio", formData.bio || "");
+      // backend accepts display_name; use username as display_name if not provided separately
+      fd.append("display_name", formData.username || "");
+
+      if (formData.profilePicture) {
+        fd.append("profilePicture", formData.profilePicture);
+      }
+
+      const res = await fetch("http://localhost:3000/api/user/setup", {
+        method: "POST",
+        credentials: "include",
+        body: fd
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        // update parent/app with canonical server user
+        onSave(data.user);
+      } else {
+        const msg = data && data.errors ? data.errors.join(", ") : "Failed to save profile";
+        // use alert for now; you can integrate showError hook later
+        alert(msg);
+        console.error("Profile save failed:", data);
+      }
+    } catch (err) {
+      console.error("Network or server error saving profile:", err);
+      alert("Network error while saving profile.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Reset form and exit edit mode
