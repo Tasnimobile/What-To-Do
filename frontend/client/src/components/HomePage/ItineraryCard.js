@@ -158,14 +158,7 @@ function ItineraryCard({
             <div className="detail-item">
               <span className="detail-label">Rating:</span>
               <span className="detail-value">
-                {rating || 0} stars {canRate ? '(You can rate this)' : '(You created this)'}
-              </span>
-            </div>
-            {/* Debug information - can be removed after testing */}
-            <div className="detail-item" style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)' }}>
-              <span className="detail-label">Debug:</span>
-              <span className="detail-value">
-                User: {currentUser?.id}, CreatedBy: {createdBy}, CanRate: {canRate ? 'Yes' : 'No'}
+                {rating || 0} stars
               </span>
             </div>
           </div>

@@ -6,6 +6,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   // State for form data and profile picture preview
   const [formData, setFormData] = React.useState({
     username: user.username || "",
+    display_name: user.display_name || "",
     bio: user.bio || "",
     profilePicture: null,
   });
@@ -17,7 +18,8 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   React.useEffect(() => {
     setFormData({
       username: user.username || "",
-      bio: user.bio || "",
+      display_name: user.display_name,
+      bio: user.bio,
       profilePicture: null,
     });
     setPreviewUrl(user.profilePicture || "");
@@ -76,10 +78,19 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
 
     try {
       const fd = new FormData();
-      fd.append("username", formData.username || "");
-      fd.append("bio", formData.bio || "");
-      // backend accepts display_name; use username as display_name if not provided separately
-      fd.append("display_name", formData.username || "");
+      // We only expose one editable line (username) to the user. To keep the
+      // DB columns in sync, send both `username` and `display_name` with the
+      // same value when username is changed.
+      // Defensive: coerce to strings before trimming to avoid runtime errors
+      const usernameVal = (formData.username ?? "").toString().trim();
+      if (usernameVal.length > 0) {
+        fd.append("username", usernameVal);
+        fd.append("display_name", usernameVal);
+      }
+      const bioVal = (formData.bio ?? "").toString().trim();
+      if (bioVal.length > 0) {
+        fd.append("bio", bioVal);
+      }
 
       if (formData.profilePicture) {
         fd.append("profilePicture", formData.profilePicture);
@@ -113,8 +124,8 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   // Reset form and exit edit mode
   const handleCancel = () => {
     setFormData({
-      username: user.username || "",
-      bio: user.bio || "",
+      display_name: user.display_name,
+      bio: user.bio,
       profilePicture: null,
     });
     setPreviewUrl(user.profilePicture || "");
@@ -211,7 +222,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
           <form className="edit-profile-form" onSubmit={handleSubmit}>
             <div className="edit-form-content">
               <div className="edit-fields-container">
-                {/* Username input field */}
+                {/* Username input field (single line for both username & display_name) */}
                 <div className="edit-input-group">
                   <input
                     type="text"
@@ -263,7 +274,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
           <>
             <div className="username-display">
               <h1 className="username-large">
-                {user.username || "Your Username"}
+                {user.display_name}
               </h1>
             </div>
 
@@ -273,9 +284,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
               </p>
             </div>
 
-            <div className="email-section">
-              <span className="email-text">{user.email}</span>
-            </div>
+            
           </>
         )}
       </div>

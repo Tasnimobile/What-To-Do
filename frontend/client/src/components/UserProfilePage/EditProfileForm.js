@@ -5,10 +5,19 @@ import "./EditProfileForm.css";
 const EditProfileForm = ({ user, onSave, onCancel }) => {
   // State for form data and profile picture preview
   const [formData, setFormData] = useState({
+    // username should reflect the canonical username, not display_name
     username: user.username || "",
     bio: user.bio || "",
     profilePicture: null,
   });
+  React.useEffect(() => {
+    setFormData({
+      username: user.username || "",
+      bio: user.bio || "",
+      profilePicture: null,
+    });
+    setPreviewUrl(user.profilePicture || "");
+  }, [user]);
   const [previewUrl, setPreviewUrl] = useState(user.profilePicture || "");
 
   const [saving, setSaving] = useState(false);
@@ -66,9 +75,16 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
 
     try {
       const fd = new FormData();
-      fd.append("username", formData.username || "");
-      fd.append("bio", formData.bio || "");
-      fd.append("display_name", formData.username || "");
+      // Single-line UX: when user edits username, keep display_name in sync.
+      const usernameVal = (formData.username ?? "").toString().trim();
+      if (usernameVal.length > 0) {
+        fd.append("username", usernameVal);
+        fd.append("display_name", usernameVal);
+      }
+      const bioVal = (formData.bio ?? "").toString().trim();
+      if (bioVal.length > 0) {
+        fd.append("bio", bioVal);
+      }
 
       if (formData.profilePicture) {
         fd.append("profilePicture", formData.profilePicture);

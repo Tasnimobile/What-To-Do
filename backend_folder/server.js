@@ -6,7 +6,7 @@ const express = require("express")
 const db = require("better-sqlite3")("ourApp.db")
 db.pragma("journal_mode = WAL")
 const cors = require("cors");
-const multer = require("multer"); 
+const multer = require("multer");
 
 //multer handles form data
 
@@ -20,7 +20,7 @@ const createTables = db.transaction(() => {
         password STRING NOT NULL
         )
         `).run()
- 
+
   db.prepare(`
         CREATE TABLE IF NOT EXISTS itineraries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -198,16 +198,18 @@ app.post("/register", (req, res) => {
   const hashed = bcrypt.hashSync(req.body.password, salt);
 
   let result;
+  // Store a sensible default display_name equal to the usernameCandidate so the
+  // frontend sees a display name immediately after signup.
   if (emailValue) {
-    result = db.prepare("INSERT INTO user (username, password, email) VALUES (?, ?, ?)").run(usernameCandidate, hashed, emailValue);
+    result = db.prepare("INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)").run(usernameCandidate, hashed, emailValue, usernameCandidate);
   } else {
-    result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(usernameCandidate, hashed);
+    result = db.prepare("INSERT INTO user (username, password, display_name) VALUES (?, ?, ?)").run(usernameCandidate, hashed, usernameCandidate);
   }
 
   const newUser = db.prepare("SELECT * FROM user WHERE rowid = ?").get(result.lastInsertRowid);
 
   const token = jwt.sign(
-    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: newUser.id, username: newUser.username },
+    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: newUser.id, username: newUser.username, display_name: newUser.display_name },
     process.env.JWTSECRET
   );
 
@@ -238,10 +240,14 @@ app.post("/api/login", (req, res) => {
   const match = bcrypt.compareSync(req.body.password, user.password);
   if (!match) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
 
-  const token = jwt.sign(
-    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: user.id, username: user.username },
-    process.env.JWTSECRET
-  );
+  const tokenPayload = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    userid: user.id,
+    username: user.username,        
+    display_name: user.display_name 
+  };
+
+  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -250,8 +256,18 @@ app.post("/api/login", (req, res) => {
     maxAge: 1000 * 60 * 60 * 24
   });
 
-  res.json({ ok: true, user: { id: user.id, username: user.username } });
+  res.json({
+    ok: true,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email || null,
+      bio: user.bio || "",
+      display_name: user.display_name || user.username
+    }
+  });
 });
+
 
 
 // Register route for React frontend
@@ -294,18 +310,24 @@ app.post("/api/register", (req, res) => {
   const hashed = bcrypt.hashSync(req.body.password, salt);
 
   let result;
+  // Persist display_name on API registration as well so the frontend doesn't
+  // need to perform an extra update to set it.
   if (emailValue) {
-    result = db.prepare("INSERT INTO user (username, password, email) VALUES (?, ?, ?)").run(usernameCandidate, hashed, emailValue);
+    result = db.prepare("INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)").run(usernameCandidate, hashed, emailValue, usernameCandidate);
   } else {
-    result = db.prepare("INSERT INTO user (username, password) VALUES (?, ?)").run(usernameCandidate, hashed);
+    result = db.prepare("INSERT INTO user (username, password, display_name) VALUES (?, ?, ?)").run(usernameCandidate, hashed, usernameCandidate);
   }
 
   const newUser = db.prepare("SELECT * FROM user WHERE rowid = ?").get(result.lastInsertRowid);
 
-  const token = jwt.sign(
-    { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: newUser.id, username: newUser.username },
-    process.env.JWTSECRET
-  );
+  const tokenPayload = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    userid: newUser.id,
+    username: newUser.username,
+    display_name: newUser.display_name
+  };
+
+  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -314,65 +336,120 @@ app.post("/api/register", (req, res) => {
     maxAge: 1000 * 60 * 60 * 24,
   });
 
-  res.json({ ok: true, user: { id: newUser.id, username: newUser.username, email: newUser.email } });
+  res.json({
+    ok: true,
+    user: {
+      id: newUser.id,
+      username: newUser.username, email: newUser.email,
+      email: newUser.email || null,
+      bio: newUser.bio || "",
+      display_name: newUser.display_name || newUser.username
+    }
+  });
 });
+
 
 app.post("/api/oauth/google", async (req, res) => {
   try {
     const { access_token } = req.body;
-    if (!access_token) return res.status(400).json({ ok: false, errors: ["Missing access_token"] });
+    if (!access_token) {
+      return res.status(400).json({ ok: false, errors: ["Missing access_token"] });
+    }
 
     const g = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-      headers: { Authorization: `Bearer ${access_token}` }
+      headers: { Authorization: `Bearer ${access_token}` },
     });
-    if (!g.ok) return res.status(401).json({ ok: false, errors: ["Invalid Google token"] });
+
+    if (!g.ok) {
+      return res.status(401).json({ ok: false, errors: ["Invalid Google token"] });
+    }
 
     const profile = await g.json();
     if (!profile.email || profile.email_verified === false) {
       return res.status(400).json({ ok: false, errors: ["Google email not verified"] });
     }
 
+  
     let user =
       db.prepare("SELECT * FROM user WHERE google_sub = ?").get(profile.sub) ||
       db.prepare("SELECT * FROM user WHERE email = ?").get(profile.email) ||
       db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email);
 
     if (user) {
-      if (!user.email) db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
-      if (!user.google_sub) db.prepare("UPDATE user SET google_sub = ? WHERE id = ?").run(profile.sub, user.id);
+    
+      if (!user.email) {
+        db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
+        user.email = profile.email;
+      }
+      if (!user.google_sub) {
+        db.prepare("UPDATE user SET google_sub = ? WHERE id = ?").run(profile.sub, user.id);
+        user.google_sub = profile.sub;
+      }
     } else {
       const base = profile.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
       let username = base.slice(0, 10);
       while (db.prepare("SELECT 1 FROM user WHERE username = ?").get(username)) {
         username = base.slice(0, 9) + Math.floor(Math.random() * 10);
       }
+
       const salt = bcrypt.genSaltSync(10);
       const randomPass = bcrypt.hashSync(Math.random().toString(36), salt);
 
-      const ins = db.prepare(
-        "INSERT INTO user (username, password, email, google_sub) VALUES (?, ?, ?, ?)"
-      ).run(username, randomPass, profile.email, profile.sub);
+      const ins = db
+        .prepare(
+          "INSERT INTO user (username, password, email, google_sub, display_name) VALUES (?, ?, ?, ?, ?)"
+        )
+        .run(
+          username,
+          randomPass,
+          profile.email,
+          profile.sub,
+          profile.name || username
+        );
 
       user = db.prepare("SELECT * FROM user WHERE rowid = ?").get(ins.lastInsertRowid);
     }
 
+    // Make sure display_name is set for existing users too
+    if (!user.display_name) {
+      const display = profile.name || user.username;
+      db.prepare("UPDATE user SET display_name = ? WHERE id = ?").run(display, user.id);
+      user.display_name = display;
+    }
+
     const token = jwt.sign(
-      { exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, userid: user.id, username: user.username },
+      {
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+        userid: user.id,
+        username: user.username,
+        display_name: user.display_name,
+      },
       process.env.JWTSECRET
     );
+
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24
+      maxAge: 1000 * 60 * 60 * 24,
     });
 
-    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email } });
+    res.json({
+      ok: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email || null,
+        bio: user.bio || "",
+        display_name: user.display_name || user.username,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
+
 
 app.post('/api/auth/logout', (req, res) => {
   req.session.destroy((err) => {
@@ -402,33 +479,37 @@ app.post("/api/user/setup", upload.fields([{ name: 'profilePicture' }]), (req, r
 
   const errors = [];
 
-  //normalize
-  const bio = typeof req.body.bio === "string" ? req.body.bio.trim() : "";
-  const newUsername = typeof req.body.username === "string" ? req.body.username.trim() : "";
-  const display_name = typeof req.body.display_name === "string" && req.body.display_name.trim()
-    ? req.body.display_name.trim()
-    : (newUsername || "");
+  // Normalize incoming values. Use `undefined` when the field was not provided
+  // so we don't accidentally overwrite existing DB values with empty strings.
+  // Treat empty/whitespace-only strings as "not provided" so we don't
+  // accidentally overwrite existing values with empty strings.
+  const bio_trim = typeof req.body.bio === "string" ? req.body.bio.trim() : undefined;
+  const bio_raw = bio_trim && bio_trim.length > 0 ? bio_trim : undefined;
 
-  //validate length
-  if (bio.length > 500) errors.push("Bio must be 500 characters or less");
-  if (display_name.length > 50) errors.push("Display name must be 50 characters or less");
+  const username_trim = typeof req.body.username === "string" ? req.body.username.trim() : undefined;
+  const newUsername = username_trim && username_trim.length > 0 ? username_trim : undefined;
+
+  const display_trim = typeof req.body.display_name === "string" ? req.body.display_name.trim() : undefined;
+  const display_name_raw = display_trim && display_trim.length > 0 ? display_trim : undefined;
+
+  // Validate lengths only for provided fields
+  if (bio_raw !== undefined && bio_raw.length > 500) errors.push("Bio must be 500 characters or less");
+  if (display_name_raw !== undefined && display_name_raw.length > 50) errors.push("Display name must be 50 characters or less");
   if (newUsername && newUsername.length > 70) errors.push("Username cannot exceed 70 characters.");
 
-  // If a username value was provided and it's different from the current one,
-  // determine whether the value looks like an email (contains '@'). If so,
-  // we'll write it to the email column; otherwise we'll treat it as a username.
-  const isEmail = newUsername.includes("@");
+  // Determine whether the submitted username looks like an email
+  const isEmail = typeof newUsername === "string" && newUsername.includes("@");
 
+  // Only check uniqueness if a new value was provided and it differs from the
+  // current canonical value (email or username).
   if (newUsername && ((isEmail && newUsername !== req.user.email) || (!isEmail && newUsername !== req.user.username))) {
     try {
       if (isEmail) {
-        // Check email uniqueness
-        const existingEmail = db.prepare("SELECT id FROM user WHERE email = ?").get(newUsername);
+        const existingEmail = db.prepare("SELECT id FROM user WHERE email = ?").get(newUsername.toLowerCase());
         if (existingEmail && existingEmail.id !== req.user.userid) {
           errors.push("That email is already taken.");
         }
       } else {
-        // Check username uniqueness
         const existing = db.prepare("SELECT id FROM user WHERE username = ?").get(newUsername);
         if (existing && existing.id !== req.user.userid) {
           errors.push("That username is already taken.");
@@ -445,24 +526,24 @@ app.post("/api/user/setup", upload.fields([{ name: 'profilePicture' }]), (req, r
   }
 
   try {
-    // Build UPDATE statement dynamically (only change provided fields)
+    // Build UPDATE statement dynamically (only change fields that were provided)
     const updates = [];
     const params = [];
 
-    // Always update bio and display_name to keep behavior consistent with frontend
-    updates.push("bio = ?");
-    params.push(bio);
+    if (bio_raw !== undefined) {
+      updates.push("bio = ?");
+      params.push(bio_raw);
+    }
 
-    updates.push("display_name = ?");
-    params.push(display_name);
+    if (display_name_raw !== undefined) {
+      updates.push("display_name = ?");
+      params.push(display_name_raw);
+    }
 
     if (newUsername) {
-      // If the submitted value looks like an email, update the email column;
-      // otherwise update the username column. We only add the update if the
-      // value actually differs from the stored value (checked above via errors logic).
       if (isEmail) {
         updates.push("email = ?");
-        params.push(newUsername);
+        params.push(newUsername.toLowerCase());
       } else {
         updates.push("username = ?");
         params.push(newUsername);
@@ -479,12 +560,14 @@ app.post("/api/user/setup", upload.fields([{ name: 'profilePicture' }]), (req, r
     const userStatement = db.prepare("SELECT id, username, email, bio, display_name FROM user WHERE id = ?");
     const updatedUser = userStatement.get(req.user.userid);
 
-    // If username changed, reissue JWT so the cookie and req.user reflect the change immediately
+    // Reissue JWT so the cookie and req.user reflect the change immediately.
+    // Include display_name in the token so downstream code can access it.
     const token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
         userid: updatedUser.id,
-        username: updatedUser.username
+        username: updatedUser.username,
+        display_name: updatedUser.display_name
       },
       process.env.JWTSECRET
     );
@@ -516,14 +599,14 @@ app.get("/api/user/me", (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
-  
+
   const userStatement = db.prepare("SELECT id, username, email, bio, display_name FROM user WHERE id = ?");
   const userData = userStatement.get(req.user.userid);
-  
+
   if (!userData) {
     return res.status(404).json({ ok: false, errors: ["User not found"] });
   }
-  
+
   res.json({ ok: true, user: userData });
 });
 
@@ -537,7 +620,7 @@ app.get("/api/itineraries", (req, res) => {
   const itineraries = statement.all()
 
   res.json({ ok: true, itineraries });
-}) 
+})
 app.post("/api/create-itinerary", (req, res) => {
   console.log("Create itinerary request received");
   console.log("User from session:", req.user);
@@ -550,21 +633,46 @@ app.post("/api/create-itinerary", (req, res) => {
 
   const { title, description, tags, duration, rating, rating_count, total_rating, destinations, price } = req.body;
 
-  // Validate required fields
   if (!title || !description || !duration || !price) {
     return res.status(400).json({ ok: false, errors: ["Missing required fields"] });
   }
 
   try {
-    const ourStatement = db.prepare("INSERT INTO itineraries (title, description, tags, duration, price, rating, rating_count, total_rating, destinations, authorid, authorname) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    const result = ourStatement.run(title, description, tags || '[]', duration, price, rating, rating_count, total_rating, destinations || '[]', req.user.userid, req.user.username);
-    console.log(req.user.display_name)
-    console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid);
+    const userRow = db
+      .prepare(`SELECT display_name, username FROM user WHERE id = ?`)
+      .get(req.user.userid);
+
+    const authorname =
+      (userRow && (userRow.display_name || userRow.username)) || null;
+
+    const stmt = db.prepare(`
+      INSERT INTO itineraries
+        (title, description, tags, duration, price,
+         rating, rating_count, total_rating,
+         destinations, authorid, authorname)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const result = stmt.run(
+      title,
+      description,
+      tags || "[]",
+      duration,
+      price,
+      rating,
+      rating_count,
+      total_rating,
+      destinations || "[]",
+      req.user.userid,
+      authorname
+    );
+
+    console.log("Itinerary created with ID:", result.lastInsertRowid, "for user:", req.user.userid, "authorname:", authorname);
 
     res.json({
       ok: true,
       message: "Itinerary created successfully",
-      itineraryId: result.lastInsertRowid
+      itineraryId: result.lastInsertRowid,
     });
   } catch (error) {
     console.error("Error creating itinerary:", error);
@@ -572,9 +680,10 @@ app.post("/api/create-itinerary", (req, res) => {
   }
 });
 
+
 app.post("/api/give-rating", (req, res) => {
   try {
-    const { id, rating, rating_count, total_rating} = req.body || {};
+    const { id, rating, rating_count, total_rating } = req.body || {};
     const itineraryId = Number(id);
     const ratingTemp = Number(rating);
     const statement = db.prepare("SELECT rating_count, total_rating from itineraries WHERE id = ?")
@@ -583,7 +692,7 @@ app.post("/api/give-rating", (req, res) => {
     const ratingCount = ratingTally.rating_count + 1
     const totalTemp = ratingTally.total_rating
     const totalRating = totalTemp + ratingTemp
-    const ratingNum = Number((totalRating/ratingCount).toFixed(2))
+    const ratingNum = Number((totalRating / ratingCount).toFixed(2))
     if (!Number.isFinite(itineraryId)) {
       return res.status(400).json({ ok: false, errors: ["Missing or invalid itinerary id"] });
     }
@@ -700,6 +809,24 @@ app.get("/api/create-test-itineraries", (req, res) => {
   }
 });
 
+app.post("/api/delete-itinerary", (req, res) => {
+  try {
+    const { id } = req.body;
+
+    const deletion = db.prepare("DELETE FROM itineraries WHERE id = ?");
+    const result = deletion.run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).json({ ok: false, error: "Itinerary not found" });
+    }
+
+    // ✅ IMPORTANT: send a response so fetch can resolve
+    res.json({ ok: true, deleted: result.changes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: "Delete failed" });
+  }
+});
 
 
 

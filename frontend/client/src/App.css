@@ -1,6 +1,6 @@
 /* src/App.css */
 
-/* Custom font declaration for Poiret One */
+/* Custom font declaration for Questrial */
 @font-face {
   font-family: "Questrial";
   src: url("./assets/fonts/Questrial-Regular.ttf") format("truetype");
@@ -76,6 +76,7 @@ a {
 
 /* Ensure readable input sizes on mobile devices */
 @media (max-width: 768px) {
+
   input,
   select,
   textarea {

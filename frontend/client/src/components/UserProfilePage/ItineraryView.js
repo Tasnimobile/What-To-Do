@@ -79,7 +79,6 @@ const ItineraryView = ({
               <p
                 style={{ fontSize: "0.9rem", opacity: 0.8, marginTop: "10px" }}
               >
-                Create your first itinerary to see it here!
               </p>
             </div>
           );
@@ -171,9 +170,8 @@ const ItineraryView = ({
       {/* Tab Navigation */}
       <div className="profile-tabs">
         <button
-          className={`tab-button ${
-            activeTab === "itineraries" ? "active" : ""
-          }`}
+          className={`tab-button ${activeTab === "itineraries" ? "active" : ""
+            }`}
           onClick={() => onTabClick("itineraries")}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
