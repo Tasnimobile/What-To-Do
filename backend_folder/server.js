@@ -225,19 +225,20 @@ app.post("/register", (req, res) => {
 
 app.post("/api/login", (req, res) => {
   let errors = [];
-
-  if (typeof req.body.username !== "string") req.body.username = "";
+  if (typeof req.body.email !== "string") req.body.email = "";
   if (typeof req.body.password !== "string") req.body.password = "";
 
-  if (!req.body.username.trim()) errors.push("You must provide a username.");
+  if (!req.body.email.trim()) errors.push("You must provide a username.");
   if (!req.body.password) errors.push("You must provide a password.");
 
   if (errors.length) return res.status(400).json({ ok: false, errors });
 
-  const user = db.prepare("SELECT * FROM user WHERE username = ?").get(req.body.username);
-  if (!user) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
+  const user = db.prepare("SELECT * FROM user WHERE email = ?").get(req.body.email);
 
+  if (!user) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
+  
   const match = bcrypt.compareSync(req.body.password, user.password);
+  
   if (!match) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
 
   const tokenPayload = {

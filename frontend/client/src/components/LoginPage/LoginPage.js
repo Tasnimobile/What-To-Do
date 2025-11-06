@@ -88,10 +88,11 @@ const LoginPage = ({ onLogin, onSwitchToSignup, onBack, onGoogleLogin }) => {
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
-                    username: formData.email,
+                    email: formData.email,
                     password: formData.password
                 })
             });
+     
 
             const ct = res.headers.get("content-type") || "";
             const payload = ct.includes("application/json")
