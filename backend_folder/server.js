@@ -45,24 +45,6 @@ const createTables = db.transaction(() => {
 
 createTables();
 
-// Create a table to record per-user ratings (one rating per user per itinerary)
-try {
-  db.prepare(
-    `CREATE TABLE IF NOT EXISTS rating_records (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      itinerary_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      rating INTEGER NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(itinerary_id, user_id),
-      FOREIGN KEY (itinerary_id) REFERENCES itineraries(id),
-      FOREIGN KEY (user_id) REFERENCES user(id)
-    )`
-  ).run();
-} catch (err) {
-  console.error("Failed to create rating_records table:", err);
-}
-
 try {
   db.prepare("ALTER TABLE user ADD COLUMN email TEXT").run();
 } catch {}
@@ -850,61 +832,60 @@ app.post("/api/create-itinerary", (req, res) => {
 
 app.post("/api/give-rating", (req, res) => {
   try {
-    // Require logged-in user
-    if (!req.user) {
-      return res.status(401).json({ ok: false, errors: ["Not logged in"] });
-    }
-
-    const { id, rating } = req.body || {};
+    const { id, rating, rating_count, total_rating } = req.body || {};
     const itineraryId = Number(id);
     const ratingTemp = Number(rating);
-
+    const statement = db.prepare(
+      "SELECT rating_count, total_rating from itineraries WHERE id = ?"
+    );
+    const ratingTally = statement.get(req.body.id);
+    console.log(ratingTally.rating_count);
+    const ratingCount = ratingTally.rating_count + 1;
+    const totalTemp = ratingTally.total_rating;
+    const totalRating = totalTemp + ratingTemp;
+    const ratingNum = Number((totalRating / ratingCount).toFixed(2));
     if (!Number.isFinite(itineraryId)) {
       return res
         .status(400)
         .json({ ok: false, errors: ["Missing or invalid itinerary id"] });
     }
-
-    if (!Number.isFinite(ratingTemp) || ratingTemp < 0 || ratingTemp > 5) {
-      return res.status(400).json({ ok: false, errors: ["Rating must be a number between 0 and 5"] });
+    if (!Number.isFinite(ratingNum) || ratingNum < 0 || ratingNum > 5) {
+      return res.status(400).json({
+        ok: false,
+        errors: ["Rating must be a number between 0 and 5"],
+      });
     }
 
-    // Load itinerary and check author
-    const itin = db.prepare("SELECT id, authorid, rating_count, total_rating FROM itineraries WHERE id = ?").get(itineraryId);
-    if (!itin) {
-      return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
+    const stmt = db.prepare("UPDATE itineraries SET rating = ? WHERE id = ?");
+    const result = stmt.run(ratingNum, itineraryId);
+    const stmt2 = db.prepare(
+      "UPDATE itineraries SET total_rating = ? WHERE id = ?"
+    );
+    const result2 = stmt2.run(totalRating, itineraryId);
+    const stmt3 = db.prepare(
+      "UPDATE itineraries SET rating_count = ? WHERE id = ?"
+    );
+    const result3 = stmt3.run(ratingCount, itineraryId);
+    if (result.changes === 0) {
+      return res
+        .status(404)
+        .json({ ok: false, errors: ["Itinerary not found"] });
     }
 
-    // Disallow author rating their own itinerary
-    if (itin.authorid && Number(itin.authorid) === Number(req.user.userid)) {
-      return res.status(403).json({ ok: false, errors: ["Authors cannot rate their own itineraries"] });
-    }
-
-    // Check if this user already rated this itinerary
-    const existing = db.prepare("SELECT id FROM rating_records WHERE itinerary_id = ? AND user_id = ?").get(itineraryId, req.user.userid);
-    if (existing) {
-      return res.status(409).json({ ok: false, errors: ["User has already rated this itinerary"] });
-    }
-
-    // Perform insert + aggregate update in a transaction
-    const tx = db.transaction(() => {
-      db.prepare("INSERT INTO rating_records (itinerary_id, user_id, rating) VALUES (?, ?, ?)").run(itineraryId, req.user.userid, ratingTemp);
-
-      const currentCount = Number(itin.rating_count || 0);
-      const currentTotal = Number(itin.total_rating || 0);
-      const newCount = currentCount + 1;
-      const newTotal = currentTotal + ratingTemp;
-      const newAvg = Number((newTotal / newCount).toFixed(2));
-
-      db.prepare("UPDATE itineraries SET rating = ?, rating_count = ?, total_rating = ? WHERE id = ?").run(newAvg, newCount, newTotal, itineraryId);
-
-      return { rating: newAvg, rating_count: newCount, total_rating: newTotal };
+    console.log("Itinerary rated:", {
+      itineraryId,
+      rating: ratingNum,
+      ratingCount,
+      totalRating,
+      byUser: req.user?.userid,
     });
-
-    const result = tx();
-
-    console.log("Itinerary rated:", { itineraryId, byUser: req.user.userid, result });
-    return res.json({ ok: true, message: "Itinerary rated successfully", rating: result.rating, rating_count: result.rating_count, total_rating: result.total_rating });
+    return res.json({
+      ok: true,
+      message: "Itinerary rated successfully",
+      rating: ratingNum,
+      rating_count: ratingCount,
+      total_rating: totalRating,
+    });
   } catch (err) {
     console.error("Error rating itinerary:", err);
     return res.status(500).json({ ok: false, errors: ["Server error"] });
