@@ -229,6 +229,43 @@ function App() {
     }
   };
 
+  // Shared handler for rating an itinerary (used by homepage and view-itinerary)
+  const handleRateItinerary = async (itineraryId, rating) => {
+    try {
+      const payload = { id: Number(itineraryId), rating: Number(rating) };
+      const res = await fetch("http://localhost:3000/api/give-rating", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text().catch(() => "");
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (e) {
+        data = null;
+      }
+
+      if (!res.ok) {
+        // Return structured error info for callers to handle (e.g., 409 duplicate)
+        return { ok: false, status: res.status, message: (data && data.errors && data.errors[0]) || text || "Failed to rate" };
+      }
+
+      // Success
+      return {
+        ok: true,
+        overallRating: typeof data.rating === "number" ? data.rating : undefined,
+        ratingCount: typeof data.rating_count === "number" ? data.rating_count : undefined,
+        totalRating: typeof data.total_rating === "number" ? data.total_rating : undefined,
+      };
+    } catch (err) {
+      console.error("Error in shared handleRateItinerary:", err);
+      return { ok: false, status: 500, message: err.message || "Network error" };
+    }
+  };
+
   // Render the current active page based on state
   const renderCurrentPage = () => {
     switch (currentPage) {
@@ -294,6 +331,7 @@ function App() {
             onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
             onLogout={handleLogout}
+            onRateItinerary={handleRateItinerary}
           />
         );
       case "create-itinerary":
@@ -324,6 +362,7 @@ function App() {
             onNavigateToEdit={switchToEditItinerary}
             showError={showError}
             onLogout={handleLogout}
+            onRateItinerary={handleRateItinerary}
           />
         );
       case "edit-itinerary":

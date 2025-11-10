@@ -1,43 +1,56 @@
-// src/components/ViewItineraryPage/ViewItineraryPage.js
-import React from "react";
+// ViewItineraryPage.js
+import React, { useState, useEffect } from "react";
 import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
 import ViewItinerarySidebar from "./ViewItinerarySidebar";
 import "../HomePage/HomePage.css";
 
 function ViewItineraryPage({
-  onBack,
+  itinerary,
   user,
+  onBack,
   onNavigateToProfile,
   onNavigateToHome,
   onNavigateToCreated,
   onNavigateToSaved,
   onNavigateToCompleted,
-  itinerary,
-  onLogout,
   onNavigateToEdit,
+  onRateItinerary,
+  onLogout,
 }) {
-  console.log("ViewItineraryPage received itinerary:", itinerary);
+  const [currentItinerary, setCurrentItinerary] = useState(itinerary);
 
-  // Navigation handlers for header component
-  const handleNavigateToHome = () => {
-    if (onNavigateToHome) {
-      onNavigateToHome();
+  // Sync local state when itinerary prop changes
+  useEffect(() => {
+    setCurrentItinerary(itinerary);
+  }, [itinerary]);
+
+  // Lifted rating handler
+  const handleRateItinerary = async (id, rating) => {
+    if (!onRateItinerary) return;
+
+    try {
+      const updated = await onRateItinerary(id, rating);
+
+      // Update local state to trigger re-render everywhere
+      setCurrentItinerary((prev) => ({
+        ...prev,
+        userRating: rating,
+        rating: updated?.overallRating ?? prev.rating,
+      }));
+
+      return updated;
+    } catch (err) {
+      console.error("Error updating rating:", err);
+      return null;
     }
   };
 
-  const handleNavigateToCreated = () => {
-    if (onNavigateToCreated) {
-      onNavigateToCreated();
-    }
-  };
-
-  // Extract destinations for map display
-  const mapDestinations = itinerary?.destinations || [];
+  // Map destinations for map display
+  const mapDestinations = currentItinerary?.destinations || [];
 
   return (
     <div className="homepage">
-      {/* Left side: Header and Map */}
       <div className="main-left">
         <Header
           onBack={onBack}
@@ -49,18 +62,16 @@ function ViewItineraryPage({
           onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
-        {/* Map showing itinerary destinations in view-only mode */}
         <Map selectedDestinations={mapDestinations} isViewMode={true} />
       </div>
 
-      {/* Right side: Itinerary details sidebar */}
       <div className="sidebar-container">
         <ViewItinerarySidebar
-          itinerary={itinerary}
+          itinerary={currentItinerary}
           onBack={onBack}
           user={user}
           onNavigateToEdit={onNavigateToEdit}
-          onItineraryUpdated={() => window.location.reload()}
+          onRateItinerary={handleRateItinerary}
         />
       </div>
     </div>

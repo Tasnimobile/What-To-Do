@@ -216,6 +216,9 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .view-value.description {
@@ -231,11 +234,19 @@
   align-items: center;
   gap: 8px;
   justify-content: center;
+  position: relative;
+  pointer-events: auto;
+  z-index: 10;
 }
 
 .star {
   color: rgba(255, 255, 255, 0.3);
   font-size: 1.2rem;
+}
+
+.rating-display .star {
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .star.filled {
@@ -385,4 +396,19 @@
   .form-row {
     gap: 12px;
   }
+}
+
+.rating-display {
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.rating-display .star {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+* {
+  pointer-events: auto !important;
 }

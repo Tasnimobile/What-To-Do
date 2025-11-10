@@ -35,6 +35,7 @@ function HomePage({
   onNavigateToHome,
   showError,
   onLogout,
+  onRateItinerary: externalRateHandler,
 }) {
   // State for selected destinations and itineraries
   const [selectedDestinations, setSelectedDestinations] = useState([]);
@@ -78,6 +79,18 @@ function HomePage({
 
     setRatingBusy(true);
     try {
+      // If there's an external (lifted) handler provided by App, call it and
+      // then reload itineraries locally to refresh the list.
+      if (typeof externalRateHandler === "function") {
+        const updated = await externalRateHandler(itineraryId, rating);
+        // Mark locally and refresh list so homepage cards show updated values
+        markRatedLocal(user?.id, itineraryId);
+        setRatedMap((m) => ({ ...m, [itineraryId]: true }));
+        await loadItineraries();
+        showError?.(`Thanks for your ${rating}-star rating!`, "success");
+        return updated;
+      }
+
       const payload = {
         id: Number(itineraryId),
         rating: Number(rating),

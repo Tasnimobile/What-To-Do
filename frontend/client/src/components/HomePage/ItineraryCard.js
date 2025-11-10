@@ -1,6 +1,6 @@
 // ItineraryCard.js
-import React, { useState } from 'react';
-import './ItineraryCard.css';
+import React, { useState } from "react";
+import "./ItineraryCard.css";
 
 function ItineraryCard({
   title,
@@ -13,11 +13,27 @@ function ItineraryCard({
   itineraryId,
   createdBy,
   currentUser,
-  onRateItinerary
+  onRateItinerary,
 }) {
   // State for expanded view and hover rating
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
+
+  const LS_KEY = "rated_itins";
+  const getMap = () => JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+  const setMap = (m) => localStorage.setItem(LS_KEY, JSON.stringify(m));
+  const hasRatedLocal = (userId, itineraryId) => {
+    const u = String(userId || "anon");
+    const m = getMap();
+    return !!m[u]?.[String(itineraryId)];
+  };
+  const markRatedLocal = (userId, itineraryId) => {
+    const u = String(userId || "anon");
+    const m = getMap();
+    m[u] = m[u] || {};
+    m[u][String(itineraryId)] = true;
+    setMap(m);
+  };
 
   // Process tags safely from various formats
   const safeTags = React.useMemo(() => {
@@ -27,12 +43,12 @@ function ItineraryCard({
       return tags;
     }
 
-    if (typeof tags === 'string') {
+    if (typeof tags === "string") {
       try {
         const parsed = JSON.parse(tags);
         return Array.isArray(parsed) ? parsed : [];
       } catch (e) {
-        console.warn('Failed to parse tags as JSON:', e);
+        console.warn("Failed to parse tags as JSON:", e);
         return [];
       }
     }
@@ -41,12 +57,15 @@ function ItineraryCard({
   }, [tags]);
 
   // Check if current user can rate this itinerary
-  const canRate = currentUser &&
+  const alreadyRated = hasRatedLocal(currentUser?.id, itineraryId);
+  const canRate =
+    currentUser &&
     createdBy !== undefined &&
     currentUser.id !== undefined &&
-    createdBy.toString() !== currentUser.id.toString();
+    createdBy.toString() !== currentUser.id.toString() &&
+    !alreadyRated;
 
-  console.log('Rating Debug:', {
+  console.log("Rating Debug:", {
     itineraryId,
     title,
     currentUserId: currentUser?.id,
@@ -54,7 +73,7 @@ function ItineraryCard({
     canRate,
     currentUser,
     createdByType: typeof createdBy,
-    currentUserIdType: typeof currentUser?.id
+    currentUserIdType: typeof currentUser?.id,
   });
 
   // Toggle expanded/collapsed view
@@ -71,14 +90,30 @@ function ItineraryCard({
   };
 
   // Handle star rating click
-  const handleRate = (e, newRating) => {
+  const handleRate = async (e, newRating) => {
     e.stopPropagation();
-    console.log('Rating clicked:', { itineraryId, newRating, canRate });
+    console.log("Rating clicked:", { itineraryId, newRating, canRate });
 
-    if (canRate && onRateItinerary) {
-      onRateItinerary(itineraryId, newRating);
-    } else if (!canRate) {
-      console.log('Cannot rate - user created this itinerary or not logged in');
+    if (!canRate) {
+      console.log(
+        "Cannot rate - user created this itinerary or already rated or not logged in"
+      );
+      return;
+    }
+
+    if (onRateItinerary) {
+      try {
+        const res = await onRateItinerary(itineraryId, newRating);
+        // If the shared handler returns an object with ok:true, treat as success
+        if (res && res.ok) {
+          markRatedLocal(currentUser?.id, itineraryId);
+        } else if (res && res.status === 409) {
+          // already rated according to server → mark locally
+          markRatedLocal(currentUser?.id, itineraryId);
+        }
+      } catch (err) {
+        console.error("Error rating from card:", err);
+      }
     }
   };
 
@@ -99,9 +134,9 @@ function ItineraryCard({
 
   return (
     <div
-      className={`itinerary-card ${isExpanded ? 'expanded' : ''}`}
+      className={`itinerary-card ${isExpanded ? "expanded" : ""}`}
       onClick={handleCardClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
+      style={{ cursor: onClick ? "pointer" : "default" }}
     >
       {/* Header with title and rating stars */}
       <div className="itinerary-header">
@@ -110,13 +145,17 @@ function ItineraryCard({
           {Array.from({ length: 5 }, (_, i) => (
             <span
               key={i}
-              className={
-                `star ${i < displayRating ? "filled" : ""} ${canRate ? "clickable" : ""}`
-              }
+              className={`star ${i < displayRating ? "filled" : ""} ${
+                canRate ? "clickable" : ""
+              }`}
               onClick={(e) => handleRate(e, i + 1)}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
-              title={canRate ? `Rate ${i + 1} star${i !== 0 ? 's' : ''}` : `Overall rating: ${rating || 0}`}
+              title={
+                canRate
+                  ? `Rate ${i + 1} star${i !== 0 ? "s" : ""}`
+                  : `Overall rating: ${rating || 0}`
+              }
             >
               ★
             </span>
@@ -126,7 +165,11 @@ function ItineraryCard({
       </div>
 
       {/* Description - collapsed or expanded */}
-      <p className={isExpanded ? "expanded-description" : "collapsed-description"}>
+      <p
+        className={
+          isExpanded ? "expanded-description" : "collapsed-description"
+        }
+      >
         {description}
       </p>
 
@@ -157,20 +200,15 @@ function ItineraryCard({
             )}
             <div className="detail-item">
               <span className="detail-label">Rating:</span>
-              <span className="detail-value">
-                {rating || 0} stars
-              </span>
+              <span className="detail-value">{rating || 0} stars</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Read More/Show Less button */}
-      <button
-        className="read-more"
-        onClick={handleReadMore}
-      >
-        {isExpanded ? 'Show Less' : 'Read More'}
+      <button className="read-more" onClick={handleReadMore}>
+        {isExpanded ? "Show Less" : "Read More"}
       </button>
     </div>
   );

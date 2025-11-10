@@ -1,13 +1,11 @@
-// src/components/ViewItineraryPage/ViewItinerarySidebar.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import "./ViewItinerarySidebar.css";
-import { useNavigate } from "react-router-dom";
 
 const toArray = (v) => {
   if (Array.isArray(v)) return v;
   if (typeof v === "string") {
     let s = v.trim();
-    if (s.startsWith("`") && s.endsWith("`")) s = s.slice(1, -1); // strip stray backticks
+    if (s.startsWith("`") && s.endsWith("`")) s = s.slice(1, -1);
     try {
       const p = JSON.parse(s);
       return Array.isArray(p) ? p : [];
@@ -17,17 +15,16 @@ const toArray = (v) => {
   }
   return [];
 };
+
 const toNumber = (v, d = 0) => (v == null ? d : Number(v) || d);
 
 function ItineraryBookmark() {
   const [bookmarked, setBookmarked] = useState(false);
-
-  const toggleBookmark = () => {
-    setBookmarked(!bookmarked);
-  };
-
   return (
-    <button className="bookmark-icon" onClick={toggleBookmark}>
+    <button
+      className="bookmark-icon"
+      onClick={() => setBookmarked(!bookmarked)}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
@@ -43,25 +40,53 @@ function ItineraryBookmark() {
   );
 }
 
-function ViewItinerarySidebar({ itinerary, onBack, user, onNavigateToEdit }) {
-  // State for completed status
+function ViewItinerarySidebar({
+  itinerary,
+  onBack,
+  user,
+  onNavigateToEdit,
+  onRateItinerary,
+}) {
   const [completed, setCompleted] = useState(false);
-  useEffect(() => {
-    if (itinerary) {
-      console.log("Current user ID:", user?.id);
-      console.log("Itinerary author username:", itinerary.authorname);
-    }
-  }, [user, itinerary]);
+  const [currentUserRating, setCurrentUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [overallRating, setOverallRating] = useState(0);
 
-  const normalized = React.useMemo(() => {
+  const LS_KEY = "rated_itins";
+  const getMap = () => JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+  const setMap = (m) => localStorage.setItem(LS_KEY, JSON.stringify(m));
+  const hasRatedLocal = (userId, itineraryId) => {
+    const u = String(userId || "anon");
+    const m = getMap();
+    return !!m[u]?.[String(itineraryId)];
+  };
+  const markRatedLocal = (userId, itineraryId) => {
+    const u = String(userId || "anon");
+    const m = getMap();
+    m[u] = m[u] || {};
+    m[u][String(itineraryId)] = true;
+    setMap(m);
+  };
+
+  // Normalize itinerary
+  const normalized = useMemo(() => {
     if (!itinerary) return null;
     return {
       ...itinerary,
       tags: toArray(itinerary.tags),
       destinations: toArray(itinerary.destinations),
-      rating: toNumber(itinerary.rating, 0),
+      overallRating: toNumber(itinerary.rating, 0),
+      userRating: toNumber(itinerary.userRating || 0, 0),
     };
   }, [itinerary]);
+
+  // Sync local ratings when itinerary changes
+  useEffect(() => {
+    if (normalized) {
+      setCurrentUserRating(normalized.userRating);
+      setOverallRating(normalized.overallRating);
+    }
+  }, [normalized?.id, normalized?.userRating, normalized?.overallRating]);
 
   if (!normalized) {
     return (
@@ -86,45 +111,57 @@ function ViewItinerarySidebar({ itinerary, onBack, user, onNavigateToEdit }) {
 
   const {
     id,
-    title = "Untitled Itinerary",
-    authorname = "",
-    description = "No description provided.",
-    rating = 0,
-    tags = [],
-    duration = "Not specified",
-    price = "Not specified",
-    destinations = [],
+    title,
+    authorname,
+    description,
+    tags,
+    duration,
+    price,
+    destinations,
     authorid,
   } = normalized;
 
-  // Handler for toggling completed itineraries
-  const handleToggleCompleted = () => {
-    setCompleted((prev) => !prev);
-  };
-
-  // Only show author options to edit/delete
+  const canRate =
+    user &&
+    authorid !== undefined &&
+    user.id !== undefined &&
+    authorid.toString() !== user.id.toString() &&
+    !hasRatedLocal(user?.id, id);
   const isAuthor = String(user?.id) === String(authorid);
-  const handleEdit = () => {
-    console.log("Edit button clicked for itinerary:", id);
-    if (onNavigateToEdit) {
-      onNavigateToEdit(itinerary);
+
+  // Rating handler that works with parent & local state
+  const handleRate = async (rating) => {
+    if (!canRate) return;
+    setCurrentUserRating(rating); // immediate local feedback
+    try {
+      const updated = await onRateItinerary(id, rating);
+      if (updated && updated.ok) {
+        if (updated.overallRating !== undefined)
+          setOverallRating(updated.overallRating);
+        // remember locally that this user has rated
+        markRatedLocal(user?.id, id);
+      } else if (updated && updated.status === 409) {
+        // server says already rated → mark locally
+        markRatedLocal(user?.id, id);
+      }
+    } catch (err) {
+      console.error("Error updating rating:", err);
     }
   };
+
+  const handleToggleCompleted = () => setCompleted((prev) => !prev);
+  const handleEdit = () => onNavigateToEdit && onNavigateToEdit(itinerary);
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this itinerary?"))
       return;
     try {
-      const res = await fetch(`http://localhost:3000/api/delete-itinerary`, {
+      await fetch("http://localhost:3000/api/delete-itinerary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          id: id
-        }),
+        body: JSON.stringify({ id }),
       });
-      onBack()
-
-
+      onBack();
     } catch (err) {
       console.error(err);
       alert("Error deleting itinerary");
@@ -133,7 +170,6 @@ function ViewItinerarySidebar({ itinerary, onBack, user, onNavigateToEdit }) {
 
   return (
     <div className="view-itinerary-sidebar">
-      {/* Itinerary Title Header */}
       <div className="create-header">
         <div className="title-row">
           <ItineraryBookmark />
@@ -142,115 +178,117 @@ function ViewItinerarySidebar({ itinerary, onBack, user, onNavigateToEdit }) {
         <p className="itinerary-author">Created by: {authorname}</p>
       </div>
 
-      {/* Main Itinerary Details Card */}
       <div className="create-form-card">
-        {/* Description Section */}
         <div className="form-section">
+          <label className="form-label">Description</label>
+          <div className="view-value description">{description}</div>
+        </div>
+
+        <div className="form-row">
           <div className="input-group">
-            <div className="view-field">
-              <label className="form-label">Description</label>
-              <div className="view-value description">{description}</div>
-            </div>
+            <label className="form-label">Duration</label>
+            <div className="view-value">{duration}</div>
           </div>
-
-          {/* Duration and Price Section */}
-          <div className="form-row">
-            <div className="input-group duration-dropdown-wrapper">
-              <div className="view-field">
-                <label className="form-label">Duration</label>
-                <div className="view-value">{duration}</div>
-              </div>
-            </div>
-
-            <div className="input-group price-select-wrapper">
-              <div className="view-field">
-                <label className="form-label">Price Level</label>
-                <div className="view-value">{price}</div>
-              </div>
-            </div>
+          <div className="input-group">
+            <label className="form-label">Price Level</label>
+            <div className="view-value">{price}</div>
           </div>
         </div>
 
-        {/* Rating Section with Star Display */}
+        {/* Rating Section */}
         <div className="form-section">
-          <div className="input-group">
-            <div className="view-field">
-              <label className="form-label">Rating</label>
-              <div className="rating-display">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <span key={i} className={i < rating ? "star filled" : "star"}>
-                    ★
-                  </span>
-                ))}
-                <span className="rating-text">({rating}/5)</span>
-              </div>
-            </div>
+          <label className="form-label">Rating</label>
+          <div className="rating-display">
+            {[1, 2, 3, 4, 5].map((i) => {
+              // Show hover preview first, then the user's own rating if present,
+              // otherwise fall back to the itinerary's overall average (rounded).
+              const overallRounded = Number.isFinite(overallRating)
+                ? Math.round(overallRating)
+                : 0;
+              const displayRating =
+                hoverRating || currentUserRating || overallRounded || 0;
+              return (
+                <span
+                  key={i}
+                  className={`star ${i <= displayRating ? "filled" : ""} ${
+                    canRate ? "clickable" : ""
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (canRate) handleRate(i);
+                  }}
+                  onMouseEnter={() => canRate && setHoverRating(i)}
+                  onMouseLeave={() => canRate && setHoverRating(0)}
+                  style={{ cursor: canRate ? "pointer" : "default" }}
+                  title={
+                    canRate
+                      ? `Rate ${i} star(s)`
+                      : `Overall rating: ${overallRating.toFixed(1)}`
+                  }
+                >
+                  ★
+                </span>
+              );
+            })}
+            <span className="rating-text">({overallRating.toFixed(1)}/5)</span>
           </div>
+          {canRate && (
+            <p className="rating-hint">Click to rate this itinerary</p>
+          )}
         </div>
 
-        {/* Tags Section (only shown if tags exist) */}
+        {/* Tags */}
         {tags.length > 0 && (
           <div className="form-section">
-            <div className="input-group">
-              <div className="view-field">
-                <label className="form-label">Tags</label>
-                <div className="tags-container">
-                  {tags.map((tag, index) => (
-                    <span key={index} className="tag">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <label className="form-label">Tags</label>
+            <div className="tags-container">
+              {tags.map((tag, i) => (
+                <span key={i} className="tag">
+                  {tag}
+                </span>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Destinations Section */}
+        {/* Destinations */}
         <div className="form-section">
-          <div className="input-group">
-            <div className="view-field">
-              <label className="form-label">
-                Destinations ({destinations.length})
-              </label>
-              {destinations.length > 0 ? (
-                <div className="destinations-list">
-                  {destinations.map((destination, index) => (
-                    <div
-                      key={destination.id || index}
-                      className="destination-item view-destination"
-                    >
-                      <div className="destination-order">{index + 1}</div>
-                      <div className="destination-info">
-                        <div className="destination-name">
-                          {destination.name || `Destination ${index + 1}`}
-                        </div>
-                        {destination.address && (
-                          <div className="destination-address">
-                            {destination.address}
-                          </div>
-                        )}
-                        {destination.rating && (
-                          <div className="destination-rating">
-                            <span className="star-icon">★</span>
-                            <span>{destination.rating}</span>
-                          </div>
-                        )}
-                      </div>
+          <label className="form-label">
+            Destinations ({destinations.length})
+          </label>
+          {destinations.length > 0 ? (
+            <div className="destinations-list">
+              {destinations.map((d, i) => (
+                <div
+                  key={d.id || i}
+                  className="destination-item view-destination"
+                >
+                  <div className="destination-order">{i + 1}</div>
+                  <div className="destination-info">
+                    <div className="destination-name">
+                      {d.name || `Destination ${i + 1}`}
                     </div>
-                  ))}
+                    {d.address && (
+                      <div className="destination-address">{d.address}</div>
+                    )}
+                    {d.rating && (
+                      <div className="destination-rating">
+                        <span className="star-icon">★</span>
+                        <span>{d.rating}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="no-destinations">
-                  No destinations added to this itinerary.
-                </div>
-              )}
+              ))}
             </div>
-          </div>
+          ) : (
+            <div className="no-destinations">
+              No destinations added to this itinerary.
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Action Button (Save Itinerary and Mark as Completed) */}
       <div className="create-actions">
         <button className="completed-btn" onClick={handleToggleCompleted}>
           {completed ? "Completed!" : "Completed?"}
