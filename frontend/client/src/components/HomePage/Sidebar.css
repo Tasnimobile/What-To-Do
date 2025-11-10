@@ -163,7 +163,7 @@
 }
 
 /* Ensure all sidebar components take full width */
-.sidebar > * {
+.sidebar>* {
   width: 100%;
   box-sizing: border-box;
 }
@@ -184,11 +184,7 @@
 .clear-filters-btn {
   padding: 14px 16px;
   border: 2px solid rgba(255, 255, 255, 0.2);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: #8eccb1;
   color: #5f5f5f;
   border-radius: 12px;
   cursor: pointer;
@@ -196,18 +192,14 @@
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
   min-height: 48px;
 }
 
 .clear-filters-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.8) 0%,
-    rgba(113, 193, 157, 0.95) 100%
-  );
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  background: #80c6a8;
   border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -220,4 +212,78 @@
   background: #80c6a8;
   border-radius: 12px;
   border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Active filters display */
+.active-filters {
+  margin-bottom: 0px;
+}
+
+/* Filter bubbles container */
+.filter-bubbles-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  /* Center the bubbles */
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Individual filter bubbles */
+.filter-bubble {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: #8eccb1;
+  color: #5f5f5f;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  animation: bubbleIn 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+
+.filter-bubble-text {
+  font-weight: 500;
+}
+
+.filter-bubble-remove {
+  background: none;
+  border: none;
+  color: #5f5f5f;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.filter-bubble-remove:hover {
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Bubble animation */
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }

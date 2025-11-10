@@ -32,7 +32,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; /* ensures title centers within header width */
+  justify-content: center;
+  /* ensures title centers within header width */
 }
 
 /* Main itinerary title styling */
@@ -46,13 +47,15 @@
   white-space: nowrap;
 }
 
-/* Itinerary author username styling */
+/* Itinerary author username styling - CENTERED */
 .itinerary-author {
   margin: 0;
   font-size: 0.9rem;
   letter-spacing: 0.5px;
-  text-align: right;
+  text-align: center;
+  /* Changed from right to center */
   width: 100%;
+  color: #525252;
 }
 
 /* Bookmark icon styling */

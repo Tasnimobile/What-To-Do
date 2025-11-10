@@ -15,6 +15,7 @@ function ViewItineraryPage({
   onNavigateToCompleted,
   itinerary,
   onLogout,
+  onNavigateToEdit,
 }) {
   console.log("ViewItineraryPage received itinerary:", itinerary);
 
@@ -58,6 +59,7 @@ function ViewItineraryPage({
           itinerary={itinerary}
           onBack={onBack}
           user={user}
+          onNavigateToEdit={onNavigateToEdit}
           onItineraryUpdated={() => window.location.reload()}
         />
       </div>

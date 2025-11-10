@@ -61,9 +61,10 @@ const FilterModal = ({ filters, onApply, onClose }) => {
     { value: "2 hours", label: "2 hours" },
     { value: "4 hours", label: "4 hours" },
     { value: "6 hours", label: "6 hours" },
+    { value: "8 hours", label: "8 hours" },
+    { value: "10 hours", label: "10 hours" },
+    { value: "12 hours", label: "12 hours" },
     { value: "1 day", label: "1 day" },
-    { value: "2 days", label: "2 days" },
-    { value: "3+ days", label: "3+ days" },
   ];
 
   const priceOptions = [

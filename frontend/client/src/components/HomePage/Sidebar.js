@@ -41,6 +41,25 @@ function Sidebar({
     setShowFilterModal(false);
   };
 
+  // Remove individual filter
+  const removeFilter = (filterType, value = null) => {
+    setFilters(prev => {
+      if (filterType === "minRating") {
+        return { ...prev, minRating: 0 };
+      } else if (filterType === "tags") {
+        return {
+          ...prev,
+          tags: prev.tags.filter(tag => tag !== value)
+        };
+      } else if (filterType === "maxDuration") {
+        return { ...prev, maxDuration: "" };
+      } else if (filterType === "maxPrice") {
+        return { ...prev, maxPrice: "" };
+      }
+      return prev;
+    });
+  };
+
   // Reset all filters to default
   const handleClearFilters = () => {
     setFilters({
@@ -65,20 +84,51 @@ function Sidebar({
     if (!duration) return 0;
     if (typeof duration !== "string") return 0;
 
-    if (duration.includes("hour")) {
-      return parseInt(duration) || 0;
+    const durationLower = duration.toLowerCase();
+
+    // Extract numbers from duration string
+    const hoursMatch = durationLower.match(/(\d+)\s*hour/);
+    const daysMatch = durationLower.match(/(\d+)\s*day/);
+
+    if (hoursMatch) {
+      return parseInt(hoursMatch[1]) || 0;
     }
-    if (duration.includes("day")) {
-      return (parseInt(duration) || 1) * 24;
+    if (daysMatch) {
+      return (parseInt(daysMatch[1]) || 1) * 24;
     }
-    return 0;
+
+    // Default fallback
+    return durationLower.includes("day") ? 24 : 2;
   };
 
   // Convert price string to numeric value for filtering
   const priceToNumber = (price) => {
     if (!price) return 0;
     if (typeof price !== "string") return 0;
-    return price.length;
+
+    // Count the $ symbols
+    const dollarCount = (price.match(/\$/g) || []).length;
+    return dollarCount;
+  };
+
+  // duration comparison function
+  const compareDurations = (itineraryDuration, filterDuration) => {
+    if (!filterDuration) return true;
+
+    const itineraryHours = durationToHours(itineraryDuration);
+    const filterHours = durationToHours(filterDuration);
+
+    return itineraryHours <= filterHours;
+  };
+
+  // price comparison function
+  const comparePrices = (itineraryPrice, filterPrice) => {
+    if (!filterPrice) return true;
+
+    const itineraryPriceValue = priceToNumber(itineraryPrice);
+    const filterPriceValue = priceToNumber(filterPrice);
+
+    return itineraryPriceValue <= filterPriceValue;
   };
 
   // Filter itineraries based on search and filter criteria
@@ -98,25 +148,14 @@ function Sidebar({
 
     const matchesRating = (itinerary.rating || 0) >= (filters.minRating || 0);
 
-    const itineraryTags = itinerary.tags || [];
-    const filterTags = filters.tags || [];
+    const itineraryTags = Array.isArray(itinerary.tags) ? itinerary.tags : [];
+    const filterTags = Array.isArray(filters.tags) ? filters.tags : [];
     const matchesTags =
       filterTags.length === 0 ||
       filterTags.some((tag) => itineraryTags.includes(tag));
 
-    let matchesDuration = true;
-    if (filters.maxDuration) {
-      const itineraryHours = durationToHours(itinerary.duration);
-      const filterHours = durationToHours(filters.maxDuration);
-      matchesDuration = itineraryHours <= filterHours;
-    }
-
-    let matchesPrice = true;
-    if (filters.maxPrice) {
-      const itineraryPriceValue = priceToNumber(itinerary.price);
-      const filterPriceValue = priceToNumber(filters.maxPrice);
-      matchesPrice = itineraryPriceValue <= filterPriceValue;
-    }
+    const matchesDuration = compareDurations(itinerary.duration, filters.maxDuration);
+    const matchesPrice = comparePrices(itinerary.price, filters.maxPrice);
 
     return (
       matchesSearch &&
@@ -132,6 +171,75 @@ function Sidebar({
     (filters.tags && filters.tags.length > 0) ||
     filters.maxDuration ||
     filters.maxPrice;
+
+  // Function to render individual filter bubbles
+  const renderFilterBubbles = () => {
+    const bubbles = [];
+
+    if (filters.minRating > 0) {
+      bubbles.push(
+        <div key="rating" className="filter-bubble">
+          <span className="filter-bubble-text">{filters.minRating}+ Stars</span>
+          <button
+            className="filter-bubble-remove"
+            onClick={() => removeFilter("minRating")}
+            aria-label="Remove rating filter"
+          >
+            ×
+          </button>
+        </div>
+      );
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      filters.tags.forEach((tag, index) => {
+        bubbles.push(
+          <div key={`tag-${index}`} className="filter-bubble">
+            <span className="filter-bubble-text">{tag}</span>
+            <button
+              className="filter-bubble-remove"
+              onClick={() => removeFilter("tags", tag)}
+              aria-label={`Remove ${tag} tag filter`}
+            >
+              ×
+            </button>
+          </div>
+        );
+      });
+    }
+
+    if (filters.maxDuration) {
+      bubbles.push(
+        <div key="duration" className="filter-bubble">
+          <span className="filter-bubble-text">{filters.maxDuration}</span>
+          <button
+            className="filter-bubble-remove"
+            onClick={() => removeFilter("maxDuration")}
+            aria-label="Remove duration filter"
+          >
+            ×
+          </button>
+        </div>
+      );
+    }
+
+    if (filters.maxPrice) {
+      bubbles.push(
+        <div key="price" className="filter-bubble">
+          <span className="filter-bubble-text">{filters.maxPrice}</span>
+          <button
+            className="filter-bubble-remove"
+            onClick={() => removeFilter("maxPrice")}
+            aria-label="Remove price filter"
+          >
+            ×
+          </button>
+        </div>
+      );
+    }
+
+    return bubbles;
+  };
 
   return (
     <div className="sidebar">
@@ -156,15 +264,20 @@ function Sidebar({
           onChange={handleSearch}
         />
         <button onClick={handleFilterClick}>
-          Filter {hasActiveFilters && "•"}
+          Filter
         </button>
       </div>
 
-      {/* Clear filters button when filters are active */}
+      {/* Active filters display */}
       {hasActiveFilters && (
-        <button className="clear-filters-btn" onClick={handleClearFilters}>
-          Clear Filters
-        </button>
+        <div className="active-filters">
+          <div className="filter-bubbles-container">
+            {renderFilterBubbles()}
+          </div>
+          <button className="clear-filters-btn" onClick={handleClearFilters}>
+            Clear Filters
+          </button>
+        </div>
       )}
 
       {/* Itineraries list */}

@@ -10,19 +10,22 @@ function DestinationManager({
   onStartLocationSelection,
   isSelectingLocation,
 }) {
+  // Ensure destinations is always an array
+  const safeDestinations = Array.isArray(itineraryData?.destinations) ? itineraryData.destinations : [];
+
   // State for current step and search visibility
   const [currentStep, setCurrentStep] = useState(1);
   const [showSearch, setShowSearch] = useState(false);
 
   console.log("DestinationManager props:", {
-    destinations: itineraryData?.destinations,
+    destinations: safeDestinations,
     isSelectingLocation,
   });
 
   // Update current step based on number of destinations
   useEffect(() => {
-    setCurrentStep((itineraryData?.destinations?.length || 0) + 1);
-  }, [itineraryData?.destinations]);
+    setCurrentStep(safeDestinations.length + 1);
+  }, [safeDestinations.length]);
 
   // Show search interface for adding destinations
   const handleAddDestination = () => {

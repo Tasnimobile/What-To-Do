@@ -236,16 +236,16 @@ app.post("/api/login", (req, res) => {
   const user = db.prepare("SELECT * FROM user WHERE email = ?").get(req.body.email);
 
   if (!user) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
-  
+
   const match = bcrypt.compareSync(req.body.password, user.password);
-  
+
   if (!match) return res.status(401).json({ ok: false, errors: ["Invalid username or password."] });
 
   const tokenPayload = {
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
     userid: user.id,
-    username: user.username,        
-    display_name: user.display_name 
+    username: user.username,
+    display_name: user.display_name
   };
 
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
@@ -370,14 +370,14 @@ app.post("/api/oauth/google", async (req, res) => {
       return res.status(400).json({ ok: false, errors: ["Google email not verified"] });
     }
 
-  
+
     let user =
       db.prepare("SELECT * FROM user WHERE google_sub = ?").get(profile.sub) ||
       db.prepare("SELECT * FROM user WHERE email = ?").get(profile.email) ||
       db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email);
 
     if (user) {
-    
+
       if (!user.email) {
         db.prepare("UPDATE user SET email = ? WHERE id = ?").run(profile.email, user.id);
         user.email = profile.email;

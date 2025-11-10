@@ -43,7 +43,7 @@ function ItineraryBookmark() {
   );
 }
 
-function ViewItinerarySidebar({ itinerary, onBack, user }) {
+function ViewItinerarySidebar({ itinerary, onBack, user, onNavigateToEdit }) {
   // State for completed status
   const [completed, setCompleted] = useState(false);
   useEffect(() => {
@@ -106,7 +106,9 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
   const isAuthor = String(user?.id) === String(authorid);
   const handleEdit = () => {
     console.log("Edit button clicked for itinerary:", id);
-    // Navigate to edit page
+    if (onNavigateToEdit) {
+      onNavigateToEdit(itinerary);
+    }
   };
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this itinerary?"))
@@ -117,12 +119,12 @@ function ViewItinerarySidebar({ itinerary, onBack, user }) {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-            id: id
+          id: id
         }),
       });
       onBack()
-     
-      
+
+
     } catch (err) {
       console.error(err);
       alert("Error deleting itinerary");

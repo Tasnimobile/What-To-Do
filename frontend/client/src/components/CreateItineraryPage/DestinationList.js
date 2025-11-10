@@ -1,4 +1,4 @@
-// DestinationsList.js
+// DestinationsList.js - Update the component to handle non-array data
 import React, { useState } from "react";
 import "./DestinationList.css";
 
@@ -8,6 +8,9 @@ function DestinationsList({
   onMoveDestination,
   onUpdateDestination,
 }) {
+  // Ensure destinations is always an array
+  const safeDestinations = Array.isArray(destinations) ? destinations : [];
+
   // State for editing destination names
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
@@ -45,8 +48,8 @@ function DestinationsList({
   return (
     <div className="destinations-list">
       {/* Display destinations sorted by order */}
-      {destinations
-        .sort((a, b) => a.order - b.order)
+      {safeDestinations
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map((destination, index) => (
           <div key={destination.id} className="destination-item">
             {/* Order controls and display */}
@@ -63,7 +66,7 @@ function DestinationsList({
               <button
                 className="move-btn"
                 onClick={() => onMoveDestination(index, 1)}
-                disabled={index === destinations.length - 1}
+                disabled={index === safeDestinations.length - 1}
                 title="Move down"
               >
                 ↓
@@ -126,7 +129,7 @@ function DestinationsList({
         ))}
 
       {/* Empty state when no destinations */}
-      {destinations.length === 0 && (
+      {safeDestinations.length === 0 && (
         <div className="no-destinations">
           No destinations added yet. Click "Add Destination" to start building
           your pathway.

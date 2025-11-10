@@ -10,6 +10,7 @@ import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
 import Homepage from "./components/HomePage/HomePage";
 import CreateItineraryPage from "./components/CreateItineraryPage/CreateItineraryPage";
 import ViewItineraryPage from "./components/ViewItineraryPage/ViewItineraryPage";
+import EditItineraryPage from "./components/EditItineraryPage/EditItineraryPage";
 import CreatedItinerariesPage from "./components/CreatedItinerariesPage/CreatedItinerariesPage";
 import SavedItinerariesPage from "./components/SavedItinerariesPage/SavedItinerariesPage.js";
 import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
@@ -23,6 +24,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedItinerary, setSelectedItinerary] = useState(null);
   const [isNewAccount, setIsNewAccount] = useState(false);
+  const [editingItinerary, setEditingItinerary] = useState(null);
   const { error, showError, clearError } = useErrorPopup();
 
   // Check for existing user session on app start
@@ -150,6 +152,11 @@ function App() {
   const switchToViewItinerary = (itinerary) => {
     setSelectedItinerary(itinerary);
     navigateTo("view-itinerary");
+  };
+
+  const switchToEditItinerary = (itinerary) => {
+    setEditingItinerary(itinerary);
+    navigateTo("edit-itinerary");
   };
 
   const switchToCreatedItineraries = () => {
@@ -314,11 +321,26 @@ function App() {
             onNavigateToCreated={switchToCreatedItineraries}
             onNavigateToSaved={switchToSavedItineraries}
             onNavigateToCompleted={switchToCompletedItineraries}
+            onNavigateToEdit={switchToEditItinerary}
             showError={showError}
             onLogout={handleLogout}
           />
         );
-
+      case "edit-itinerary":
+        return (
+          <EditItineraryPage
+            itinerary={editingItinerary}
+            onBack={handleBack}
+            user={user}
+            onNavigateToProfile={switchToProfile}
+            onNavigateToHome={switchToHomepage}
+            onNavigateToCreated={switchToCreatedItineraries}
+            onNavigateToSaved={switchToSavedItineraries}
+            onNavigateToCompleted={switchToCompletedItineraries}
+            showError={showError}
+            onLogout={handleLogout}
+          />
+        );
       case "created-itineraries":
         return (
           <CreatedItinerariesPage
@@ -335,7 +357,6 @@ function App() {
             showError={showError}
           />
         );
-
       case "saved-itineraries":
         return (
           <SavedItinerariesPage
@@ -351,7 +372,6 @@ function App() {
             onLogout={handleLogout}
           />
         );
-
       case "completed-itineraries":
         return (
           <CompletedItinerariesPage
@@ -367,7 +387,6 @@ function App() {
             onLogout={handleLogout}
           />
         );
-
       case "welcome":
       default:
         return (
