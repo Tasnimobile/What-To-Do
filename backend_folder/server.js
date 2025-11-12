@@ -17,7 +17,8 @@ const createTables = db.transaction(() => {
         CREATE TABLE IF NOT EXISTS user (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username STRING NOT NULL UNIQUE,
-        password STRING NOT NULL
+        password STRING NOT NULL,
+        saved_itineraries TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(saved_itineraries))
         )
         `
   ).run();
@@ -386,13 +387,13 @@ app.post("/api/register", (req, res) => {
 
   const salt = bcrypt.genSaltSync(10);
   const hashed = bcrypt.hashSync(req.body.password, salt);
-
+  const savedItineraries = JSON.stringify([]);
   let result;
   // Persist display_name on API registration as well so the frontend doesn't
-  // need to perform an extra update to set it.
+  // need to perform an extra update to set it. 
   if (emailValue) {
     result = db
-      .prepare(
+      .prepare( 
         "INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)"
       )
       .run(usernameCandidate, hashed, emailValue, usernameCandidate);
@@ -405,6 +406,7 @@ app.post("/api/register", (req, res) => {
   }
 
   const newUser = db
+
     .prepare("SELECT * FROM user WHERE rowid = ?")
     .get(result.lastInsertRowid);
 
@@ -495,7 +497,7 @@ app.post("/api/oauth/google", async (req, res) => {
 
       const salt = bcrypt.genSaltSync(10);
       const randomPass = bcrypt.hashSync(Math.random().toString(36), salt);
-
+      const savedItineraries = JSON.stringify([]);
       const ins = db
         .prepare(
           "INSERT INTO user (username, password, email, google_sub, display_name) VALUES (?, ?, ?, ?, ?)"

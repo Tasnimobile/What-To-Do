@@ -274,7 +274,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
           <>
             <div className="username-display">
               <h1 className="username-large">
-                {user.display_name}
+                {user.username}
               </h1>
             </div>
 
