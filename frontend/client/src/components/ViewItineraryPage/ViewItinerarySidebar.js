@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "./ViewItinerarySidebar.css";
+import { useFetcher } from "react-router-dom";
 
 const toArray = (v) => {
   if (Array.isArray(v)) return v;
@@ -18,27 +19,7 @@ const toArray = (v) => {
 
 const toNumber = (v, d = 0) => (v == null ? d : Number(v) || d);
 
-function ItineraryBookmark() {
-  const [bookmarked, setBookmarked] = useState(false);
-  return (
-    <button
-      className="bookmark-icon"
-      onClick={() => setBookmarked(!bookmarked)}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
-          fill={bookmarked ? "#E71D36" : "#5f5f5f"}
-        />
-      </svg>
-    </button>
-  );
-}
+
 
 function ViewItinerarySidebar({
   itinerary,
@@ -88,6 +69,16 @@ function ViewItinerarySidebar({
     }
   }, [normalized?.id, normalized?.userRating, normalized?.overallRating]);
 
+  const savedIds = useMemo(() => {
+    if (!user || !user.saved_itineraries) return [];
+    try {
+      const arr = JSON.parse(user.saved_itineraries);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  }, [user?.saved_itineraries]);
+
   if (!normalized) {
     return (
       <div className="view-itinerary-sidebar">
@@ -121,6 +112,10 @@ function ViewItinerarySidebar({
     authorid,
   } = normalized;
 
+
+
+  const isBookmarked = savedIds.includes(id);
+
   const canRate =
     user &&
     authorid !== undefined &&
@@ -149,6 +144,51 @@ function ViewItinerarySidebar({
     }
   };
 
+  function ItineraryBookmark({ id, initialBookmarked }) {
+  const [bookmarked, setBookmarked] = useState(initialBookmarked);
+
+  useEffect(() => {
+    setBookmarked(initialBookmarked);
+  }, [initialBookmarked]);
+
+  const handleClick = async () => {
+     setBookmarked((prev) => !prev);
+   try{
+      await fetch("http://localhost:3000/api/save-itinerary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ saved_itinerary: id }),
+      
+    });
+  } catch (err) {
+      console.error(err);
+      alert("Error deleting itinerary");
+    }
+  
+  
+  };
+
+  return (
+    <button
+      className="bookmark-icon"
+      onClick={handleClick}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
+          fill={bookmarked ? "#E71D36" : "#5f5f5f"}
+        />
+      </svg>
+    </button>
+  );
+}
+
   const handleToggleCompleted = () => setCompleted((prev) => !prev);
   const handleEdit = () => onNavigateToEdit && onNavigateToEdit(itinerary);
   const handleDelete = async () => {
@@ -169,14 +209,18 @@ function ViewItinerarySidebar({
   };
 
   return (
-    <div className="view-itinerary-sidebar">
-      <div className="create-header">
-        <div className="title-row">
-          <ItineraryBookmark />
-          <h1 className="itinerary-main-title">{title}</h1>
-        </div>
-        <p className="itinerary-author">Created by: {authorname}</p>
+  <div className="view-itinerary-sidebar">
+    <div className="create-header">
+  
+      <div className="title-row">
+        <ItineraryBookmark id={id} initialBookmarked={isBookmarked} />
+        <h1 className="itinerary-main-title">{title}</h1>
       </div>
+
+      <p className="itinerary-author">Created by: {authorname}</p>
+    </div>
+    
+
 
       <div className="create-form-card">
         <div className="form-section">

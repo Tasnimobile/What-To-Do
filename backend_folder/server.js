@@ -333,6 +333,7 @@ app.post("/api/login", (req, res) => {
       email: user.email || null,
       bio: user.bio || "",
       display_name: user.display_name || user.username,
+      saved_itineraries: user.saved_itineraries || "[]",
     },
   });
 });
@@ -435,6 +436,7 @@ app.post("/api/register", (req, res) => {
       email: newUser.email || null,
       bio: newUser.bio || "",
       display_name: newUser.display_name || newUser.username,
+      saved_itineraries: user.saved_itineraries || "[]",
     },
   });
 });
@@ -550,6 +552,7 @@ app.post("/api/oauth/google", async (req, res) => {
         email: user.email || null,
         bio: user.bio || "",
         display_name: user.display_name || user.username,
+        saved_itineraries: user.saved_itineraries || "[]",
       },
     });
   } catch (err) {
@@ -732,7 +735,7 @@ app.get("/api/user/me", (req, res) => {
   }
 
   const userStatement = db.prepare(
-    "SELECT id, username, email, bio, display_name FROM user WHERE id = ?"
+    "SELECT id, username, email, bio, display_name, saved_itineraries FROM user WHERE id = ?"
   );
   const userData = userStatement.get(req.user.userid);
 
@@ -1012,12 +1015,38 @@ app.post("/api/delete-itinerary", (req, res) => {
       return res.status(404).json({ ok: false, error: "Itinerary not found" });
     }
 
-    // ✅ IMPORTANT: send a response so fetch can resolve
+  
     res.json({ ok: true, deleted: result.changes });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, error: "Delete failed" });
   }
 });
+
+app.post("/api/save-itinerary", (req, res) => {
+  const  { saved_itinerary } = req.body;
+  const user_id = req.user.userid
+  const statement = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?")
+  const saved_itineraries = statement.get(user_id)
+  const itineraryId = Number(saved_itinerary)
+  
+  let arr;
+  try {
+    arr = JSON.parse(row.saved_itineraries || "[]");
+    if (!Array.isArray(arr)) arr = [];
+  } catch {
+    arr = [];
+  }
+
+  if(!arr.includes(itineraryId)){
+    arr.push(itineraryId)
+  }
+
+  db.prepare('UPDATE user SET saved_itineraries = ? WHERE id = ?')
+    .run(JSON.stringify(arr), user_id)
+
+    return res.json({ ok: true, saved_itineraries: arr });
+});
+
 
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
