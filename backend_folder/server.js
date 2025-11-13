@@ -1029,15 +1029,18 @@ app.post("/api/save-itinerary", (req, res) => {
   const statement = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?")
   const saved_itineraries = statement.get(user_id)
   const itineraryId = Number(saved_itinerary)
-  
+  const row = statement.get(user_id);
+  console.log(saved_itineraries)
   let arr;
   try {
     arr = JSON.parse(row.saved_itineraries || "[]");
+    console.log(arr)
     if (!Array.isArray(arr)) arr = [];
   } catch {
     arr = [];
   }
-
+  console.log("hello this is a test")
+  console.log(arr)
   if(!arr.includes(itineraryId)){
     arr.push(itineraryId)
   }
