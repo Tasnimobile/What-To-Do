@@ -921,9 +921,55 @@ app.get("/api/my-itineraries", (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching user itineraries:", error);
+    res.status(500).json({ ok: false, errors: ["Server error"] }); 
+  }
+});
+
+app.get("/api/my-saved-itineraries", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+  }
+
+  try {
+    const user_id = req.user.userid;
+
+    const stmt = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?");
+    const row = stmt.get(user_id);
+
+    let arr;
+    try {
+      arr = JSON.parse(row?.saved_itineraries || "[]");
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    if (arr.length === 0) {
+      return res.json({ ok: true, itineraries: [] });
+    }
+
+    const placeholders = arr.map(() => "?").join(","); 
+    const stmt2 = db.prepare(
+      `SELECT * FROM itineraries WHERE id IN (${placeholders})`
+    );
+
+    const itineraries = stmt2.all(...arr);
+
+    res.json({
+      ok: true,
+      itineraries: itineraries.map((itinerary) => ({
+        ...itinerary,
+        createdBy: itinerary.authorid,
+        rating: 0,       
+        destinations: [], 
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching user itineraries:", error);
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
+
 
 // Add debug endpoint
 app.get("/api/debug/my-itineraries", (req, res) => {
@@ -1034,13 +1080,11 @@ app.post("/api/save-itinerary", (req, res) => {
   let arr;
   try {
     arr = JSON.parse(row.saved_itineraries || "[]");
-    console.log(arr)
     if (!Array.isArray(arr)) arr = [];
   } catch {
     arr = [];
   }
-  console.log("hello this is a test")
-  console.log(arr)
+  
   if(!arr.includes(itineraryId)){
     arr.push(itineraryId)
   }
