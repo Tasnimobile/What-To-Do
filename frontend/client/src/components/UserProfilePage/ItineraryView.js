@@ -7,6 +7,7 @@ const ItineraryView = ({
   activeTab,
   onTabClick,
   userItineraries = [],
+  savedItineraries = [], // Add saved itineraries prop
   user,
   onViewItinerary,
   onNavigateToCreated,
@@ -16,7 +17,13 @@ const ItineraryView = ({
   // Handle itinerary card click and pass data to parent component
   const handleItineraryClick = (itineraryId) => {
     console.log("Itinerary clicked:", itineraryId);
-    const itinerary = userItineraries.find((item) => item.id === itineraryId);
+
+    // Search in both user itineraries and saved itineraries
+    let itinerary = userItineraries.find((item) => item.id === itineraryId);
+    if (!itinerary) {
+      itinerary = savedItineraries.find((item) => item.id === itineraryId);
+    }
+
     if (itinerary && onViewItinerary) {
       onViewItinerary(itinerary);
     }
@@ -51,7 +58,7 @@ const ItineraryView = ({
       case "itineraries":
         return userItineraries.length > 3;
       case "saved":
-        return false; // No saved itineraries yet
+        return savedItineraries.length > 3; // Check saved itineraries count
       case "completed":
         return false; // No completed itineraries yet
       default:
@@ -103,13 +110,36 @@ const ItineraryView = ({
         );
 
       case "saved":
-        // Placeholder for saved itineraries feature
+        // Display saved itineraries or empty state
+        if (savedItineraries.length === 0) {
+          return (
+            <div className="grid-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+              </svg>
+              <p>No saved itineraries yet</p>
+              <p style={{ fontSize: "0.9rem", opacity: 0.8, marginTop: "10px" }}>
+                Save itineraries you like to find them here later
+              </p>
+            </div>
+          );
+        }
         return (
-          <div className="grid-placeholder">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
-            </svg>
-            <p>No saved itineraries</p>
+          <div className="itineraries-grid">
+            {savedItineraries.slice(0, 3).map((itinerary) => (
+              <div key={itinerary.id} className="itinerary-grid-item">
+                <ItineraryCard
+                  itineraryId={itinerary.id}
+                  title={itinerary.title}
+                  rating={itinerary.rating}
+                  description={itinerary.description}
+                  tags={itinerary.tags}
+                  duration={itinerary.duration}
+                  price={itinerary.price}
+                  onClick={handleItineraryClick}
+                />
+              </div>
+            ))}
           </div>
         );
 
@@ -186,7 +216,7 @@ const ItineraryView = ({
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
           </svg>
-          Saved (0)
+          Saved ({savedItineraries.length}) {/* Updated count */}
         </button>
         <button
           className={`tab-button ${activeTab === "completed" ? "active" : ""}`}

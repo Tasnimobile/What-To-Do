@@ -145,9 +145,8 @@ function ItineraryCard({
           {Array.from({ length: 5 }, (_, i) => (
             <span
               key={i}
-              className={`star ${i < displayRating ? "filled" : ""} ${
-                canRate ? "clickable" : ""
-              }`}
+              className={`star ${i < displayRating ? "filled" : ""} ${canRate ? "clickable" : ""
+                }`}
               onClick={(e) => handleRate(e, i + 1)}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}

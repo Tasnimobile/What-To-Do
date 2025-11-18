@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
+import ItineraryCard from "../HomePage/ItineraryCard";
 import "../HomePage/HomePage.css";
 import "./CreatedItinerariesPage.css";
 
@@ -18,7 +19,6 @@ function CreatedItinerariesPage({
   onNavigateToCompleted,
   showError,
 }) {
-  // State for user's created itineraries
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [userItineraries, setUserItineraries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +48,6 @@ function CreatedItinerariesPage({
   useEffect(() => {
     loadUserItineraries();
   }, [user]);
-
 
   // Main function to load user itineraries from API
   const loadUserItineraries = async () => {
@@ -85,14 +84,11 @@ function CreatedItinerariesPage({
           price: itinerary.price || "$$",
           rating: itinerary.rating || 0,
           destinations: itinerary.destinations || [],
-          createdBy:
-            itinerary.createdBy || itinerary.authorid || user?.id || "unknown",
+          createdBy: itinerary.authorid,
+          authorid: itinerary.authorid,
         }));
 
-        console.log(
-          "User itineraries loaded from database:",
-          processedItineraries
-        );
+        console.log("User itineraries loaded from database:", processedItineraries);
         setUserItineraries(processedItineraries);
       } else {
         console.error(
@@ -108,9 +104,7 @@ function CreatedItinerariesPage({
       console.error("Error loading user itineraries from server:", error);
       setUserItineraries([]);
       if (showError) {
-        showError(
-          "Error loading your itineraries. Please check your connection."
-        );
+        showError("Error loading your itineraries. Please check your connection.");
       }
     } finally {
       setIsLoading(false);
@@ -139,6 +133,14 @@ function CreatedItinerariesPage({
       onNavigateToCreate();
     } else {
       console.error("onNavigateToCreate is not defined");
+    }
+  };
+
+  // Handler for clicking on itinerary card
+  const handleItineraryClick = (itineraryId) => {
+    const itinerary = userItineraries.find((item) => item.id === itineraryId);
+    if (itinerary) {
+      handleViewItinerary(itinerary);
     }
   };
 
@@ -181,34 +183,55 @@ function CreatedItinerariesPage({
       });
     };
 
-    // Handler for clicking on itinerary card
-    const handleItineraryClick = (itineraryId) => {
-      const itinerary = filteredItineraries.find(
-        (item) => item.id === itineraryId
-      );
-      if (itinerary) {
-        handleViewItinerary(itinerary);
-      }
-    };
-
     // Utility functions for filtering
     const durationToHours = (duration) => {
       if (!duration) return 0;
       if (typeof duration !== "string") return 0;
 
-      if (duration.includes("hour")) {
-        return parseInt(duration) || 0;
+      const durationLower = duration.toLowerCase();
+
+      // Extract numbers from duration string
+      const hoursMatch = durationLower.match(/(\d+)\s*hour/);
+      const daysMatch = durationLower.match(/(\d+)\s*day/);
+
+      if (hoursMatch) {
+        return parseInt(hoursMatch[1]) || 0;
       }
-      if (duration.includes("day")) {
-        return (parseInt(duration) || 1) * 24;
+      if (daysMatch) {
+        return (parseInt(daysMatch[1]) || 1) * 24;
       }
-      return 0;
+
+      // Default fallback
+      return durationLower.includes("day") ? 24 : 2;
     };
 
     const priceToNumber = (price) => {
       if (!price) return 0;
       if (typeof price !== "string") return 0;
-      return price.length;
+
+      // Count the $ symbols
+      const dollarCount = (price.match(/\$/g) || []).length;
+      return dollarCount;
+    };
+
+    // duration comparison function
+    const compareDurations = (itineraryDuration, filterDuration) => {
+      if (!filterDuration) return true;
+
+      const itineraryHours = durationToHours(itineraryDuration);
+      const filterHours = durationToHours(filterDuration);
+
+      return itineraryHours <= filterHours;
+    };
+
+    // price comparison function
+    const comparePrices = (itineraryPrice, filterPrice) => {
+      if (!filterPrice) return true;
+
+      const itineraryPriceValue = priceToNumber(itineraryPrice);
+      const filterPriceValue = priceToNumber(filterPrice);
+
+      return itineraryPriceValue <= filterPriceValue;
     };
 
     // Filter itineraries based on search and filter criteria
@@ -224,31 +247,18 @@ function CreatedItinerariesPage({
         (itinerary.title &&
           itinerary.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (itinerary.description &&
-          itinerary.description
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()));
+          itinerary.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesRating = (itinerary.rating || 0) >= (filters.minRating || 0);
 
-      const itineraryTags = itinerary.tags || [];
-      const filterTags = filters.tags || [];
+      const itineraryTags = Array.isArray(itinerary.tags) ? itinerary.tags : [];
+      const filterTags = Array.isArray(filters.tags) ? filters.tags : [];
       const matchesTags =
         filterTags.length === 0 ||
         filterTags.some((tag) => itineraryTags.includes(tag));
 
-      let matchesDuration = true;
-      if (filters.maxDuration) {
-        const itineraryHours = durationToHours(itinerary.duration);
-        const filterHours = durationToHours(filters.maxDuration);
-        matchesDuration = itineraryHours <= filterHours;
-      }
-
-      let matchesPrice = true;
-      if (filters.maxPrice) {
-        const itineraryPriceValue = priceToNumber(itinerary.price);
-        const filterPriceValue = priceToNumber(filters.maxPrice);
-        matchesPrice = itineraryPriceValue <= filterPriceValue;
-      }
+      const matchesDuration = compareDurations(itinerary.duration, filters.maxDuration);
+      const matchesPrice = comparePrices(itinerary.price, filters.maxPrice);
 
       return (
         matchesSearch &&
@@ -314,49 +324,21 @@ function CreatedItinerariesPage({
             )}
           </div>
         ) : (
-          // Display filtered itineraries as cards
+          // Display filtered itineraries using ItineraryCard component
           filteredItineraries.map((itinerary) => (
-            <div
+            <ItineraryCard
               key={itinerary.id}
-              className="itinerary-card"
-              onClick={() => handleItineraryClick(itinerary.id)}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="itinerary-header">
-                <h3>{itinerary.title || "Untitled Itinerary"}</h3>
-                <div className="rating">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      className={
-                        star <= (itinerary.rating || 0) ? "star filled" : "star"
-                      }
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <p className="collapsed-description">
-                {itinerary.description || "No description provided."}
-              </p>
-              <div className="itinerary-meta">
-                <span className="meta-item">{itinerary.duration}</span>
-                <span className="meta-item">{itinerary.price}</span>
-                <span className="meta-item">
-                  {(itinerary.destinations || []).length} destinations
-                </span>
-              </div>
-              <button
-                className="read-more"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleItineraryClick(itinerary.id);
-                }}
-              >
-                View Details
-              </button>
-            </div>
+              itineraryId={itinerary.id}
+              title={itinerary.title}
+              rating={itinerary.rating}
+              description={itinerary.description}
+              tags={itinerary.tags}
+              duration={itinerary.duration}
+              price={itinerary.price}
+              onClick={handleItineraryClick}
+              createdBy={itinerary.createdBy}
+              currentUser={user}
+            />
           ))
         )}
 

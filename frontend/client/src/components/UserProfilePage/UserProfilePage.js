@@ -25,6 +25,7 @@ const UserProfilePage = ({
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("itineraries");
   const [userItineraries, setUserItineraries] = useState([]);
+  const [savedItineraries, setSavedItineraries] = useState([]); // Add saved itineraries state
 
   // Helper to process tags from various formats (array, JSON string, etc.)
   const processTags = (tags) => {
@@ -47,6 +48,7 @@ const UserProfilePage = ({
     if (user) {
       setIsLoading(false);
       loadUserItineraries();
+      loadSavedItineraries(); // Load saved itineraries
     } else {
       const timer = setTimeout(() => {
         if (!user) {
@@ -107,6 +109,54 @@ const UserProfilePage = ({
       console.error("Error loading user itineraries for profile:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Fetch user's saved itineraries
+  const loadSavedItineraries = async () => {
+    try {
+      console.log("Fetching saved itineraries for profile:", user?.id);
+
+      const response = await fetch("http://localhost:3000/api/my-saved-itineraries", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Saved itineraries API Response:", data);
+
+        let savedItinerariesFromDB = [];
+
+        if (data.ok && Array.isArray(data.itineraries)) {
+          savedItinerariesFromDB = data.itineraries;
+        } else {
+          console.error("Unexpected saved itineraries response structure:", data);
+          savedItinerariesFromDB = [];
+        }
+
+        // Process and normalize saved itinerary data
+        const processedSavedItineraries = savedItinerariesFromDB.map((itinerary) => ({
+          ...itinerary,
+          tags: processTags(itinerary.tags),
+          title: itinerary.title || "Untitled Itinerary",
+          description: itinerary.description || "",
+          duration: itinerary.duration || "1 day",
+          price: itinerary.price || "$$",
+          rating: itinerary.rating || 0,
+          destinations: itinerary.destinations || [],
+          createdBy: itinerary.authorid || "unknown",
+        }));
+
+        console.log(
+          "Saved itineraries loaded for profile:",
+          processedSavedItineraries
+        );
+        setSavedItineraries(processedSavedItineraries);
+      }
+    } catch (error) {
+      console.error("Error loading saved itineraries for profile:", error);
     }
   };
 
@@ -205,7 +255,10 @@ const UserProfilePage = ({
         />
 
         {/* Profile Stats Section (itineraries count, saved, recent) */}
-        <ProfileStats userItineraries={userItineraries} />
+        <ProfileStats
+          userItineraries={userItineraries}
+          savedItineraries={savedItineraries} // Pass saved itineraries
+        />
       </div>
 
       {/* Itinerary Display Section with Tabs */}
@@ -213,6 +266,7 @@ const UserProfilePage = ({
         activeTab={activeTab}
         onTabClick={handleTabClick}
         userItineraries={userItineraries}
+        savedItineraries={savedItineraries} // Pass saved itineraries
         user={user}
         onViewItinerary={handleViewItinerary}
         onNavigateToCreated={onNavigateToCreated}

@@ -2,11 +2,11 @@
 import React from "react";
 import "./ProfileStats.css";
 
-const ProfileStats = ({ userItineraries = [] }) => {
+const ProfileStats = ({ userItineraries = [], savedItineraries = [] }) => {
   // Calculate stats for display - itineraries count and recent activity
   const stats = {
     itineraries: userItineraries.length,
-    saved: 0, // Placeholder for future saved itineraries feature
+    saved: savedItineraries.length, // Now using actual saved itineraries count
     recent: userItineraries.filter((itin) => {
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -22,16 +22,16 @@ const ProfileStats = ({ userItineraries = [] }) => {
         <div className="stat-label-small">Created</div>
       </div>
 
-      {/* Saved itineraries count (placeholder) */}
+      {/* Saved itineraries count (now using actual data) */}
       <div className="stat-item-small">
         <div className="stat-number-small">{stats.saved}</div>
         <div className="stat-label-small">Saved</div>
       </div>
 
-      {/* Recent activity count (last 7 days) */}
+      {/* Completed itineraries count */}
       <div className="stat-item-small">
         <div className="stat-number-small">{stats.recent}</div>
-        <div className="stat-label-small">Recent</div>
+        <div className="stat-label-small">Completed</div>
       </div>
     </div>
   );

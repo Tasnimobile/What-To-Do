@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from "react";
 import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
+import ItineraryCard from "../HomePage/ItineraryCard";
 import "../HomePage/HomePage.css";
+import "./SavedItinerariesPage.css";
 
 function SavedItinerariesPage({
   onBack,
@@ -20,9 +22,14 @@ function SavedItinerariesPage({
   const [savedItineraries, setSavedItineraries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Process tags from various formats (array, string, JSON string)
   const processTags = (tags) => {
     if (!tags) return [];
-    if (Array.isArray(tags)) return tags;
+
+    if (Array.isArray(tags)) {
+      return tags;
+    }
+
     if (typeof tags === "string") {
       try {
         const parsed = JSON.parse(tags);
@@ -32,23 +39,41 @@ function SavedItinerariesPage({
         return [];
       }
     }
+
     return [];
   };
 
+  // Load saved itineraries from backend API
   useEffect(() => {
     loadSavedItineraries();
   }, [user]);
 
-  const loadSavedItineraries = () => {
+  const loadSavedItineraries = async () => {
     setIsLoading(true);
     try {
-      const saved = localStorage.getItem("savedItineraries");
-      if (saved) {
-        const allSaved = JSON.parse(saved);
-        const userSaved = allSaved.filter(
-          (itinerary) => itinerary.savedBy === (user?.id || "current-user")
-        );
-        const processedItineraries = userSaved.map((itinerary) => ({
+      console.log("Fetching saved itineraries for user:", user?.id);
+
+      const response = await fetch("http://localhost:3000/api/my-saved-itineraries", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("API Response for saved itineraries:", data);
+
+        let savedItinerariesFromDB = [];
+
+        if (data.ok && Array.isArray(data.itineraries)) {
+          savedItinerariesFromDB = data.itineraries;
+        } else {
+          console.error("Unexpected API response structure:", data);
+          savedItinerariesFromDB = [];
+        }
+
+        // Process and format itinerary data for display
+        const processedItineraries = savedItinerariesFromDB.map((itinerary) => ({
           ...itinerary,
           tags: processTags(itinerary.tags),
           title: itinerary.title || "Untitled Itinerary",
@@ -57,35 +82,57 @@ function SavedItinerariesPage({
           price: itinerary.price || "$$",
           rating: itinerary.rating || 0,
           destinations: itinerary.destinations || [],
+          createdBy: itinerary.authorid,
+          authorid: itinerary.authorid,
         }));
-        setSavedItineraries(userSaved);
+
+        console.log("Saved itineraries loaded from database:", processedItineraries);
         setSavedItineraries(processedItineraries);
-        console.log("User saved itineraries loaded:", userSaved);
       } else {
-        console.log("No saved itineraries found in localStorage");
+        console.error(
+          "Failed to fetch saved itineraries from server, status:",
+          response.status
+        );
         setSavedItineraries([]);
+        if (showError) {
+          showError("Failed to load saved itineraries from server.");
+        }
       }
     } catch (error) {
-      console.error("Error loading saved itineraries:", error);
+      console.error("Error loading saved itineraries from server:", error);
       setSavedItineraries([]);
-      if (showError) showError("Failed to load saved itineraries.");
+      if (showError) {
+        showError("Error loading saved itineraries. Please check your connection.");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Navigation handlers
   const handleNavigateToHome = () => {
     if (onNavigateToHome) {
       onNavigateToHome();
     }
   };
 
+  // Handler for viewing itinerary details
   const handleViewItinerary = (itinerary) => {
+    console.log("Viewing saved itinerary:", itinerary);
     if (onViewItinerary) {
       onViewItinerary(itinerary);
     }
   };
 
+  // Handler for clicking on itinerary card
+  const handleItineraryClick = (itineraryId) => {
+    const itinerary = savedItineraries.find((item) => item.id === itineraryId);
+    if (itinerary) {
+      handleViewItinerary(itinerary);
+    }
+  };
+
+  // Sidebar component for displaying saved itineraries
   const SavedItinerariesSidebar = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [showFilterModal, setShowFilterModal] = useState(false);
@@ -96,72 +143,110 @@ function SavedItinerariesPage({
       maxPrice: "",
     });
 
-    const handleSearch = (e) => setSearchTerm(e.target.value);
-    const handleFilterClick = () => setShowFilterModal(true);
+    // Search handler
+    const handleSearch = (e) => {
+      setSearchTerm(e.target.value);
+    };
+
+    // Filter modal handlers
+    const handleFilterClick = () => {
+      setShowFilterModal(true);
+    };
+
     const handleApplyFilters = (newFilters) => {
       setFilters(newFilters);
       setShowFilterModal(false);
     };
-    const handleCloseFilter = () => setShowFilterModal(false);
-    const handleClearFilters = () =>
+
+    const handleCloseFilter = () => {
+      setShowFilterModal(false);
+    };
+
+    const handleClearFilters = () => {
       setFilters({
         minRating: 0,
         tags: [],
         maxDuration: "",
         maxPrice: "",
       });
-
-    const handleItineraryClick = (itineraryId) => {
-      const itinerary = filteredItineraries.find(
-        (item) => item.id === itineraryId
-      );
-      if (itinerary) handleViewItinerary(itinerary);
     };
 
+    // Utility functions for filtering
     const durationToHours = (duration) => {
       if (!duration) return 0;
       if (typeof duration !== "string") return 0;
-      if (duration.includes("hour")) return parseInt(duration) || 0;
-      if (duration.includes("day")) return (parseInt(duration) || 1) * 24;
-      return 0;
+
+      const durationLower = duration.toLowerCase();
+
+      // Extract numbers from duration string
+      const hoursMatch = durationLower.match(/(\d+)\s*hour/);
+      const daysMatch = durationLower.match(/(\d+)\s*day/);
+
+      if (hoursMatch) {
+        return parseInt(hoursMatch[1]) || 0;
+      }
+      if (daysMatch) {
+        return (parseInt(daysMatch[1]) || 1) * 24;
+      }
+
+      // Default fallback
+      return durationLower.includes("day") ? 24 : 2;
     };
 
     const priceToNumber = (price) => {
       if (!price) return 0;
       if (typeof price !== "string") return 0;
-      return price.length;
+
+      // Count the $ symbols
+      const dollarCount = (price.match(/\$/g) || []).length;
+      return dollarCount;
     };
 
-    const filteredItineraries = savedItineraries.filter((itinerary) => {
+    // duration comparison function
+    const compareDurations = (itineraryDuration, filterDuration) => {
+      if (!filterDuration) return true;
+
+      const itineraryHours = durationToHours(itineraryDuration);
+      const filterHours = durationToHours(filterDuration);
+
+      return itineraryHours <= filterHours;
+    };
+
+    // price comparison function
+    const comparePrices = (itineraryPrice, filterPrice) => {
+      if (!filterPrice) return true;
+
+      const itineraryPriceValue = priceToNumber(itineraryPrice);
+      const filterPriceValue = priceToNumber(filterPrice);
+
+      return itineraryPriceValue <= filterPriceValue;
+    };
+
+    // Filter itineraries based on search and filter criteria
+    const filteredItineraries = (
+      Array.isArray(savedItineraries) ? savedItineraries : []
+    ).filter((itinerary) => {
+      if (!itinerary || typeof itinerary !== "object") {
+        return false;
+      }
+
       const matchesSearch =
         searchTerm === "" ||
         (itinerary.title &&
           itinerary.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (itinerary.description &&
-          itinerary.description
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()));
+          itinerary.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesRating = (itinerary.rating || 0) >= (filters.minRating || 0);
 
-      const itineraryTags = itinerary.tags || [];
-      const filterTags = filters.tags || [];
+      const itineraryTags = Array.isArray(itinerary.tags) ? itinerary.tags : [];
+      const filterTags = Array.isArray(filters.tags) ? filters.tags : [];
       const matchesTags =
         filterTags.length === 0 ||
         filterTags.some((tag) => itineraryTags.includes(tag));
 
-      let matchesDuration = true;
-      if (filters.maxDuration) {
-        matchesDuration =
-          durationToHours(itinerary.duration) <=
-          durationToHours(filters.maxDuration);
-      }
-
-      let matchesPrice = true;
-      if (filters.maxPrice) {
-        matchesPrice =
-          priceToNumber(itinerary.price) <= priceToNumber(filters.maxPrice);
-      }
+      const matchesDuration = compareDurations(itinerary.duration, filters.maxDuration);
+      const matchesPrice = comparePrices(itinerary.price, filters.maxPrice);
 
       return (
         matchesSearch &&
@@ -182,10 +267,11 @@ function SavedItinerariesPage({
       <div className="sidebar">
         <h1>My Saved Itineraries</h1>
 
+        {/* Search and filter controls */}
         <div className="search-filter">
           <input
             type="text"
-            placeholder="Search saved itineraries..."
+            placeholder="Search itineraries..."
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -194,12 +280,14 @@ function SavedItinerariesPage({
           </button>
         </div>
 
+        {/* Clear filters button */}
         {hasActiveFilters && (
           <button className="clear-filters-btn" onClick={handleClearFilters}>
             Clear Filters
           </button>
         )}
 
+        {/* Itineraries list or loading/empty states */}
         {isLoading ? (
           <div className="no-results">Loading saved itineraries...</div>
         ) : filteredItineraries.length === 0 ? (
@@ -207,51 +295,33 @@ function SavedItinerariesPage({
             {savedItineraries.length === 0
               ? "You haven't saved any itineraries yet."
               : "No saved itineraries match your search or filters."}
+            <br />
+            {savedItineraries.length === 0 && (
+              <span style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+                Browse itineraries on the homepage and save them to see them here!
+              </span>
+            )}
           </div>
         ) : (
+          // Display filtered itineraries using ItineraryCard component
           filteredItineraries.map((itinerary) => (
-            <div
+            <ItineraryCard
               key={itinerary.id}
-              className="itinerary-card"
-              onClick={() => handleItineraryClick(itinerary.id)}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="itinerary-header">
-                <h3>{itinerary.title}</h3>
-                <div className="rating">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span
-                      key={star}
-                      className={
-                        star <= (itinerary.rating || 0) ? "star filled" : "star"
-                      }
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <p className="collapsed-description">{itinerary.description}</p>
-              <div className="itinerary-meta">
-                <span className="meta-item">{itinerary.duration}</span>
-                <span className="meta-item">{itinerary.price}</span>
-                <span className="meta-item">
-                  {(itinerary.destinations || []).length} destinations
-                </span>
-              </div>
-              <button
-                className="read-more"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleItineraryClick(itinerary.id);
-                }}
-              >
-                View Details
-              </button>
-            </div>
+              itineraryId={itinerary.id}
+              title={itinerary.title}
+              rating={itinerary.rating}
+              description={itinerary.description}
+              tags={itinerary.tags}
+              duration={itinerary.duration}
+              price={itinerary.price}
+              onClick={handleItineraryClick}
+              createdBy={itinerary.createdBy}
+              currentUser={user}
+            />
           ))
         )}
 
+        {/* Filter modal */}
         {showFilterModal && (
           <div className="filter-modal-overlay">
             <div className="filter-modal">
@@ -261,16 +331,17 @@ function SavedItinerariesPage({
                   ×
                 </button>
               </div>
+
               <div className="filter-sections">
+                {/* Rating Filter Section */}
                 <div className="filter-section">
                   <label>Minimum Rating</label>
                   <div className="rating-filter">
                     {[0, 1, 2, 3, 4, 5].map((rating) => (
                       <button
                         key={rating}
-                        className={`rating-option ${
-                          filters.minRating === rating ? "active" : ""
-                        }`}
+                        className={`rating-option ${filters.minRating === rating ? "active" : ""
+                          }`}
                         onClick={() =>
                           setFilters((prev) => ({ ...prev, minRating: rating }))
                         }
@@ -281,6 +352,7 @@ function SavedItinerariesPage({
                   </div>
                 </div>
 
+                {/* Tags Filter Section */}
                 <div className="filter-section">
                   <label>Tags</label>
                   <div className="tags-filter">
@@ -297,9 +369,8 @@ function SavedItinerariesPage({
                     ].map((tag) => (
                       <button
                         key={tag}
-                        className={`tag-option ${
-                          (filters.tags || []).includes(tag) ? "active" : ""
-                        }`}
+                        className={`tag-option ${(filters.tags || []).includes(tag) ? "active" : ""
+                          }`}
                         onClick={() => {
                           const currentTags = filters.tags || [];
                           const newTags = currentTags.includes(tag)
@@ -314,6 +385,7 @@ function SavedItinerariesPage({
                   </div>
                 </div>
 
+                {/* Duration Filter Section */}
                 <div className="filter-section">
                   <label>Maximum Duration</label>
                   <div className="duration-filter">
@@ -328,9 +400,8 @@ function SavedItinerariesPage({
                     ].map((option) => (
                       <button
                         key={option.value || "any"}
-                        className={`duration-option ${
-                          filters.maxDuration === option.value ? "active" : ""
-                        }`}
+                        className={`duration-option ${filters.maxDuration === option.value ? "active" : ""
+                          }`}
                         onClick={() =>
                           setFilters((prev) => ({
                             ...prev,
@@ -344,6 +415,7 @@ function SavedItinerariesPage({
                   </div>
                 </div>
 
+                {/* Price Filter Section */}
                 <div className="filter-section">
                   <label>Maximum Price</label>
                   <div className="price-filter">
@@ -356,9 +428,8 @@ function SavedItinerariesPage({
                     ].map((option) => (
                       <button
                         key={option.value || "any"}
-                        className={`price-option ${
-                          filters.maxPrice === option.value ? "active" : ""
-                        }`}
+                        className={`price-option ${filters.maxPrice === option.value ? "active" : ""
+                          }`}
                         onClick={() =>
                           setFilters((prev) => ({
                             ...prev,
@@ -373,6 +444,7 @@ function SavedItinerariesPage({
                 </div>
               </div>
 
+              {/* Filter modal action buttons */}
               <div className="filter-modal-actions">
                 <button className="reset-btn" onClick={handleClearFilters}>
                   Reset All
@@ -391,6 +463,7 @@ function SavedItinerariesPage({
     );
   };
 
+  // Main page layout
   return (
     <div className="homepage">
       <div className="main-left">

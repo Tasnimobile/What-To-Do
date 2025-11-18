@@ -5,11 +5,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(113, 193, 157, 0.56) 0%,
+      rgba(113, 193, 157, 0.8) 100%);
   padding: 20px;
   border-radius: 16px;
   margin-bottom: 16px;
@@ -34,11 +32,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(113, 193, 157, 0.56) 0%,
+      rgba(113, 193, 157, 0.8) 100%);
   border-radius: 12px;
   padding: 14px 16px;
   font-size: clamp(0.8rem, 1.2vw, 1rem);
@@ -53,11 +49,9 @@
   margin: 0;
   padding: 16px;
   border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.56) 0%,
-    rgba(113, 193, 157, 0.8) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(113, 193, 157, 0.56) 0%,
+      rgba(113, 193, 157, 0.8) 100%);
   border: 2px solid rgba(255, 255, 255, 0.2);
   min-height: 60px;
   letter-spacing: 0.3px;
@@ -179,11 +173,9 @@
 
 /* Action buttons in itinerary card */
 .itinerary-card button {
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.7) 0%,
-    rgba(113, 193, 157, 0.9) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(113, 193, 157, 0.7) 0%,
+      rgba(113, 193, 157, 0.9) 100%);
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.2);
   padding: 14px 16px;
@@ -199,11 +191,9 @@
 .itinerary-card button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(
-    135deg,
-    rgba(113, 193, 157, 0.8) 0%,
-    rgba(113, 193, 157, 0.95) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(113, 193, 157, 0.8) 0%,
+      rgba(113, 193, 157, 0.95) 100%);
   border-color: rgba(255, 255, 255, 0.3);
 }
 

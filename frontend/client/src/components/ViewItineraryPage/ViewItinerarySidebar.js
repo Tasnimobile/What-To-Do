@@ -145,49 +145,49 @@ function ViewItinerarySidebar({
   };
 
   function ItineraryBookmark({ id, initialBookmarked }) {
-  const [bookmarked, setBookmarked] = useState(initialBookmarked);
+    const [bookmarked, setBookmarked] = useState(initialBookmarked);
 
-  useEffect(() => {
-    setBookmarked(initialBookmarked);
-  }, [initialBookmarked]);
+    useEffect(() => {
+      setBookmarked(initialBookmarked);
+    }, [initialBookmarked]);
 
-  const handleClick = async () => {
-     setBookmarked((prev) => !prev);
-   try{
-      await fetch("http://localhost:3000/api/save-itinerary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ saved_itinerary: id }),
-      
-    });
-  } catch (err) {
-      console.error(err);
-      alert("Error deleting itinerary");
-    }
-  
-  
-  };
+    const handleClick = async () => {
+      setBookmarked((prev) => !prev);
+      try {
+        await fetch("http://localhost:3000/api/save-itinerary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ saved_itinerary: id }),
 
-  return (
-    <button
-      className="bookmark-icon"
-      onClick={handleClick}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting itinerary");
+      }
+
+
+    };
+
+    return (
+      <button
+        className="bookmark-icon"
+        onClick={handleClick}
       >
-        <path
-          d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
-          fill={bookmarked ? "#E71D36" : "#5f5f5f"}
-        />
-      </svg>
-    </button>
-  );
-}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2v16z"
+            fill={bookmarked ? "#E71D36" : "#5f5f5f"}
+          />
+        </svg>
+      </button>
+    );
+  }
 
   const handleToggleCompleted = () => setCompleted((prev) => !prev);
   const handleEdit = () => onNavigateToEdit && onNavigateToEdit(itinerary);
@@ -209,17 +209,17 @@ function ViewItinerarySidebar({
   };
 
   return (
-  <div className="view-itinerary-sidebar">
-    <div className="create-header">
-  
-      <div className="title-row">
-        <ItineraryBookmark id={id} initialBookmarked={isBookmarked} />
-        <h1 className="itinerary-main-title">{title}</h1>
+    <div className="view-itinerary-sidebar">
+      <div className="create-header">
+
+        <div className="title-row">
+          <ItineraryBookmark id={id} initialBookmarked={isBookmarked} />
+          <h1 className="itinerary-main-title">{title}</h1>
+        </div>
+
+        <p className="itinerary-author">Created by: {authorname}</p>
       </div>
 
-      <p className="itinerary-author">Created by: {authorname}</p>
-    </div>
-    
 
 
       <div className="create-form-card">
@@ -254,9 +254,8 @@ function ViewItinerarySidebar({
               return (
                 <span
                   key={i}
-                  className={`star ${i <= displayRating ? "filled" : ""} ${
-                    canRate ? "clickable" : ""
-                  }`}
+                  className={`star ${i <= displayRating ? "filled" : ""} ${canRate ? "clickable" : ""
+                    }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (canRate) handleRate(i);
