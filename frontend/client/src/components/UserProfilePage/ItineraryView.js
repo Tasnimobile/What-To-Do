@@ -13,10 +13,11 @@ const ItineraryView = ({
   onNavigateToCreated,
   onNavigateToSaved,
   onNavigateToCompleted,
+  onRateItinerary,
 }) => {
   // Handle itinerary card click and pass data to parent component
   const handleItineraryClick = (itineraryId) => {
-    console.log("Itinerary clicked:", itineraryId);
+    console.log("Itinerary clicked in profile view:", itineraryId);
 
     // Search in both user itineraries and saved itineraries
     let itinerary = userItineraries.find((item) => item.id === itineraryId);
@@ -25,7 +26,21 @@ const ItineraryView = ({
     }
 
     if (itinerary && onViewItinerary) {
-      onViewItinerary(itinerary);
+      console.log("Found itinerary to view from profile:", itinerary);
+      // Ensure we pass the complete itinerary object with all processed data
+      onViewItinerary({
+        ...itinerary,
+        // Make sure we have the essential fields
+        title: itinerary.title || "Untitled Itinerary",
+        description: itinerary.description || "",
+        duration: itinerary.duration || "1 day",
+        price: itinerary.price || "$$",
+        rating: itinerary.rating || 0,
+        tags: Array.isArray(itinerary.tags) ? itinerary.tags : [],
+        destinations: Array.isArray(itinerary.destinations) ? itinerary.destinations : [],
+        authorid: itinerary.authorid,
+        authorname: itinerary.authorname || "Unknown",
+      });
     }
   };
 
@@ -103,6 +118,9 @@ const ItineraryView = ({
                   duration={itinerary.duration}
                   price={itinerary.price}
                   onClick={handleItineraryClick}
+                  createdBy={itinerary.createdBy}
+                  currentUser={user}
+                  onRateItinerary={onRateItinerary}
                 />
               </div>
             ))}
@@ -137,6 +155,9 @@ const ItineraryView = ({
                   duration={itinerary.duration}
                   price={itinerary.price}
                   onClick={handleItineraryClick}
+                  createdBy={itinerary.createdBy}
+                  currentUser={user}
+                  onRateItinerary={onRateItinerary}
                 />
               </div>
             ))}
@@ -179,6 +200,9 @@ const ItineraryView = ({
                   duration={itinerary.duration}
                   price={itinerary.price}
                   onClick={handleItineraryClick}
+                  createdBy={itinerary.createdBy}
+                  currentUser={user}
+                  onRateItinerary={onRateItinerary}
                 />
               </div>
             ))}

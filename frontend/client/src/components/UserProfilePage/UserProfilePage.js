@@ -19,13 +19,14 @@ const UserProfilePage = ({
   onNavigateToCompleted,
   showError,
   onLogout,
+  onRateItinerary,
 }) => {
   // State for edit mode, loading, active tab, and user itineraries
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("itineraries");
   const [userItineraries, setUserItineraries] = useState([]);
-  const [savedItineraries, setSavedItineraries] = useState([]); // Add saved itineraries state
+  const [savedItineraries, setSavedItineraries] = useState([]);
 
   // Helper to process tags from various formats (array, JSON string, etc.)
   const processTags = (tags) => {
@@ -41,6 +42,44 @@ const UserProfilePage = ({
       }
     }
     return [];
+  };
+
+  // Process destinations 
+  const processDestinations = (destinations) => {
+    if (!destinations) return [];
+
+    let processedDestinations = [];
+
+    if (Array.isArray(destinations)) {
+      processedDestinations = destinations.map(dest => ({
+        ...dest,
+        lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+        lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+        id: dest.id || Math.random().toString(36).substr(2, 9),
+        name: dest.name || dest.formatted_address || 'Unknown Location',
+        address: dest.address || dest.formatted_address || 'Address not available',
+        rating: dest.rating || null
+      }));
+    } else if (typeof destinations === 'string') {
+      try {
+        const parsed = JSON.parse(destinations);
+        if (Array.isArray(parsed)) {
+          processedDestinations = parsed.map(dest => ({
+            ...dest,
+            lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+            lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+            id: dest.id || Math.random().toString(36).substr(2, 9),
+            name: dest.name || dest.formatted_address || 'Unknown Location',
+            address: dest.address || dest.formatted_address || 'Address not available',
+            rating: dest.rating || null
+          }));
+        }
+      } catch (e) {
+        console.warn("Failed to parse destinations:", e);
+      }
+    }
+
+    return processedDestinations;
   };
 
   // Load user data and itineraries on component mount
@@ -66,44 +105,68 @@ const UserProfilePage = ({
     try {
       console.log("Fetching user itineraries for profile:", user?.id);
 
-      const response = await fetch("http://localhost:3000/api/my-itineraries", {
+      // First get user itinerary IDs
+      const userResponse = await fetch("http://localhost:3000/api/my-itineraries", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Profile API Response:", data);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        console.log("Profile user itineraries API Response:", userData);
 
-        let userItinerariesFromDB = [];
+        let userItineraryIds = [];
 
-        if (data.ok && Array.isArray(data.itineraries)) {
-          userItinerariesFromDB = data.itineraries;
-        } else {
-          console.error("Unexpected API response structure:", data);
-          userItinerariesFromDB = [];
+        if (userData.ok && Array.isArray(userData.itineraries)) {
+          userItineraryIds = userData.itineraries.map(it => it.id);
         }
 
-        // Process and normalize itinerary data for consistent display
-        const processedItineraries = userItinerariesFromDB.map((itinerary) => ({
-          ...itinerary,
-          tags: processTags(itinerary.tags),
-          title: itinerary.title || "Untitled Itinerary",
-          description: itinerary.description || "",
-          duration: itinerary.duration || "1 day",
-          price: itinerary.price || "$$",
-          rating: itinerary.rating || 0,
-          destinations: itinerary.destinations || [],
-          createdBy:
-            itinerary.createdBy || itinerary.authorid || user?.id || "unknown",
-        }));
+        // Then get all itineraries for complete data
+        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
 
-        console.log(
-          "User itineraries loaded for profile:",
-          processedItineraries
-        );
-        setUserItineraries(processedItineraries);
+        if (allResponse.ok) {
+          const allData = await allResponse.json();
+          console.log("Profile all itineraries API Response:", allData);
+
+          let allItinerariesFromDB = [];
+
+          // Handle different API response structures
+          if (Array.isArray(allData)) {
+            allItinerariesFromDB = allData;
+          } else if (allData && Array.isArray(allData.itineraries)) {
+            allItinerariesFromDB = allData.itineraries;
+          } else if (allData && Array.isArray(allData.data)) {
+            allItinerariesFromDB = allData.data;
+          }
+
+          // Filter to user's itineraries
+          const userItinerariesFromDB = allItinerariesFromDB.filter(it =>
+            userItineraryIds.includes(it.id)
+          );
+
+          // Process with complete data including ratings
+          const processedItineraries = userItinerariesFromDB.map((itinerary) => ({
+            ...itinerary,
+            tags: processTags(itinerary.tags),
+            destinations: processDestinations(itinerary.destinations),
+            title: itinerary.title || "Untitled Itinerary",
+            description: itinerary.description || "",
+            duration: itinerary.duration || "1 day",
+            price: itinerary.price || "$$",
+            rating: parseFloat(itinerary.rating) || 0,
+            createdBy: itinerary.authorid || user?.id || "unknown",
+            authorid: itinerary.authorid,
+            authorname: itinerary.authorname || "Unknown",
+          }));
+
+          console.log("User itineraries loaded for profile with ratings:", processedItineraries);
+          setUserItineraries(processedItineraries);
+        }
       }
     } catch (error) {
       console.error("Error loading user itineraries for profile:", error);
@@ -112,48 +175,73 @@ const UserProfilePage = ({
     }
   };
 
-  // Fetch user's saved itineraries
+  // Fetch user's saved itineraries with complete data
   const loadSavedItineraries = async () => {
     try {
       console.log("Fetching saved itineraries for profile:", user?.id);
 
-      const response = await fetch("http://localhost:3000/api/my-saved-itineraries", {
+      // First get saved itinerary IDs
+      const savedResponse = await fetch("http://localhost:3000/api/my-saved-itineraries", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Saved itineraries API Response:", data);
+      if (savedResponse.ok) {
+        const savedData = await savedResponse.json();
+        console.log("Profile saved itineraries API Response:", savedData);
 
-        let savedItinerariesFromDB = [];
+        let savedItineraryIds = [];
 
-        if (data.ok && Array.isArray(data.itineraries)) {
-          savedItinerariesFromDB = data.itineraries;
-        } else {
-          console.error("Unexpected saved itineraries response structure:", data);
-          savedItinerariesFromDB = [];
+        if (savedData.ok && Array.isArray(savedData.itineraries)) {
+          savedItineraryIds = savedData.itineraries.map(it => it.id);
         }
 
-        // Process and normalize saved itinerary data
-        const processedSavedItineraries = savedItinerariesFromDB.map((itinerary) => ({
-          ...itinerary,
-          tags: processTags(itinerary.tags),
-          title: itinerary.title || "Untitled Itinerary",
-          description: itinerary.description || "",
-          duration: itinerary.duration || "1 day",
-          price: itinerary.price || "$$",
-          rating: itinerary.rating || 0,
-          destinations: itinerary.destinations || [],
-          createdBy: itinerary.authorid || "unknown",
-        }));
+        // Then get all itineraries for complete data
+        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
 
-        console.log(
-          "Saved itineraries loaded for profile:",
-          processedSavedItineraries
-        );
-        setSavedItineraries(processedSavedItineraries);
+        if (allResponse.ok) {
+          const allData = await allResponse.json();
+          console.log("Profile all itineraries for saved API Response:", allData);
+
+          let allItinerariesFromDB = [];
+
+          // Handle different API response structures
+          if (Array.isArray(allData)) {
+            allItinerariesFromDB = allData;
+          } else if (allData && Array.isArray(allData.itineraries)) {
+            allItinerariesFromDB = allData.itineraries;
+          } else if (allData && Array.isArray(allData.data)) {
+            allItinerariesFromDB = allData.data;
+          }
+
+          // Filter to saved itineraries
+          const savedItinerariesFromDB = allItinerariesFromDB.filter(it =>
+            savedItineraryIds.includes(it.id)
+          );
+
+          // Process with complete data including ratings
+          const processedSavedItineraries = savedItinerariesFromDB.map((itinerary) => ({
+            ...itinerary,
+            tags: processTags(itinerary.tags),
+            destinations: processDestinations(itinerary.destinations),
+            title: itinerary.title || "Untitled Itinerary",
+            description: itinerary.description || "",
+            duration: itinerary.duration || "1 day",
+            price: itinerary.price || "$$",
+            rating: parseFloat(itinerary.rating) || 0,
+            createdBy: itinerary.authorid || "unknown",
+            authorid: itinerary.authorid,
+            authorname: itinerary.authorname || "Unknown",
+          }));
+
+          console.log("Saved itineraries loaded for profile with ratings:", processedSavedItineraries);
+          setSavedItineraries(processedSavedItineraries);
+        }
       }
     } catch (error) {
       console.error("Error loading saved itineraries for profile:", error);
@@ -186,9 +274,24 @@ const UserProfilePage = ({
     }
   };
 
+  // Handler for viewing itinerary 
   const handleViewItinerary = (itinerary) => {
+    console.log("Viewing itinerary from profile page:", itinerary);
     if (onViewItinerary) {
-      onViewItinerary(itinerary);
+      // Ensure we pass the complete itinerary object with all processed data
+      onViewItinerary({
+        ...itinerary,
+        // Make sure we have the essential fields
+        title: itinerary.title || "Untitled Itinerary",
+        description: itinerary.description || "",
+        duration: itinerary.duration || "1 day",
+        price: itinerary.price || "$$",
+        rating: itinerary.rating || 0,
+        tags: Array.isArray(itinerary.tags) ? itinerary.tags : [],
+        destinations: Array.isArray(itinerary.destinations) ? itinerary.destinations : [],
+        authorid: itinerary.authorid,
+        authorname: itinerary.authorname || "Unknown",
+      });
     }
   };
 
@@ -272,6 +375,7 @@ const UserProfilePage = ({
         onNavigateToCreated={onNavigateToCreated}
         onNavigateToSaved={onNavigateToSaved}
         onNavigateToCompleted={onNavigateToCompleted}
+        onRateItinerary={onRateItinerary}
       />
     </div>
   );

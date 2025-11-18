@@ -7,10 +7,14 @@ import "./Sidebar.css";
 function Sidebar({
   onCreateNew,
   onViewItinerary,
+  onItineraryClick,
   itineraries = [],
   isLoading = false,
   currentUser,
   onRateItinerary,
+  title = "Itineraries",
+  showCreateNew = true,
+  placeholder = "Search itineraries...",
 }) {
   // State for search, filter modal, and filter criteria
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,8 +75,12 @@ function Sidebar({
   };
 
   // Handle clicking on an itinerary card
-  const handleItineraryClick = (itineraryId) => {
-    if (onViewItinerary) {
+  const handleItineraryCardClick = (itineraryId) => {
+    if (onItineraryClick) {
+      // Use custom click handler if provided by the page
+      onItineraryClick(itineraryId);
+    } else if (onViewItinerary) {
+      // Fallback to the original behavior
       const safeItineraries = Array.isArray(itineraries) ? itineraries : [];
       const itinerary = safeItineraries.find((item) => item.id === itineraryId);
       onViewItinerary(itinerary);
@@ -244,27 +252,29 @@ function Sidebar({
   return (
     <div className="sidebar">
       {/* Main sidebar header */}
-      <h1>Itineraries</h1>
+      <h1>{title}</h1>
 
       {/* Create new itinerary button */}
-      <h2
-        className="create-new-header"
-        onClick={onCreateNew}
-        style={{ cursor: "pointer" }}
-      >
-        Create New
-      </h2>
+      {showCreateNew && (
+        <h2
+          className="create-new-header"
+          onClick={onCreateNew}
+          style={{ cursor: "pointer" }}
+        >
+          Create New
+        </h2>
+      )}
 
       {/* Search and filter controls */}
       <div className="search-filter">
         <input
           type="text"
-          placeholder="Search itineraries..."
+          placeholder={placeholder}
           value={searchTerm}
           onChange={handleSearch}
         />
         <button onClick={handleFilterClick}>
-          Filter
+          Filter {hasActiveFilters && "•"}
         </button>
       </div>
 
@@ -297,7 +307,7 @@ function Sidebar({
                 tags={itinerary.tags}
                 duration={itinerary.duration}
                 price={itinerary.price}
-                onClick={handleItineraryClick}
+                onClick={handleItineraryCardClick}
                 createdBy={itinerary.createdBy}
                 currentUser={currentUser}
                 onRateItinerary={onRateItinerary}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
-import ItineraryCard from "../HomePage/ItineraryCard";
+import Sidebar from "../HomePage/Sidebar";
 import "../HomePage/HomePage.css";
 import "./CreatedItinerariesPage.css";
 
@@ -18,6 +18,7 @@ function CreatedItinerariesPage({
   onNavigateToCreated,
   onNavigateToCompleted,
   showError,
+  onRateItinerary,
 }) {
   const [selectedDestinations, setSelectedDestinations] = useState([]);
   const [userItineraries, setUserItineraries] = useState([]);
@@ -44,6 +45,38 @@ function CreatedItinerariesPage({
     return [];
   };
 
+  // Process destinations like HomePage does
+  const processDestinations = (destinations) => {
+    if (!destinations) return [];
+
+    let processedDestinations = [];
+
+    if (Array.isArray(destinations)) {
+      processedDestinations = destinations.map(dest => ({
+        ...dest,
+        lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+        lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+        id: dest.id || Math.random().toString(36).substr(2, 9)
+      }));
+    } else if (typeof destinations === 'string') {
+      try {
+        const parsed = JSON.parse(destinations);
+        if (Array.isArray(parsed)) {
+          processedDestinations = parsed.map(dest => ({
+            ...dest,
+            lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+            lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+            id: dest.id || Math.random().toString(36).substr(2, 9)
+          }));
+        }
+      } catch (e) {
+        console.warn("Failed to parse destinations:", e);
+      }
+    }
+
+    return processedDestinations;
+  };
+
   // Load user's created itineraries on component mount
   useEffect(() => {
     loadUserItineraries();
@@ -55,46 +88,110 @@ function CreatedItinerariesPage({
     try {
       console.log("Fetching user itineraries for user:", user?.id);
 
-      const response = await fetch("http://localhost:3000/api/my-itineraries", {
+      // get the user's itinerary IDs
+      const userResponse = await fetch("http://localhost:3000/api/my-itineraries", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("API Response for user itineraries:", data);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        console.log("User itineraries API Response:", userData);
 
-        let userItinerariesFromDB = [];
+        let userItineraryIds = [];
 
-        if (data.ok && Array.isArray(data.itineraries)) {
-          userItinerariesFromDB = data.itineraries;
+        if (userData.ok && Array.isArray(userData.itineraries)) {
+          userItineraryIds = userData.itineraries.map(it => it.id);
         } else {
-          console.error("Unexpected API response structure:", data);
-          userItinerariesFromDB = [];
+          console.error("Unexpected API response structure:", userData);
+          userItineraryIds = [];
         }
 
-        // Process and format itinerary data for display
-        const processedItineraries = userItinerariesFromDB.map((itinerary) => ({
-          ...itinerary,
-          tags: processTags(itinerary.tags),
-          title: itinerary.title || "Untitled Itinerary",
-          description: itinerary.description || "",
-          duration: itinerary.duration || "1 day",
-          price: itinerary.price || "$$",
-          rating: itinerary.rating || 0,
-          destinations: itinerary.destinations || [],
-          createdBy: itinerary.authorid,
-          authorid: itinerary.authorid,
-        }));
+        // fetch all itineraries to get complete data including ratings
+        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
 
-        console.log("User itineraries loaded from database:", processedItineraries);
-        setUserItineraries(processedItineraries);
+        if (allResponse.ok) {
+          const allData = await allResponse.json();
+          console.log("All itineraries API Response:", allData);
+
+          let allItinerariesFromDB = [];
+
+          // Handle different API response structures
+          if (Array.isArray(allData)) {
+            allItinerariesFromDB = allData;
+          } else if (allData && Array.isArray(allData.itineraries)) {
+            allItinerariesFromDB = allData.itineraries;
+          } else if (allData && Array.isArray(allData.data)) {
+            allItinerariesFromDB = allData.data;
+          } else {
+            console.error("Unexpected API response structure:", allData);
+            allItinerariesFromDB = [];
+          }
+
+          // Filter to only user's itineraries and process them
+          const userItinerariesFromDB = allItinerariesFromDB.filter(it =>
+            userItineraryIds.includes(it.id)
+          );
+
+          // Process and format itinerary data for display 
+          const processedItineraries = userItinerariesFromDB.map((itinerary) => {
+            // Process destinations to ensure consistent format
+            let processedDestinations = [];
+            if (itinerary.destinations) {
+              if (Array.isArray(itinerary.destinations)) {
+                processedDestinations = itinerary.destinations.map(dest => ({
+                  ...dest,
+                  lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+                  lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+                  id: dest.id || Math.random().toString(36).substr(2, 9)
+                }));
+              } else if (typeof itinerary.destinations === 'string') {
+                try {
+                  const parsed = JSON.parse(itinerary.destinations);
+                  if (Array.isArray(parsed)) {
+                    processedDestinations = parsed.map(dest => ({
+                      ...dest,
+                      lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+                      lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+                      id: dest.id || Math.random().toString(36).substr(2, 9)
+                    }));
+                  }
+                } catch (e) {
+                  console.warn("Failed to parse destinations:", e);
+                }
+              }
+            }
+
+            // Ensure rating is properly parsed as a number
+            const ratingValue = parseFloat(itinerary.rating) || 0;
+
+            return {
+              ...itinerary,
+              tags: processTags(itinerary.tags),
+              title: itinerary.title || "Untitled Itinerary",
+              description: itinerary.description || "",
+              duration: itinerary.duration || "1 day",
+              price: itinerary.price || "$$",
+              rating: ratingValue,
+              destinations: processedDestinations,
+              createdBy: itinerary.authorid,
+              authorid: itinerary.authorid,
+            };
+          });
+
+          console.log("Processed user itineraries with ratings:", processedItineraries);
+          setUserItineraries(processedItineraries);
+        } else {
+          console.error("Failed to fetch all itineraries");
+          setUserItineraries([]);
+        }
       } else {
-        console.error(
-          "Failed to fetch user itineraries from server, status:",
-          response.status
-        );
+        console.error("Failed to fetch user itineraries from server");
         setUserItineraries([]);
         if (showError) {
           showError("Failed to load your itineraries from server.");
@@ -120,7 +217,7 @@ function CreatedItinerariesPage({
 
   // Handler for viewing itinerary details
   const handleViewItinerary = (itinerary) => {
-    console.log("Viewing itinerary:", itinerary);
+    console.log("Viewing itinerary from created page:", itinerary);
     if (onViewItinerary) {
       onViewItinerary(itinerary);
     }
@@ -138,350 +235,12 @@ function CreatedItinerariesPage({
 
   // Handler for clicking on itinerary card
   const handleItineraryClick = (itineraryId) => {
+    console.log("Itinerary clicked in created page:", itineraryId);
     const itinerary = userItineraries.find((item) => item.id === itineraryId);
-    if (itinerary) {
-      handleViewItinerary(itinerary);
+    if (itinerary && onViewItinerary) {
+      console.log("Found itinerary to view:", itinerary);
+      onViewItinerary(itinerary);
     }
-  };
-
-  // Sidebar component for displaying user's itineraries
-  const CreatedItinerariesSidebar = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showFilterModal, setShowFilterModal] = useState(false);
-    const [filters, setFilters] = useState({
-      minRating: 0,
-      tags: [],
-      maxDuration: "",
-      maxPrice: "",
-    });
-
-    // Search handler
-    const handleSearch = (e) => {
-      setSearchTerm(e.target.value);
-    };
-
-    // Filter modal handlers
-    const handleFilterClick = () => {
-      setShowFilterModal(true);
-    };
-
-    const handleApplyFilters = (newFilters) => {
-      setFilters(newFilters);
-      setShowFilterModal(false);
-    };
-
-    const handleCloseFilter = () => {
-      setShowFilterModal(false);
-    };
-
-    const handleClearFilters = () => {
-      setFilters({
-        minRating: 0,
-        tags: [],
-        maxDuration: "",
-        maxPrice: "",
-      });
-    };
-
-    // Utility functions for filtering
-    const durationToHours = (duration) => {
-      if (!duration) return 0;
-      if (typeof duration !== "string") return 0;
-
-      const durationLower = duration.toLowerCase();
-
-      // Extract numbers from duration string
-      const hoursMatch = durationLower.match(/(\d+)\s*hour/);
-      const daysMatch = durationLower.match(/(\d+)\s*day/);
-
-      if (hoursMatch) {
-        return parseInt(hoursMatch[1]) || 0;
-      }
-      if (daysMatch) {
-        return (parseInt(daysMatch[1]) || 1) * 24;
-      }
-
-      // Default fallback
-      return durationLower.includes("day") ? 24 : 2;
-    };
-
-    const priceToNumber = (price) => {
-      if (!price) return 0;
-      if (typeof price !== "string") return 0;
-
-      // Count the $ symbols
-      const dollarCount = (price.match(/\$/g) || []).length;
-      return dollarCount;
-    };
-
-    // duration comparison function
-    const compareDurations = (itineraryDuration, filterDuration) => {
-      if (!filterDuration) return true;
-
-      const itineraryHours = durationToHours(itineraryDuration);
-      const filterHours = durationToHours(filterDuration);
-
-      return itineraryHours <= filterHours;
-    };
-
-    // price comparison function
-    const comparePrices = (itineraryPrice, filterPrice) => {
-      if (!filterPrice) return true;
-
-      const itineraryPriceValue = priceToNumber(itineraryPrice);
-      const filterPriceValue = priceToNumber(filterPrice);
-
-      return itineraryPriceValue <= filterPriceValue;
-    };
-
-    // Filter itineraries based on search and filter criteria
-    const filteredItineraries = (
-      Array.isArray(userItineraries) ? userItineraries : []
-    ).filter((itinerary) => {
-      if (!itinerary || typeof itinerary !== "object") {
-        return false;
-      }
-
-      const matchesSearch =
-        searchTerm === "" ||
-        (itinerary.title &&
-          itinerary.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (itinerary.description &&
-          itinerary.description.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      const matchesRating = (itinerary.rating || 0) >= (filters.minRating || 0);
-
-      const itineraryTags = Array.isArray(itinerary.tags) ? itinerary.tags : [];
-      const filterTags = Array.isArray(filters.tags) ? filters.tags : [];
-      const matchesTags =
-        filterTags.length === 0 ||
-        filterTags.some((tag) => itineraryTags.includes(tag));
-
-      const matchesDuration = compareDurations(itinerary.duration, filters.maxDuration);
-      const matchesPrice = comparePrices(itinerary.price, filters.maxPrice);
-
-      return (
-        matchesSearch &&
-        matchesRating &&
-        matchesTags &&
-        matchesDuration &&
-        matchesPrice
-      );
-    });
-
-    const hasActiveFilters =
-      filters.minRating > 0 ||
-      (filters.tags && filters.tags.length > 0) ||
-      filters.maxDuration ||
-      filters.maxPrice;
-
-    return (
-      <div className="sidebar">
-        <h1>My Created Itineraries</h1>
-
-        {/* Create new itinerary header */}
-        <h2
-          className="create-new-header"
-          onClick={handleCreateNew}
-          style={{ cursor: "pointer" }}
-        >
-          Create New
-        </h2>
-
-        {/* Search and filter controls */}
-        <div className="search-filter">
-          <input
-            type="text"
-            placeholder="Search my itineraries..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <button onClick={handleFilterClick}>
-            Filter {hasActiveFilters && "•"}
-          </button>
-        </div>
-
-        {/* Clear filters button */}
-        {hasActiveFilters && (
-          <button className="clear-filters-btn" onClick={handleClearFilters}>
-            Clear Filters
-          </button>
-        )}
-
-        {/* Itineraries list or loading/empty states */}
-        {isLoading ? (
-          <div className="no-results">Loading your itineraries...</div>
-        ) : filteredItineraries.length === 0 ? (
-          <div className="no-results">
-            {userItineraries.length === 0
-              ? "You haven't created any itineraries yet."
-              : "No itineraries match your search or filters."}
-            <br />
-            {userItineraries.length === 0 && (
-              <span style={{ fontSize: "0.9rem", opacity: 0.8 }}>
-                Create your first itinerary to see it here!
-              </span>
-            )}
-          </div>
-        ) : (
-          // Display filtered itineraries using ItineraryCard component
-          filteredItineraries.map((itinerary) => (
-            <ItineraryCard
-              key={itinerary.id}
-              itineraryId={itinerary.id}
-              title={itinerary.title}
-              rating={itinerary.rating}
-              description={itinerary.description}
-              tags={itinerary.tags}
-              duration={itinerary.duration}
-              price={itinerary.price}
-              onClick={handleItineraryClick}
-              createdBy={itinerary.createdBy}
-              currentUser={user}
-            />
-          ))
-        )}
-
-        {/* Filter modal */}
-        {showFilterModal && (
-          <div className="filter-modal-overlay">
-            <div className="filter-modal">
-              <div className="filter-modal-header">
-                <h3>Filter My Itineraries</h3>
-                <button className="close-btn" onClick={handleCloseFilter}>
-                  ×
-                </button>
-              </div>
-
-              <div className="filter-sections">
-                {/* Rating Filter Section */}
-                <div className="filter-section">
-                  <label>Minimum Rating</label>
-                  <div className="rating-filter">
-                    {[0, 1, 2, 3, 4, 5].map((rating) => (
-                      <button
-                        key={rating}
-                        className={`rating-option ${filters.minRating === rating ? "active" : ""
-                          }`}
-                        onClick={() =>
-                          setFilters((prev) => ({ ...prev, minRating: rating }))
-                        }
-                      >
-                        {rating === 0 ? "Any" : `${rating}+`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tags Filter Section */}
-                <div className="filter-section">
-                  <label>Tags</label>
-                  <div className="tags-filter">
-                    {[
-                      "park",
-                      "outdoors",
-                      "family",
-                      "food",
-                      "cultural",
-                      "walking",
-                      "museums",
-                      "educational",
-                      "indoor",
-                    ].map((tag) => (
-                      <button
-                        key={tag}
-                        className={`tag-option ${(filters.tags || []).includes(tag) ? "active" : ""
-                          }`}
-                        onClick={() => {
-                          const currentTags = filters.tags || [];
-                          const newTags = currentTags.includes(tag)
-                            ? currentTags.filter((t) => t !== tag)
-                            : [...currentTags, tag];
-                          setFilters((prev) => ({ ...prev, tags: newTags }));
-                        }}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Duration Filter Section */}
-                <div className="filter-section">
-                  <label>Maximum Duration</label>
-                  <div className="duration-filter">
-                    {[
-                      { value: "", label: "Any Duration" },
-                      { value: "2 hours", label: "2 hours" },
-                      { value: "4 hours", label: "4 hours" },
-                      { value: "6 hours", label: "6 hours" },
-                      { value: "1 day", label: "1 day" },
-                      { value: "2 days", label: "2 days" },
-                      { value: "3+ days", label: "3+ days" },
-                    ].map((option) => (
-                      <button
-                        key={option.value || "any"}
-                        className={`duration-option ${filters.maxDuration === option.value ? "active" : ""
-                          }`}
-                        onClick={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            maxDuration: option.value,
-                          }))
-                        }
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Price Filter Section */}
-                <div className="filter-section">
-                  <label>Maximum Price</label>
-                  <div className="price-filter">
-                    {[
-                      { value: "", label: "Any Price" },
-                      { value: "$", label: "$ - Budget" },
-                      { value: "$$", label: "$$ - Moderate" },
-                      { value: "$$$", label: "$$$ - Expensive" },
-                      { value: "$$$$", label: "$$$$ - Luxury" },
-                    ].map((option) => (
-                      <button
-                        key={option.value || "any"}
-                        className={`price-option ${filters.maxPrice === option.value ? "active" : ""
-                          }`}
-                        onClick={() =>
-                          setFilters((prev) => ({
-                            ...prev,
-                            maxPrice: option.value,
-                          }))
-                        }
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Filter modal action buttons */}
-              <div className="filter-modal-actions">
-                <button className="reset-btn" onClick={handleClearFilters}>
-                  Reset All
-                </button>
-                <button
-                  className="apply-btn"
-                  onClick={() => handleApplyFilters(filters)}
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   // Main page layout
@@ -502,7 +261,18 @@ function CreatedItinerariesPage({
       </div>
 
       <div className="sidebar-container">
-        <CreatedItinerariesSidebar />
+        <Sidebar
+          title="My Created Itineraries"
+          placeholder="Search my itineraries..."
+          itineraries={userItineraries}
+          isLoading={isLoading}
+          currentUser={user}
+          onRateItinerary={onRateItinerary}
+          onViewItinerary={onViewItinerary}
+          onCreateNew={handleCreateNew}
+          onItineraryClick={handleItineraryClick}
+          showCreateNew={true}
+        />
       </div>
     </div>
   );

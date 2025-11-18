@@ -73,7 +73,7 @@ function HomePage({
     total_rating
   ) => {
     if (ratedMap[itineraryId]) {
-      showError?.("You’ve already rated this itinerary", "info");
+      showError?.("You've already rated this itinerary", "info");
       return;
     }
 
@@ -111,13 +111,11 @@ function HomePage({
           // Server says already rated → lock locally too
           markRatedLocal(user?.id, itineraryId);
           setRatedMap((m) => ({ ...m, [itineraryId]: true }));
-          showError?.("You’ve already rated this itinerary.", "info");
+          showError?.("You've already rated this itinerary.", "info");
           return;
         }
         showError?.(
-          `Failed to submit rating (${res.status}). ${
-            msg || "Please try again."
-          }`,
+          `Failed to submit rating (${res.status}). ${msg || "Please try again."}`,
           "error"
         );
         return;
@@ -147,9 +145,6 @@ function HomePage({
     setIsLoading(true);
     try {
       console.log("=== DEBUG: Loading itineraries ===");
-      console.log("Current user state:", user);
-      console.log("User ID:", user?.id);
-      console.log("Is user logged in?", !!user);
 
       const response = await fetch("http://localhost:3000/api/itineraries", {
         method: "GET",
@@ -177,39 +172,56 @@ function HomePage({
           itinerariesFromDB = [];
         }
 
-        console.log("=== DEBUG: Raw itineraries from DB ===");
-        itinerariesFromDB.forEach((it, index) => {
-          console.log(`Itinerary ${index}:`, {
-            id: it.id,
-            title: it.title,
-            authorid: it.authorid,
-            createdBy: it.createdBy,
-            hasAuthorId: !!it.authorid,
-            hasCreatedBy: !!it.createdBy,
-          });
+        // Process and format itinerary data with proper destination handling
+        const processedItineraries = itinerariesFromDB.map((itinerary) => {
+          // Process destinations to ensure consistent format
+          let processedDestinations = [];
+          if (itinerary.destinations) {
+            if (Array.isArray(itinerary.destinations)) {
+              processedDestinations = itinerary.destinations.map(dest => ({
+                ...dest,
+                lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+                lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+                id: dest.id || Math.random().toString(36).substr(2, 9)
+              }));
+            } else if (typeof itinerary.destinations === 'string') {
+              try {
+                const parsed = JSON.parse(itinerary.destinations);
+                if (Array.isArray(parsed)) {
+                  processedDestinations = parsed.map(dest => ({
+                    ...dest,
+                    lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+                    lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+                    id: dest.id || Math.random().toString(36).substr(2, 9)
+                  }));
+                }
+              } catch (e) {
+                console.warn("Failed to parse destinations:", e);
+              }
+            }
+          }
+
+          return {
+            ...itinerary,
+            tags: processTags(itinerary.tags),
+            title: itinerary.title || "Untitled Itinerary",
+            description: itinerary.description || "No description",
+            duration: itinerary.duration || "1 day",
+            price: itinerary.price || "$$",
+            rating: itinerary.rating || 0,
+            destinations: processedDestinations, // Use processed destinations
+            createdBy: itinerary.authorid,
+            authorid: itinerary.authorid,
+          };
         });
 
-        // Process and format itinerary data
-        const processedItineraries = itinerariesFromDB.map((itinerary) => ({
-          ...itinerary,
-          tags: processTags(itinerary.tags),
-          title: itinerary.title || "Untitled Itinerary",
-          description: itinerary.description || "No description",
-          duration: itinerary.duration || "1 day",
-          price: itinerary.price || "$$",
-          rating: itinerary.rating || 0,
-          destinations: itinerary.destinations || [],
-          createdBy: itinerary.authorid,
-          authorid: itinerary.authorid,
-        }));
-
-        console.log("=== DEBUG: Processed itineraries ===");
+        console.log("=== DEBUG: Processed itineraries with destinations ===");
         processedItineraries.forEach((it, index) => {
           console.log(`Processed ${index}:`, {
             id: it.id,
             title: it.title,
-            createdBy: it.createdBy,
-            authorid: it.authorid,
+            destinationsCount: it.destinations.length,
+            destinations: it.destinations
           });
         });
 
@@ -259,6 +271,16 @@ function HomePage({
     }
   };
 
+  // Handler for clicking on itinerary card
+  const handleItineraryClick = (itineraryId) => {
+    console.log("Itinerary clicked in homepage:", itineraryId);
+    const itinerary = allItineraries.find((item) => item.id === itineraryId);
+    if (itinerary && onViewItinerary) {
+      console.log("Found itinerary to view:", itinerary);
+      onViewItinerary(itinerary);
+    }
+  };
+
   // Load itineraries on component mount
   useEffect(() => {
     loadItineraries();
@@ -287,12 +309,16 @@ function HomePage({
       <div className="sidebar-container">
         {/* Sidebar with itinerary listings and actions */}
         <Sidebar
-          onCreateNew={handleCreateNew}
-          onViewItinerary={handleViewItinerary}
+          title="Itineraries"
+          placeholder="Search itineraries..."
           itineraries={allItineraries}
           isLoading={isLoading}
           currentUser={user}
           onRateItinerary={handleRateItinerary}
+          onViewItinerary={handleViewItinerary}
+          onCreateNew={handleCreateNew}
+          onItineraryClick={handleItineraryClick}
+          showCreateNew={true}
         />
       </div>
     </div>

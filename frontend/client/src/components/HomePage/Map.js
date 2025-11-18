@@ -1,8 +1,45 @@
-// Map.js
+// Map.js - Update the toArray function and add better destination processing
 import React, { useState, useEffect } from "react";
 import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import "./Map.css";
 
+// Enhanced destination processing function
+const processDestinationsForMap = (destinations) => {
+  if (!destinations) return [];
+
+  let processed = [];
+
+  if (Array.isArray(destinations)) {
+    processed = destinations.map(dest => {
+      // Handle both object format and string format
+      if (typeof dest === 'object' && dest !== null) {
+        return {
+          id: dest.id || dest.place_id || Math.random().toString(36).substr(2, 9),
+          lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+          lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+          name: dest.name || dest.formatted_address || 'Unknown Location',
+          address: dest.address || dest.formatted_address || 'Address not available',
+          rating: dest.rating || null
+        };
+      }
+      return null;
+    }).filter(Boolean);
+  } else if (typeof destinations === 'string') {
+    try {
+      const parsed = JSON.parse(destinations);
+      if (Array.isArray(parsed)) {
+        processed = processDestinationsForMap(parsed);
+      }
+    } catch (e) {
+      console.warn("Failed to parse destinations string:", e);
+    }
+  }
+
+  console.log("Processed destinations for map:", processed);
+  return processed;
+};
+
+// Existing toArray function (keep this for backward compatibility)
 const toArray = (v) => {
   if (Array.isArray(v)) return v;
   if (typeof v === "string") {
@@ -36,11 +73,17 @@ function Map({
   selectedDestinations,
   onUpdateDestination,
   onCancelSelection,
+  isViewMode = false // Add view mode prop
 }) {
   console.log("Map component props:", {
     isSelectingMode,
     selectedDestinationsCount: selectedDestinations?.length,
+    isViewMode,
+    selectedDestinations: selectedDestinations
   });
+
+  // Process destinations for the map
+  const processedDestinations = processDestinationsForMap(selectedDestinations);
 
   return (
     <div className="map-container">
@@ -50,9 +93,10 @@ function Map({
           render(status, {
             onLocationSelect,
             isSelectingMode,
-            selectedDestinations,
+            selectedDestinations: processedDestinations, // Use processed destinations
             onUpdateDestination,
             onCancelSelection,
+            isViewMode
           })
         }
         libraries={["places"]}
@@ -68,6 +112,7 @@ const MapComponent = ({
   selectedDestinations,
   onUpdateDestination,
   onCancelSelection,
+  isViewMode = false
 }) => {
   const ref = React.useRef(null);
   const [map, setMap] = React.useState(null);
@@ -75,14 +120,15 @@ const MapComponent = ({
   const [clickListener, setClickListener] = React.useState(null);
 
   const destinations = React.useMemo(
-    () => toArray(selectedDestinations),
+    () => selectedDestinations || [],
     [selectedDestinations]
   );
 
   console.log("MapComponent state:", {
     isSelectingMode,
-    selectedDestinationsCount: selectedDestinations?.length,
-    selectedDestinationsCount: destinations.length,
+    destinationsCount: destinations.length,
+    destinations: destinations,
+    isViewMode
   });
 
   // Clear all markers from the map
@@ -95,58 +141,58 @@ const MapComponent = ({
   const addDestinationMarker = (destination) => {
     if (!map) return;
 
+    console.log("Adding marker for destination:", destination);
+
     const marker = new window.google.maps.Marker({
       position: { lat: destination.lat, lng: destination.lng },
       map: map,
       title: destination.name,
-      draggable: true,
+      draggable: isViewMode, // Only draggable in view mode for editing
       icon: {
         url:
           "data:image/svg+xml;base64," +
           btoa(`
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-                        <path fill="#E71D36" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                    </svg>
-                `),
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+              <path fill="#E71D36" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          `),
         scaledSize: new window.google.maps.Size(32, 32),
       },
     });
 
-    // Handle marker dragging to update location
-    marker.addListener("dragend", (e) => {
-      const newLat = e.latLng.lat();
-      const newLng = e.latLng.lng();
+    // Handle marker dragging to update location (only in view mode)
+    if (isViewMode && onUpdateDestination) {
+      marker.addListener("dragend", (e) => {
+        const newLat = e.latLng.lat();
+        const newLng = e.latLng.lng();
 
-      console.log("Marker dragged to:", newLat, newLng);
-      console.log("Original destination name:", destination.name);
+        console.log("Marker dragged to:", newLat, newLng);
+        console.log("Original destination name:", destination.name);
 
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode(
-        { location: { lat: newLat, lng: newLng } },
-        (results, status) => {
-          if (status === "OK" && results[0]) {
-            const newAddress = results[0].formatted_address;
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode(
+          { location: { lat: newLat, lng: newLng } },
+          (results, status) => {
+            if (status === "OK" && results[0]) {
+              const newAddress = results[0].formatted_address;
 
-            console.log("Updated location - preserving name:", {
-              preservedName: destination.name,
-              newAddress,
-              newLat,
-              newLng,
-            });
+              console.log("Updated location - preserving name:", {
+                preservedName: destination.name,
+                newAddress,
+                newLat,
+                newLng,
+              });
 
-            if (onUpdateDestination) {
               onUpdateDestination(destination.id, {
                 lat: newLat,
                 lng: newLng,
                 address: newAddress,
               });
-            }
-          } else {
-            console.log(
-              "Geocoding failed, using coordinates - preserving name:",
-              destination.name
-            );
-            if (onUpdateDestination) {
+            } else {
+              console.log(
+                "Geocoding failed, using coordinates - preserving name:",
+                destination.name
+              );
               onUpdateDestination(destination.id, {
                 lat: newLat,
                 lng: newLng,
@@ -154,19 +200,19 @@ const MapComponent = ({
               });
             }
           }
-        }
-      );
-    });
+        );
+      });
+    }
 
     // Add info window for marker details
     const infoWindow = new window.google.maps.InfoWindow({
       content: `
-                <div style="padding: 12px; font-family: Arial, sans-serif; min-width: 200px;">
-                    <h3 style="margin: 0 0 8px 0; color: #71C19D; font-weight: 600; font-size: 14px;">${destination.name}</h3>
-                    <p style="margin: 0; color: #666; font-size: 12px; font-weight: 300;">${destination.address}</p>
-                    <p style="margin: 4px 0 0 0; color: #999; font-size: 11px; font-weight: 300; font-style: italic;">Drag to move this marker</p>
-                </div>
-            `,
+        <div style="padding: 12px; font-family: Arial, sans-serif; min-width: 200px;">
+          <h3 style="margin: 0 0 8px 0; color: #71C19D; font-weight: 600; font-size: 14px;">${destination.name}</h3>
+          <p style="margin: 0; color: #666; font-size: 12px; font-weight: 300;">${destination.address}</p>
+          ${isViewMode ? '<p style="margin: 4px 0 0 0; color: #999; font-size: 11px; font-weight: 300; font-style: italic;">Drag to move this marker</p>' : ''}
+        </div>
+      `,
     });
 
     marker.addListener("click", () => {
@@ -196,10 +242,10 @@ const MapComponent = ({
           url:
             "data:image/svg+xml;base64," +
             btoa(`
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-                            <path fill="#E71D36" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                        </svg>
-                    `),
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <path fill="#E71D36" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+            `),
           scaledSize: new window.google.maps.Size(32, 32),
         },
       });
@@ -324,7 +370,7 @@ const MapComponent = ({
   React.useEffect(() => {
     if (!map) return;
 
-    console.log("Updating markers for destinations:", selectedDestinations);
+    console.log("Updating markers for destinations:", destinations);
 
     clearMarkers();
 
@@ -355,8 +401,12 @@ const MapComponent = ({
         });
         map.setZoom(14);
       }
+    } else {
+      // Reset to default view if no destinations
+      map.setCenter({ lat: 40.7831, lng: -73.9712 });
+      map.setZoom(12);
     }
-  }, [destinations, map, onUpdateDestination]);
+  }, [destinations, map, onUpdateDestination, isViewMode]);
 
   return (
     <div className="map-component-wrapper">

@@ -92,18 +92,25 @@ function ItineraryCard({
   // Handle star rating click
   const handleRate = async (e, newRating) => {
     e.stopPropagation();
-    console.log("Rating clicked:", { itineraryId, newRating, canRate });
+    console.log("Rating clicked in ItineraryCard:", {
+      itineraryId,
+      newRating,
+      canRate,
+      currentUser: currentUser?.id,
+      createdBy,
+      onRateItinerary: !!onRateItinerary
+    });
 
     if (!canRate) {
-      console.log(
-        "Cannot rate - user created this itinerary or already rated or not logged in"
-      );
+      console.log("Cannot rate - user created this itinerary or already rated or not logged in");
       return;
     }
 
     if (onRateItinerary) {
       try {
+        console.log("Calling onRateItinerary...");
         const res = await onRateItinerary(itineraryId, newRating);
+        console.log("Rating response:", res);
         // If the shared handler returns an object with ok:true, treat as success
         if (res && res.ok) {
           markRatedLocal(currentUser?.id, itineraryId);
@@ -114,6 +121,8 @@ function ItineraryCard({
       } catch (err) {
         console.error("Error rating from card:", err);
       }
+    } else {
+      console.log("No onRateItinerary handler provided");
     }
   };
 

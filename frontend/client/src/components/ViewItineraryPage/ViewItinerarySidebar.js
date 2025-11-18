@@ -1,25 +1,6 @@
+// ViewItinerarySidebar.js 
 import React, { useState, useEffect, useMemo } from "react";
 import "./ViewItinerarySidebar.css";
-import { useFetcher } from "react-router-dom";
-
-const toArray = (v) => {
-  if (Array.isArray(v)) return v;
-  if (typeof v === "string") {
-    let s = v.trim();
-    if (s.startsWith("`") && s.endsWith("`")) s = s.slice(1, -1);
-    try {
-      const p = JSON.parse(s);
-      return Array.isArray(p) ? p : [];
-    } catch {
-      return [];
-    }
-  }
-  return [];
-};
-
-const toNumber = (v, d = 0) => (v == null ? d : Number(v) || d);
-
-
 
 function ViewItinerarySidebar({
   itinerary,
@@ -31,7 +12,6 @@ function ViewItinerarySidebar({
   const [completed, setCompleted] = useState(false);
   const [currentUserRating, setCurrentUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [overallRating, setOverallRating] = useState(0);
 
   const LS_KEY = "rated_itins";
   const getMap = () => JSON.parse(localStorage.getItem(LS_KEY) || "{}");
@@ -49,15 +29,25 @@ function ViewItinerarySidebar({
     setMap(m);
   };
 
-  // Normalize itinerary
+  // Use the itinerary data directly
   const normalized = useMemo(() => {
     if (!itinerary) return null;
+
+    console.log("ViewItinerarySidebar received itinerary:", itinerary);
+
     return {
       ...itinerary,
-      tags: toArray(itinerary.tags),
-      destinations: toArray(itinerary.destinations),
-      overallRating: toNumber(itinerary.rating, 0),
-      userRating: toNumber(itinerary.userRating || 0, 0),
+      tags: Array.isArray(itinerary.tags) ? itinerary.tags : [],
+      destinations: Array.isArray(itinerary.destinations) ? itinerary.destinations : [],
+      title: itinerary.title || "Untitled Itinerary",
+      description: itinerary.description || "No description",
+      duration: itinerary.duration || "1 day",
+      price: itinerary.price || "$$",
+      rating: parseFloat(itinerary.rating) || 0,
+      overallRating: parseFloat(itinerary.rating) || 0,
+      userRating: itinerary.userRating || 0,
+      authorname: itinerary.authorname || "Unknown",
+      authorid: itinerary.authorid,
     };
   }, [itinerary]);
 
@@ -65,7 +55,10 @@ function ViewItinerarySidebar({
   useEffect(() => {
     if (normalized) {
       setCurrentUserRating(normalized.userRating);
-      setOverallRating(normalized.overallRating);
+      console.log("Setting ratings:", {
+        userRating: normalized.userRating,
+        overallRating: normalized.overallRating
+      });
     }
   }, [normalized?.id, normalized?.userRating, normalized?.overallRating]);
 
@@ -110,9 +103,9 @@ function ViewItinerarySidebar({
     price,
     destinations,
     authorid,
+    rating,
+    overallRating,
   } = normalized;
-
-
 
   const isBookmarked = savedIds.includes(id);
 
@@ -124,19 +117,15 @@ function ViewItinerarySidebar({
     !hasRatedLocal(user?.id, id);
   const isAuthor = String(user?.id) === String(authorid);
 
-  // Rating handler that works with parent & local state
+  // Rating handler
   const handleRate = async (rating) => {
     if (!canRate) return;
-    setCurrentUserRating(rating); // immediate local feedback
+    setCurrentUserRating(rating);
     try {
       const updated = await onRateItinerary(id, rating);
       if (updated && updated.ok) {
-        if (updated.overallRating !== undefined)
-          setOverallRating(updated.overallRating);
-        // remember locally that this user has rated
         markRatedLocal(user?.id, id);
       } else if (updated && updated.status === 409) {
-        // server says already rated → mark locally
         markRatedLocal(user?.id, id);
       }
     } catch (err) {
@@ -159,14 +148,11 @@ function ViewItinerarySidebar({
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ saved_itinerary: id }),
-
         });
       } catch (err) {
         console.error(err);
-        alert("Error deleting itinerary");
+        alert("Error saving itinerary");
       }
-
-
     };
 
     return (
@@ -208,19 +194,23 @@ function ViewItinerarySidebar({
     }
   };
 
+  console.log("Rendering ViewItinerarySidebar with:", {
+    destinations,
+    tags,
+    overallRating,
+    currentUserRating,
+    rating
+  });
+
   return (
     <div className="view-itinerary-sidebar">
       <div className="create-header">
-
         <div className="title-row">
           <ItineraryBookmark id={id} initialBookmarked={isBookmarked} />
           <h1 className="itinerary-main-title">{title}</h1>
         </div>
-
         <p className="itinerary-author">Created by: {authorname}</p>
       </div>
-
-
 
       <div className="create-form-card">
         <div className="form-section">
@@ -243,37 +233,33 @@ function ViewItinerarySidebar({
         <div className="form-section">
           <label className="form-label">Rating</label>
           <div className="rating-display">
-            {[1, 2, 3, 4, 5].map((i) => {
-              // Show hover preview first, then the user's own rating if present,
-              // otherwise fall back to the itinerary's overall average (rounded).
-              const overallRounded = Number.isFinite(overallRating)
-                ? Math.round(overallRating)
-                : 0;
-              const displayRating =
-                hoverRating || currentUserRating || overallRounded || 0;
+            {[1, 2, 3, 4, 5].map((star) => {
+              // Use the actual rating from the itinerary
+              const displayRating = hoverRating || currentUserRating || overallRating || rating || 0;
+              const isFilled = star <= displayRating;
+
               return (
                 <span
-                  key={i}
-                  className={`star ${i <= displayRating ? "filled" : ""} ${canRate ? "clickable" : ""
-                    }`}
+                  key={star}
+                  className={`star ${isFilled ? "filled" : ""} ${canRate ? "clickable" : ""}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (canRate) handleRate(i);
+                    if (canRate) handleRate(star);
                   }}
-                  onMouseEnter={() => canRate && setHoverRating(i)}
+                  onMouseEnter={() => canRate && setHoverRating(star)}
                   onMouseLeave={() => canRate && setHoverRating(0)}
                   style={{ cursor: canRate ? "pointer" : "default" }}
                   title={
                     canRate
-                      ? `Rate ${i} star(s)`
-                      : `Overall rating: ${overallRating.toFixed(1)}`
+                      ? `Rate ${star} star(s)`
+                      : `Overall rating: ${(overallRating || rating || 0).toFixed(1)}`
                   }
                 >
                   ★
                 </span>
               );
             })}
-            <span className="rating-text">({overallRating.toFixed(1)}/5)</span>
+            <span className="rating-text">({(overallRating || rating || 0).toFixed(1)}/5)</span>
           </div>
           {canRate && (
             <p className="rating-hint">Click to rate this itinerary</p>

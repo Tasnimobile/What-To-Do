@@ -229,7 +229,7 @@ function App() {
     }
   };
 
-  // Shared handler for rating an itinerary (used by homepage and view-itinerary)
+  // Shared handler for rating an itinerary 
   const handleRateItinerary = async (itineraryId, rating) => {
     try {
       const payload = { id: Number(itineraryId), rating: Number(rating) };
@@ -243,22 +243,27 @@ function App() {
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         console.error("Failed to submit rating:", res.status, text);
-        return null;
+
+        // Return a proper error object that components can handle
+        if (res.status === 409) {
+          return { status: 409, ok: false, message: "Already rated" };
+        }
+        return { ok: false, status: res.status, message: text };
       }
 
       const data = await res.json();
+      console.log("Rating response:", data);
+
       // Return updated rating info to callers so they can update local UI optimistically
       return {
-        overallRating:
-          typeof data.rating === "number" ? data.rating : undefined,
-        ratingCount:
-          typeof data.rating_count === "number" ? data.rating_count : undefined,
-        totalRating:
-          typeof data.total_rating === "number" ? data.total_rating : undefined,
+        ok: true,
+        overallRating: typeof data.rating === "number" ? data.rating : undefined,
+        ratingCount: typeof data.rating_count === "number" ? data.rating_count : undefined,
+        totalRating: typeof data.total_rating === "number" ? data.total_rating : undefined,
       };
     } catch (err) {
       console.error("Error in shared handleRateItinerary:", err);
-      return null;
+      return { ok: false, error: err.message };
     }
   };
 
@@ -312,6 +317,7 @@ function App() {
             onNavigateToSaved={switchToSavedItineraries}
             onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
+            onRateItinerary={handleRateItinerary}
           />
         );
       case "homepage":
@@ -390,6 +396,7 @@ function App() {
             onNavigateToSaved={switchToSavedItineraries}
             onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
+            onRateItinerary={handleRateItinerary}
           />
         );
       case "saved-itineraries":
@@ -405,6 +412,7 @@ function App() {
             onNavigateToCompleted={switchToCompletedItineraries}
             showError={showError}
             onLogout={handleLogout}
+            onRateItinerary={handleRateItinerary}
           />
         );
       case "completed-itineraries":
