@@ -4,7 +4,7 @@ import Header from "./Header";
 import Map from "./Map";
 import Sidebar from "./Sidebar";
 import "./HomePage.css";
-import API_URL from "./config";
+import API_URL from "../../config";
 
 const LS_KEY = "rated_itins";
 const getMap = () => JSON.parse(localStorage.getItem(LS_KEY) || "{}");

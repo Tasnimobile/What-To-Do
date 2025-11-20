@@ -5,7 +5,7 @@ import Map from "../HomePage/Map";
 import Sidebar from "../HomePage/Sidebar";
 import "../HomePage/HomePage.css";
 import "./CreatedItinerariesPage.css";
-import API_URL from "./config";
+import API_URL from "../../config";
 
 function CreatedItinerariesPage({
   onBack,
