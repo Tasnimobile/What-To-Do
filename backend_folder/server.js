@@ -436,7 +436,7 @@ app.post("/api/register", (req, res) => {
       email: newUser.email || null,
       bio: newUser.bio || "",
       display_name: newUser.display_name || newUser.username,
-      saved_itineraries: user.saved_itineraries || "[]",
+      saved_itineraries: newUser.saved_itineraries || "[]",
     },
   });
 });
