@@ -27,6 +27,7 @@ const UserProfilePage = ({
   const [activeTab, setActiveTab] = useState("itineraries");
   const [userItineraries, setUserItineraries] = useState([]);
   const [savedItineraries, setSavedItineraries] = useState([]);
+  const [completedItineraries, setCompletedItineraries] = useState([]);
 
   // Helper to process tags from various formats (array, JSON string, etc.)
   const processTags = (tags) => {
@@ -88,6 +89,7 @@ const UserProfilePage = ({
       setIsLoading(false);
       loadUserItineraries();
       loadSavedItineraries(); // Load saved itineraries
+      loadCompletedItineraries(); // Load completed itineraries
     } else {
       const timer = setTimeout(() => {
         if (!user) {
@@ -248,12 +250,90 @@ const UserProfilePage = ({
     }
   };
 
+  // Load completed itineraries
+  const loadCompletedItineraries = async () => {
+    try {
+      console.log("Fetching completed itineraries for profile:", user?.id);
+
+      // First get completed itinerary IDs
+      const completedResponse = await fetch("http://localhost:3000/api/my-completed-itineraries", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (completedResponse.ok) {
+        const completedData = await completedResponse.json();
+        console.log("Profile completed itineraries API Response:", completedData);
+
+        let completedItineraryIds = [];
+
+        if (completedData.ok && Array.isArray(completedData.itineraries)) {
+          completedItineraryIds = completedData.itineraries.map(it => it.id);
+        }
+
+        // Then get all itineraries for complete data
+        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+
+        if (allResponse.ok) {
+          const allData = await allResponse.json();
+          console.log("Profile all itineraries for completed API Response:", allData);
+
+          let allItinerariesFromDB = [];
+
+          // Handle different API response structures
+          if (Array.isArray(allData)) {
+            allItinerariesFromDB = allData;
+          } else if (allData && Array.isArray(allData.itineraries)) {
+            allItinerariesFromDB = allData.itineraries;
+          } else if (allData && Array.isArray(allData.data)) {
+            allItinerariesFromDB = allData.data;
+          }
+
+          // Filter to completed itineraries
+          const completedItinerariesFromDB = allItinerariesFromDB.filter(it =>
+            completedItineraryIds.includes(it.id)
+          );
+
+          // Process with complete data including ratings
+          const processedCompletedItineraries = completedItinerariesFromDB.map((itinerary) => ({
+            ...itinerary,
+            tags: processTags(itinerary.tags),
+            destinations: processDestinations(itinerary.destinations),
+            title: itinerary.title || "Untitled Itinerary",
+            description: itinerary.description || "",
+            duration: itinerary.duration || "1 day",
+            price: itinerary.price || "$$",
+            rating: parseFloat(itinerary.rating) || 0,
+            createdBy: itinerary.authorid || "unknown",
+            authorid: itinerary.authorid,
+            authorname: itinerary.authorname || "Unknown",
+          }));
+
+          console.log("Completed itineraries loaded for profile with ratings:", processedCompletedItineraries);
+          setCompletedItineraries(processedCompletedItineraries);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading completed itineraries for profile:", error);
+    }
+  };
+
   // Profile editing handlers
   const handleEdit = () => {
     setIsEditing(true);
   };
 
   const handleSave = (updatedUser) => {
+    setIsEditing(false);
+    onUpdate(updatedUser);
+  };
+
+  const handleComplete = (updatedUser) => {
     setIsEditing(false);
     onUpdate(updatedUser);
   };
@@ -361,6 +441,7 @@ const UserProfilePage = ({
         <ProfileStats
           userItineraries={userItineraries}
           savedItineraries={savedItineraries} // Pass saved itineraries
+          completedItineraries={completedItineraries} // Pass completed itineraries
         />
       </div>
 
@@ -370,6 +451,7 @@ const UserProfilePage = ({
         onTabClick={handleTabClick}
         userItineraries={userItineraries}
         savedItineraries={savedItineraries} // Pass saved itineraries
+        completedItineraries={completedItineraries} // Pass completed itineraries
         user={user}
         onViewItinerary={handleViewItinerary}
         onNavigateToCreated={onNavigateToCreated}

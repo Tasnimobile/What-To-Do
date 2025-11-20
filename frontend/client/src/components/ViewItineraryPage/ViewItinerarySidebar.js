@@ -175,7 +175,43 @@ function ViewItinerarySidebar({
     );
   }
 
-  const handleToggleCompleted = () => setCompleted((prev) => !prev);
+  const handleToggleCompleted = async () => {
+  try {
+    if (!user) {
+      alert("You must be logged in to mark completed.");
+      return;
+    }
+
+    // choose endpoint based on current state
+    const url = completed ? "/api/uncomplete-itinerary" : "/api/complete-itinerary";
+
+    const resp = await fetch("http://localhost:3000" + url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // IMPORTANT: send the session cookie
+      body: JSON.stringify({ completed_itinerary: id }),
+    });
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok || !data || data.ok === false) {
+      console.error("Complete toggle failed", resp.status, data);
+      alert("Unable to update completed status. See console for details.");
+      return;
+    }
+
+    // Toggle UI state and optionally refresh canonical user data
+    setCompleted(!completed);
+
+    // OPTIONAL: if you keep user in parent/global state, refresh it so other views update:
+    // fetch('/api/user/me', { credentials: 'include' }).then(r => r.json()).then(d => setUser && setUser(d.user));
+
+  } catch (err) {
+    console.error("Network error toggling complete:", err);
+    alert("Network error while updating completed status.");
+  }
+  };
+  
   const handleEdit = () => onNavigateToEdit && onNavigateToEdit(itinerary);
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this itinerary?"))

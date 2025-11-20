@@ -35,40 +35,89 @@ function CompletedItinerariesPage({
     return [];
   };
 
+  const processDestinations = (destinations) => {
+    if (!destinations) return [];
+
+    let processedDestinations = [];
+
+    if (Array.isArray(destinations)) {
+      processedDestinations = destinations.map((dest) => ({
+        ...dest,
+        lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+        lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+        id: dest.id || Math.random().toString(36).substr(2, 9),
+      }));
+    } else if (typeof destinations === "string") {
+      try {
+        const parsed = JSON.parse(destinations);
+        if (Array.isArray(parsed)) {
+          processedDestinations = parsed.map((dest) => ({
+            ...dest,
+            lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+            lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+            id: dest.id || Math.random().toString(36).substr(2, 9),
+          }));
+        }
+      } catch (e) {
+        console.warn("Failed to parse destinations:", e);
+      }
+    }
+
+    return processedDestinations;
+  };
+
   useEffect(() => {
     loadCompletedItineraries();
   }, [user]);
-
-  const loadCompletedItineraries = () => {
+  const loadCompletedItineraries = async () => {
     setIsLoading(true);
     try {
-      const completed = localStorage.getItem("completedItineraries");
-      if (completed) {
-        const allCompleted = JSON.parse(completed);
-        const userCompleted = allCompleted.filter(
-          (itinerary) => itinerary.completedBy === (user?.id || "current-user")
-        );
-        const processedItineraries = userCompleted.map((itinerary) => ({
+      // fetch completed itineraries from server
+      const resp = await fetch("http://localhost:3000/api/my-completed-itineraries", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!resp.ok) {
+        console.error("Failed to fetch completed itineraries from server");
+        setCompletedItineraries([]);
+        if (showError) showError("Failed to load completed itineraries from server.");
+        return;
+      }
+
+      const data = await resp.json();
+      // server returns full itinerary objects in `itineraries`
+      let received = [];
+      if (data && Array.isArray(data.itineraries)) {
+        received = data.itineraries;
+      } else if (data && Array.isArray(data)) {
+        received = data;
+      }
+
+      const processedItineraries = received.map((itinerary) => {
+        const processedDestinations = processDestinations(itinerary.destinations || itinerary.destinations);
+        const ratingValue = parseFloat(itinerary.rating) || 0;
+
+        return {
           ...itinerary,
           tags: processTags(itinerary.tags),
           title: itinerary.title || "Untitled Itinerary",
           description: itinerary.description || "",
           duration: itinerary.duration || "1 day",
           price: itinerary.price || "$$",
-          rating: itinerary.rating || 0,
-          destinations: itinerary.destinations || [],
-        }));
-        setCompletedItineraries(userCompleted);
-        setCompletedItineraries(processedItineraries);
-        console.log("User completed itineraries loaded:", userCompleted);
-      } else {
-        console.log("No completed itineraries found in localStorage");
-        setCompletedItineraries([]);
-      }
+          rating: ratingValue,
+          destinations: processedDestinations,
+          createdBy: itinerary.authorid,
+          authorid: itinerary.authorid,
+        };
+      });
+
+      setCompletedItineraries(processedItineraries);
     } catch (error) {
-      console.error("Error loading completed itineraries:", error);
+      console.error("Error loading completed itineraries from server:", error);
       setCompletedItineraries([]);
-      if (showError) showError("Failed to load completed itineraries.");
+      if (showError) showError("Failed to load completed itineraries. Please check your connection.");
     } finally {
       setIsLoading(false);
     }

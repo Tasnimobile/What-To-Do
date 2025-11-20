@@ -18,7 +18,8 @@ const createTables = db.transaction(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username STRING NOT NULL UNIQUE,
         password STRING NOT NULL,
-        saved_itineraries TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(saved_itineraries))
+        saved_itineraries TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(saved_itineraries)),
+        completed_itineraries TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(completed_itineraries))
         )
         `
   ).run();
@@ -58,6 +59,11 @@ try {
   db.prepare("ALTER TABLE user ADD COLUMN bio TEXT").run();
 } catch {}
 
+// for completed itineraries column
+try {
+  db.prepare("ALTER TABLE user ADD COLUMN completed_itineraries TEXT").run();
+} catch {}
+
 db.prepare(
   "CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON user(email)"
 ).run();
@@ -71,6 +77,10 @@ try {
 } catch (error) {
   console.log("Skipping email migration due to duplicate emails");
 }
+// Backfill completed_itineraries if the column was just added
+try {
+  db.prepare("UPDATE user SET completed_itineraries = '[]' WHERE completed_itineraries IS NULL").run();
+} catch (err) {}
 // Database setup end
 const app = express();
 
@@ -240,8 +250,6 @@ app.post("/register", (req, res) => {
   const hashed = bcrypt.hashSync(req.body.password, salt);
 
   let result;
-  // Store a sensible default display_name equal to the usernameCandidate so the
-  // frontend sees a display name immediately after signup.
   if (emailValue) {
     result = db
       .prepare(
@@ -334,6 +342,7 @@ app.post("/api/login", (req, res) => {
       bio: user.bio || "",
       display_name: user.display_name || user.username,
       saved_itineraries: user.saved_itineraries || "[]",
+      completed_itineraries: user.completed_itineraries || "[]",
     },
   });
 });
@@ -389,21 +398,22 @@ app.post("/api/register", (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hashed = bcrypt.hashSync(req.body.password, salt);
   const savedItineraries = JSON.stringify([]);
+  const completedItineraries = JSON.stringify([]);
   let result;
   // Persist display_name on API registration as well so the frontend doesn't
   // need to perform an extra update to set it. 
   if (emailValue) {
     result = db
       .prepare( 
-        "INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)"
+        "INSERT INTO user (username, password, email, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?, ?)"
       )
-      .run(usernameCandidate, hashed, emailValue, usernameCandidate);
+      .run(usernameCandidate, hashed, emailValue, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
   } else {
     result = db
       .prepare(
-        "INSERT INTO user (username, password, display_name) VALUES (?, ?, ?)"
+        "INSERT INTO user (username, password, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?)"
       )
-      .run(usernameCandidate, hashed, usernameCandidate);
+      .run(usernameCandidate, hashed, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
   }
 
   const newUser = db
@@ -411,19 +421,54 @@ app.post("/api/register", (req, res) => {
     .prepare("SELECT * FROM user WHERE rowid = ?")
     .get(result.lastInsertRowid);
 
+  // Debug logging to diagnose username/display_name anomalies
+  try {
+    console.log("[DEBUG register] inserted values:", {
+      usernameCandidate,
+      emailValue,
+      lastInsertRowid: result.lastInsertRowid,
+    });
+    console.log("[DEBUG register] newUser from DB:", newUser);
+  } catch (e) {
+    console.error("[DEBUG register] logging failed:", e);
+  }
+
+  // Defensive: ensure display_name is the full usernameCandidate (avoid truncation)
+  try {
+    if (!newUser.display_name || newUser.display_name !== usernameCandidate) {
+      db.prepare("UPDATE user SET display_name = ? WHERE id = ?").run(
+        usernameCandidate,
+        newUser.id
+      );
+      // re-read the user row after the enforced update
+      const refreshed = db
+        .prepare("SELECT * FROM user WHERE id = ?")
+        .get(newUser.id);
+      console.log("[DEBUG register] refreshed user:", refreshed);
+      // replace newUser reference so downstream token/response use the corrected value
+      newUser.display_name = refreshed.display_name;
+    }
+  } catch (e) {
+    console.error("[DEBUG register] display_name enforcement failed:", e);
+  }
+
+  // Ensure a deterministic display name value to return and embed in the JWT
+  const displayName = newUser.display_name || usernameCandidate || newUser.username;
+
   const tokenPayload = {
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
     userid: newUser.id,
     username: newUser.username,
-    display_name: newUser.display_name,
+    display_name: displayName,
   };
 
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
+  // Use `lax` so the cookie is set when called from the React dev server on another port
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: false,
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -432,11 +477,11 @@ app.post("/api/register", (req, res) => {
     user: {
       id: newUser.id,
       username: newUser.username,
-      email: newUser.email,
       email: newUser.email || null,
       bio: newUser.bio || "",
-      display_name: newUser.display_name || newUser.username,
+      display_name: displayName,
       saved_itineraries: newUser.saved_itineraries || "[]",
+      completed_itineraries: newUser.completed_itineraries || "[]",
     },
   });
 });
@@ -500,16 +545,19 @@ app.post("/api/oauth/google", async (req, res) => {
       const salt = bcrypt.genSaltSync(10);
       const randomPass = bcrypt.hashSync(Math.random().toString(36), salt);
       const savedItineraries = JSON.stringify([]);
+      const completedItineraries = JSON.stringify([]);
       const ins = db
         .prepare(
-          "INSERT INTO user (username, password, email, google_sub, display_name) VALUES (?, ?, ?, ?, ?)"
+          "INSERT INTO user (username, password, email, google_sub, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?, ?, ?)"
         )
         .run(
           username,
           randomPass,
           profile.email,
           profile.sub,
-          profile.name || username
+          profile.name || username,
+          JSON.stringify([]),
+          JSON.stringify([])
         );
 
       user = db
@@ -553,6 +601,7 @@ app.post("/api/oauth/google", async (req, res) => {
         bio: user.bio || "",
         display_name: user.display_name || user.username,
         saved_itineraries: user.saved_itineraries || "[]",
+        completed_itineraries: user.completed_itineraries || "[]",
       },
     });
   } catch (err) {
@@ -562,13 +611,15 @@ app.post("/api/oauth/google", async (req, res) => {
 });
 
 app.post("/api/auth/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: "Logout failed" });
-    }
-    res.clearCookie("connect.sid");
-    res.status(200).json({ message: "Logged out successfully" });
-  });
+  // Safe logout endpoint: this app doesn't use express-session.
+  // Clear the auth cookie set by the app and respond with JSON.
+  try {
+    res.clearCookie("ourSimpleApp");
+    return res.status(200).json({ ok: true, message: "Logged out successfully" });
+  } catch (err) {
+    console.error('Logout error:', err);
+    return res.status(500).json({ ok: false, errors: ["Logout failed"] });
+  }
 });
 
 //profile route to update bio
@@ -669,9 +720,21 @@ app.post(
         params.push(bio_raw);
       }
 
+      // If the client provided a display_name explicitly, use it.
+      // Otherwise, if the client is changing their username, keep display_name
+      // in sync by default (use local-part for emails).
+      let displayForUpdate = undefined;
       if (display_name_raw !== undefined) {
+        displayForUpdate = display_name_raw;
+      } else if (newUsername) {
+        displayForUpdate = isEmail
+          ? newUsername.split("@")[0].replace(/[^a-zA-Z0-9 ]/g, "")
+          : newUsername;
+      }
+
+      if (displayForUpdate !== undefined) {
         updates.push("display_name = ?");
-        params.push(display_name_raw);
+        params.push(displayForUpdate);
       }
 
       if (newUsername) {
@@ -735,7 +798,7 @@ app.get("/api/user/me", (req, res) => {
   }
 
   const userStatement = db.prepare(
-    "SELECT id, username, email, bio, display_name, saved_itineraries FROM user WHERE id = ?"
+    "SELECT id, username, email, bio, display_name, saved_itineraries, completed_itineraries FROM user WHERE id = ?"
   );
   const userData = userStatement.get(req.user.userid);
 
@@ -970,6 +1033,50 @@ app.get("/api/my-saved-itineraries", (req, res) => {
   }
 });
 
+app.get("/api/my-completed-itineraries", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+  }
+
+  try {
+    const user_id = req.user.userid;
+
+    const stmt = db.prepare("SELECT completed_itineraries FROM user WHERE id = ?");
+    const row = stmt.get(user_id);
+
+    let arr;
+    try {
+      arr = JSON.parse(row?.completed_itineraries || "[]");
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    if (arr.length === 0) {
+      return res.json({ ok: true, itineraries: [] });
+    }
+
+    const placeholders = arr.map(() => "?").join(","); 
+    const stmt2 = db.prepare(
+      `SELECT * FROM itineraries WHERE id IN (${placeholders})`
+    );
+
+    const itineraries = stmt2.all(...arr);
+
+    res.json({
+      ok: true,
+      itineraries: itineraries.map((itinerary) => ({
+        ...itinerary,
+        createdBy: itinerary.authorid,
+        rating: 0,       
+        destinations: [], 
+      })),
+    });
+  } catch (error) {
+    console.error("Error fetching user itineraries:", error);
+    res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
 
 // Add debug endpoint
 app.get("/api/debug/my-itineraries", (req, res) => {
@@ -1060,8 +1167,33 @@ app.post("/api/delete-itinerary", (req, res) => {
     if (result.changes === 0) {
       return res.status(404).json({ ok: false, error: "Itinerary not found" });
     }
+    // Cleanup deleted itinerary id from users' saved and completed arrays
+    try {
+      const users = db.prepare("SELECT id, saved_itineraries, completed_itineraries FROM user").all();
+      const update = db.prepare("UPDATE user SET saved_itineraries = ?, completed_itineraries = ? WHERE id = ?");
+      users.forEach((u) => {
+        let saved = [];
+        let completed = [];
+        try {
+          saved = JSON.parse(u.saved_itineraries || '[]') || [];
+        } catch {
+          saved = [];
+        }
+        try {
+          completed = JSON.parse(u.completed_itineraries || '[]') || [];
+        } catch {
+          completed = [];
+        }
+        const newSaved = saved.filter((sid) => Number(sid) !== Number(id));
+        const newCompleted = completed.filter((cid) => Number(cid) !== Number(id));
+        if (newSaved.length !== saved.length || newCompleted.length !== completed.length) {
+          update.run(JSON.stringify(newSaved), JSON.stringify(newCompleted), u.id);
+        }
+      });
+    } catch (cleanupErr) {
+      console.error('Error cleaning up user references after delete:', cleanupErr);
+    }
 
-  
     res.json({ ok: true, deleted: result.changes });
   } catch (err) {
     console.error(err);
@@ -1070,29 +1202,105 @@ app.post("/api/delete-itinerary", (req, res) => {
 });
 
 app.post("/api/save-itinerary", (req, res) => {
-  const  { saved_itinerary } = req.body;
-  const user_id = req.user.userid
-  const statement = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?")
-  const saved_itineraries = statement.get(user_id)
-  const itineraryId = Number(saved_itinerary)
-  const row = statement.get(user_id);
-  console.log(saved_itineraries)
-  let arr;
   try {
-    arr = JSON.parse(row.saved_itineraries || "[]");
-    if (!Array.isArray(arr)) arr = [];
-  } catch {
-    arr = [];
-  }
-  
-  if(!arr.includes(itineraryId)){
-    arr.push(itineraryId)
-  }
+    if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+    const { saved_itinerary } = req.body || {};
+    const user_id = req.user.userid;
+    const itineraryId = Number(saved_itinerary);
+    if (!Number.isFinite(itineraryId))
+      return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
 
-  db.prepare('UPDATE user SET saved_itineraries = ? WHERE id = ?')
-    .run(JSON.stringify(arr), user_id)
+    // ensure itinerary exists
+    const exists = db.prepare("SELECT 1 FROM itineraries WHERE id = ?").get(itineraryId);
+    if (!exists) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
+
+    const stmt = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?");
+    const row = stmt.get(user_id) || {};
+    let arr;
+    try {
+      arr = JSON.parse(row.saved_itineraries || "[]");
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    if (!arr.includes(itineraryId)) {
+      arr.push(itineraryId);
+      db.prepare("UPDATE user SET saved_itineraries = ? WHERE id = ?").run(JSON.stringify(arr), user_id);
+    }
 
     return res.json({ ok: true, saved_itineraries: arr });
+  } catch (err) {
+    console.error("Error saving itinerary:", err);
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
+app.post("/api/complete-itinerary", (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+    const { completed_itinerary } = req.body || {};
+    const user_id = req.user.userid;
+    const itineraryId = Number(completed_itinerary);
+    if (!Number.isFinite(itineraryId))
+      return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
+
+    // ensure itinerary exists
+    const exists = db.prepare("SELECT 1 FROM itineraries WHERE id = ?").get(itineraryId);
+    if (!exists) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
+
+    const stmt = db.prepare("SELECT completed_itineraries FROM user WHERE id = ?");
+    const row = stmt.get(user_id) || {};
+    let arr;
+    try {
+      arr = JSON.parse(row.completed_itineraries || "[]");
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    if (!arr.includes(itineraryId)) {
+      arr.push(itineraryId);
+      db.prepare('UPDATE user SET completed_itineraries = ? WHERE id = ?').run(JSON.stringify(arr), user_id);
+    }
+
+    return res.json({ ok: true, completed_itineraries: arr });
+  } catch (err) {
+    console.error("Error completing itinerary:", err);
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
+
+// Unmark a completed itinerary
+app.post('/api/uncomplete-itinerary', (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+    const { completed_itinerary } = req.body || {};
+    const user_id = req.user.userid;
+    const itineraryId = Number(completed_itinerary);
+    if (!Number.isFinite(itineraryId))
+      return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
+
+    const stmt = db.prepare("SELECT completed_itineraries FROM user WHERE id = ?");
+    const row = stmt.get(user_id) || {};
+    let arr;
+    try {
+      arr = JSON.parse(row.completed_itineraries || "[]");
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    const newArr = arr.filter((id) => Number(id) !== itineraryId);
+    if (newArr.length !== arr.length) {
+      db.prepare('UPDATE user SET completed_itineraries = ? WHERE id = ?').run(JSON.stringify(newArr), user_id);
+    }
+
+    return res.json({ ok: true, completed_itineraries: newArr });
+  } catch (err) {
+    console.error('Error uncompleting itinerary:', err);
+    return res.status(500).json({ ok: false, errors: ['Server error'] });
+  }
 });
 
 
