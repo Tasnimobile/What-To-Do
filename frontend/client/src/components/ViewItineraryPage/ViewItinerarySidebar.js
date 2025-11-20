@@ -190,7 +190,7 @@ function ViewItinerarySidebar({
       const resp = await fetch(`${API_URL}` + url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // IMPORTANT: send the session cookie
+        credentials: "include",
         body: JSON.stringify({ completed_itinerary: id }),
       });
 

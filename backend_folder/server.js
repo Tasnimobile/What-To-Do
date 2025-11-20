@@ -10,6 +10,7 @@ const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 const cors = require("cors");
 const multer = require("multer");
+const isProduction = process.env.NODE_ENV === "production";
 
 //multer handles form data
 
@@ -229,8 +230,8 @@ app.post("/login", (req, res) => {
   );
   res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
   res.redirect("/");
@@ -314,10 +315,10 @@ app.post("/register", (req, res) => {
     process.env.JWTSECRET
   );
 
-  res.cookie("ourSimpleApp", token, {
+  res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -365,10 +366,10 @@ app.post("/api/login", (req, res) => {
   // ensure token reflects this server instance
   // (tokenPayload already contains serverInstance below when created for api/register)
 
-  res.cookie("ourSimpleApp", token, {
+  res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -519,10 +520,10 @@ app.post("/api/register", (req, res) => {
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
-  res.cookie("ourSimpleApp", token, {
+  res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -641,8 +642,8 @@ app.post("/api/oauth/google", async (req, res) => {
     );
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24,
     });
 
@@ -830,8 +831,8 @@ app.post(
 
       res.cookie("ourSimpleApp", token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         maxAge: 1000 * 60 * 60 * 24,
       });
 
