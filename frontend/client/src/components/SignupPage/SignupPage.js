@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import "./SignupPage.css";
+import API_URL from "../../config";
 
 const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
   // State for form data, password visibility, and error messages
@@ -59,7 +60,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
     onSuccess: async (resp) => {
       clearErrors();
       try {
-        const r = await fetch("http://localhost:3000/api/oauth/google", {
+        const r = await fetch(`${API_URL}/api/oauth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -95,7 +96,7 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/register", {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -236,8 +237,9 @@ const SignupPage = ({ onSignup, onSwitchToLogin, onBack, onGoogleLogin }) => {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`form-input ${errors.confirmPassword ? "error" : ""
-                  }`}
+                className={`form-input ${
+                  errors.confirmPassword ? "error" : ""
+                }`}
                 required
               />
               <button

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
 import "../HomePage/HomePage.css";
+import API_URL from "../../config";
 
 function CompletedItinerariesPage({
   onBack,
@@ -73,7 +74,7 @@ function CompletedItinerariesPage({
     setIsLoading(true);
     try {
       // fetch completed itineraries from server
-      const resp = await fetch("http://localhost:3000/api/my-completed-itineraries", {
+      const resp = await fetch(`${API_URL}/api/my-completed-itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -82,7 +83,8 @@ function CompletedItinerariesPage({
       if (!resp.ok) {
         console.error("Failed to fetch completed itineraries from server");
         setCompletedItineraries([]);
-        if (showError) showError("Failed to load completed itineraries from server.");
+        if (showError)
+          showError("Failed to load completed itineraries from server.");
         return;
       }
 
@@ -96,7 +98,9 @@ function CompletedItinerariesPage({
       }
 
       const processedItineraries = received.map((itinerary) => {
-        const processedDestinations = processDestinations(itinerary.destinations || itinerary.destinations);
+        const processedDestinations = processDestinations(
+          itinerary.destinations || itinerary.destinations
+        );
         const ratingValue = parseFloat(itinerary.rating) || 0;
 
         return {
@@ -117,7 +121,10 @@ function CompletedItinerariesPage({
     } catch (error) {
       console.error("Error loading completed itineraries from server:", error);
       setCompletedItineraries([]);
-      if (showError) showError("Failed to load completed itineraries. Please check your connection.");
+      if (showError)
+        showError(
+          "Failed to load completed itineraries. Please check your connection."
+        );
     } finally {
       setIsLoading(false);
     }

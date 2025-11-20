@@ -1,6 +1,7 @@
-// ViewItinerarySidebar.js 
+// ViewItinerarySidebar.js
 import React, { useState, useEffect, useMemo } from "react";
 import "./ViewItinerarySidebar.css";
+import API_URL from "../../config";
 
 function ViewItinerarySidebar({
   itinerary,
@@ -38,7 +39,9 @@ function ViewItinerarySidebar({
     return {
       ...itinerary,
       tags: Array.isArray(itinerary.tags) ? itinerary.tags : [],
-      destinations: Array.isArray(itinerary.destinations) ? itinerary.destinations : [],
+      destinations: Array.isArray(itinerary.destinations)
+        ? itinerary.destinations
+        : [],
       title: itinerary.title || "Untitled Itinerary",
       description: itinerary.description || "No description",
       duration: itinerary.duration || "1 day",
@@ -57,7 +60,7 @@ function ViewItinerarySidebar({
       setCurrentUserRating(normalized.userRating);
       console.log("Setting ratings:", {
         userRating: normalized.userRating,
-        overallRating: normalized.overallRating
+        overallRating: normalized.overallRating,
       });
     }
   }, [normalized?.id, normalized?.userRating, normalized?.overallRating]);
@@ -143,7 +146,7 @@ function ViewItinerarySidebar({
     const handleClick = async () => {
       setBookmarked((prev) => !prev);
       try {
-        await fetch("http://localhost:3000/api/save-itinerary", {
+        await fetch(`${API_URL}/api/save-itinerary`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -156,10 +159,7 @@ function ViewItinerarySidebar({
     };
 
     return (
-      <button
-        className="bookmark-icon"
-        onClick={handleClick}
-      >
+      <button className="bookmark-icon" onClick={handleClick}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -176,48 +176,49 @@ function ViewItinerarySidebar({
   }
 
   const handleToggleCompleted = async () => {
-  try {
-    if (!user) {
-      alert("You must be logged in to mark completed.");
-      return;
+    try {
+      if (!user) {
+        alert("You must be logged in to mark completed.");
+        return;
+      }
+
+      // choose endpoint based on current state
+      const url = completed
+        ? "/api/uncomplete-itinerary"
+        : "/api/complete-itinerary";
+
+      const resp = await fetch(`${API_URL}` + url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // IMPORTANT: send the session cookie
+        body: JSON.stringify({ completed_itinerary: id }),
+      });
+
+      const data = await resp.json().catch(() => null);
+
+      if (!resp.ok || !data || data.ok === false) {
+        console.error("Complete toggle failed", resp.status, data);
+        alert("Unable to update completed status. See console for details.");
+        return;
+      }
+
+      // Toggle UI state and optionally refresh canonical user data
+      setCompleted(!completed);
+
+      // OPTIONAL: if you keep user in parent/global state, refresh it so other views update:
+      // fetch('/api/user/me', { credentials: 'include' }).then(r => r.json()).then(d => setUser && setUser(d.user));
+    } catch (err) {
+      console.error("Network error toggling complete:", err);
+      alert("Network error while updating completed status.");
     }
-
-    // choose endpoint based on current state
-    const url = completed ? "/api/uncomplete-itinerary" : "/api/complete-itinerary";
-
-    const resp = await fetch("http://localhost:3000" + url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // IMPORTANT: send the session cookie
-      body: JSON.stringify({ completed_itinerary: id }),
-    });
-
-    const data = await resp.json().catch(() => null);
-
-    if (!resp.ok || !data || data.ok === false) {
-      console.error("Complete toggle failed", resp.status, data);
-      alert("Unable to update completed status. See console for details.");
-      return;
-    }
-
-    // Toggle UI state and optionally refresh canonical user data
-    setCompleted(!completed);
-
-    // OPTIONAL: if you keep user in parent/global state, refresh it so other views update:
-    // fetch('/api/user/me', { credentials: 'include' }).then(r => r.json()).then(d => setUser && setUser(d.user));
-
-  } catch (err) {
-    console.error("Network error toggling complete:", err);
-    alert("Network error while updating completed status.");
-  }
   };
-  
+
   const handleEdit = () => onNavigateToEdit && onNavigateToEdit(itinerary);
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this itinerary?"))
       return;
     try {
-      await fetch("http://localhost:3000/api/delete-itinerary", {
+      await fetch(`${API_URL}/api/delete-itinerary`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -235,7 +236,7 @@ function ViewItinerarySidebar({
     tags,
     overallRating,
     currentUserRating,
-    rating
+    rating,
   });
 
   return (
@@ -271,13 +272,20 @@ function ViewItinerarySidebar({
           <div className="rating-display">
             {[1, 2, 3, 4, 5].map((star) => {
               // Use the actual rating from the itinerary
-              const displayRating = hoverRating || currentUserRating || overallRating || rating || 0;
+              const displayRating =
+                hoverRating ||
+                currentUserRating ||
+                overallRating ||
+                rating ||
+                0;
               const isFilled = star <= displayRating;
 
               return (
                 <span
                   key={star}
-                  className={`star ${isFilled ? "filled" : ""} ${canRate ? "clickable" : ""}`}
+                  className={`star ${isFilled ? "filled" : ""} ${
+                    canRate ? "clickable" : ""
+                  }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (canRate) handleRate(star);
@@ -288,14 +296,20 @@ function ViewItinerarySidebar({
                   title={
                     canRate
                       ? `Rate ${star} star(s)`
-                      : `Overall rating: ${(overallRating || rating || 0).toFixed(1)}`
+                      : `Overall rating: ${(
+                          overallRating ||
+                          rating ||
+                          0
+                        ).toFixed(1)}`
                   }
                 >
                   ★
                 </span>
               );
             })}
-            <span className="rating-text">({(overallRating || rating || 0).toFixed(1)}/5)</span>
+            <span className="rating-text">
+              ({(overallRating || rating || 0).toFixed(1)}/5)
+            </span>
           </div>
           {canRate && (
             <p className="rating-hint">Click to rate this itinerary</p>

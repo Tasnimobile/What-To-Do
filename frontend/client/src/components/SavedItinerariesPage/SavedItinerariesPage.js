@@ -5,6 +5,7 @@ import Map from "../HomePage/Map";
 import Sidebar from "../HomePage/Sidebar";
 import "../HomePage/HomePage.css";
 import "./SavedItinerariesPage.css";
+import API_URL from "../../config";
 
 function SavedItinerariesPage({
   onBack,
@@ -51,21 +52,21 @@ function SavedItinerariesPage({
     let processedDestinations = [];
 
     if (Array.isArray(destinations)) {
-      processedDestinations = destinations.map(dest => ({
+      processedDestinations = destinations.map((dest) => ({
         ...dest,
         lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
         lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-        id: dest.id || Math.random().toString(36).substr(2, 9)
+        id: dest.id || Math.random().toString(36).substr(2, 9),
       }));
-    } else if (typeof destinations === 'string') {
+    } else if (typeof destinations === "string") {
       try {
         const parsed = JSON.parse(destinations);
         if (Array.isArray(parsed)) {
-          processedDestinations = parsed.map(dest => ({
+          processedDestinations = parsed.map((dest) => ({
             ...dest,
             lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
             lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-            id: dest.id || Math.random().toString(36).substr(2, 9)
+            id: dest.id || Math.random().toString(36).substr(2, 9),
           }));
         }
       } catch (e) {
@@ -87,7 +88,7 @@ function SavedItinerariesPage({
       console.log("Fetching saved itineraries for user:", user?.id);
 
       // get the user's saved itinerary IDs
-      const savedResponse = await fetch("http://localhost:3000/api/my-saved-itineraries", {
+      const savedResponse = await fetch(`${API_URL}/api/my-saved-itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -100,14 +101,14 @@ function SavedItinerariesPage({
         let savedItineraryIds = [];
 
         if (savedData.ok && Array.isArray(savedData.itineraries)) {
-          savedItineraryIds = savedData.itineraries.map(it => it.id);
+          savedItineraryIds = savedData.itineraries.map((it) => it.id);
         } else {
           console.error("Unexpected API response structure:", savedData);
           savedItineraryIds = [];
         }
 
         // fetch all itineraries to get complete data including ratings
-        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+        const allResponse = await fetch(`${API_URL}/api/itineraries`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -132,57 +133,76 @@ function SavedItinerariesPage({
           }
 
           // Filter to only saved itineraries and process them
-          const savedItinerariesFromDB = allItinerariesFromDB.filter(it =>
+          const savedItinerariesFromDB = allItinerariesFromDB.filter((it) =>
             savedItineraryIds.includes(it.id)
           );
 
-          // Process and format itinerary data for display 
-          const processedItineraries = savedItinerariesFromDB.map((itinerary) => {
-            // Process destinations to ensure consistent format
-            let processedDestinations = [];
-            if (itinerary.destinations) {
-              if (Array.isArray(itinerary.destinations)) {
-                processedDestinations = itinerary.destinations.map(dest => ({
-                  ...dest,
-                  lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                  lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                  id: dest.id || Math.random().toString(36).substr(2, 9)
-                }));
-              } else if (typeof itinerary.destinations === 'string') {
-                try {
-                  const parsed = JSON.parse(itinerary.destinations);
-                  if (Array.isArray(parsed)) {
-                    processedDestinations = parsed.map(dest => ({
+          // Process and format itinerary data for display
+          const processedItineraries = savedItinerariesFromDB.map(
+            (itinerary) => {
+              // Process destinations to ensure consistent format
+              let processedDestinations = [];
+              if (itinerary.destinations) {
+                if (Array.isArray(itinerary.destinations)) {
+                  processedDestinations = itinerary.destinations.map(
+                    (dest) => ({
                       ...dest,
-                      lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                      lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                      id: dest.id || Math.random().toString(36).substr(2, 9)
-                    }));
+                      lat:
+                        parseFloat(dest.lat) ||
+                        parseFloat(dest.latitude) ||
+                        40.7831,
+                      lng:
+                        parseFloat(dest.lng) ||
+                        parseFloat(dest.longitude) ||
+                        -73.9712,
+                      id: dest.id || Math.random().toString(36).substr(2, 9),
+                    })
+                  );
+                } else if (typeof itinerary.destinations === "string") {
+                  try {
+                    const parsed = JSON.parse(itinerary.destinations);
+                    if (Array.isArray(parsed)) {
+                      processedDestinations = parsed.map((dest) => ({
+                        ...dest,
+                        lat:
+                          parseFloat(dest.lat) ||
+                          parseFloat(dest.latitude) ||
+                          40.7831,
+                        lng:
+                          parseFloat(dest.lng) ||
+                          parseFloat(dest.longitude) ||
+                          -73.9712,
+                        id: dest.id || Math.random().toString(36).substr(2, 9),
+                      }));
+                    }
+                  } catch (e) {
+                    console.warn("Failed to parse destinations:", e);
                   }
-                } catch (e) {
-                  console.warn("Failed to parse destinations:", e);
                 }
               }
+
+              // Ensure rating is properly parsed as a number
+              const ratingValue = parseFloat(itinerary.rating) || 0;
+
+              return {
+                ...itinerary,
+                tags: processTags(itinerary.tags),
+                title: itinerary.title || "Untitled Itinerary",
+                description: itinerary.description || "",
+                duration: itinerary.duration || "1 day",
+                price: itinerary.price || "$$",
+                rating: ratingValue,
+                destinations: processedDestinations,
+                createdBy: itinerary.authorid,
+                authorid: itinerary.authorid,
+              };
             }
+          );
 
-            // Ensure rating is properly parsed as a number
-            const ratingValue = parseFloat(itinerary.rating) || 0;
-
-            return {
-              ...itinerary,
-              tags: processTags(itinerary.tags),
-              title: itinerary.title || "Untitled Itinerary",
-              description: itinerary.description || "",
-              duration: itinerary.duration || "1 day",
-              price: itinerary.price || "$$",
-              rating: ratingValue,
-              destinations: processedDestinations,
-              createdBy: itinerary.authorid,
-              authorid: itinerary.authorid,
-            };
-          });
-
-          console.log("Processed saved itineraries with ratings:", processedItineraries);
+          console.log(
+            "Processed saved itineraries with ratings:",
+            processedItineraries
+          );
           setSavedItineraries(processedItineraries);
         } else {
           console.error("Failed to fetch all itineraries");
@@ -199,7 +219,9 @@ function SavedItinerariesPage({
       console.error("Error loading saved itineraries from server:", error);
       setSavedItineraries([]);
       if (showError) {
-        showError("Error loading saved itineraries. Please check your connection.");
+        showError(
+          "Error loading saved itineraries. Please check your connection."
+        );
       }
     } finally {
       setIsLoading(false);

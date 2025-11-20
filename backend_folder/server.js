@@ -101,7 +101,11 @@ try {
 
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://localhost:3002"], // React dev server
+    origin: [
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "https://what-to-do-fe.onrender.com",
+    ], // React dev server
     credentials: true,
   })
 ); //added 3002 bc it kept putting me in that for now, will fix later

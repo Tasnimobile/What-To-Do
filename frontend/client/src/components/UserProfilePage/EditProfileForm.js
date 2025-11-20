@@ -1,6 +1,7 @@
 // src/components/UserProfilePage/EditProfileForm.js
 import React, { useState } from "react";
 import "./EditProfileForm.css";
+import API_URL from "../../config";
 
 const EditProfileForm = ({ user, onSave, onCancel }) => {
   // State for form data and profile picture preview
@@ -90,10 +91,10 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
         fd.append("profilePicture", formData.profilePicture);
       }
 
-      const res = await fetch("http://localhost:3000/api/user/setup", {
+      const res = await fetch(`${API_URL}/api/user/setup`, {
         method: "POST",
         credentials: "include",
-        body: fd
+        body: fd,
       });
 
       const data = await res.json();
@@ -101,7 +102,10 @@ const EditProfileForm = ({ user, onSave, onCancel }) => {
       if (res.ok && data.ok) {
         onSave(data.user);
       } else {
-        const msg = data && data.errors ? data.errors.join(", ") : "Failed to update profile";
+        const msg =
+          data && data.errors
+            ? data.errors.join(", ")
+            : "Failed to update profile";
         alert(msg);
         console.error("EditProfileForm save error:", data);
       }

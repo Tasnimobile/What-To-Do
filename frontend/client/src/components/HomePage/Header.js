@@ -1,6 +1,7 @@
 // Header.js
 import React, { useState, useRef, useEffect } from "react";
 import "./Header.css";
+import API_URL from "../../config";
 
 function Header({
   onBack,
@@ -24,7 +25,7 @@ function Header({
 
     try {
       // Use the correct endpoint from your server.js
-      const response = await fetch("http://localhost:3000/api/auth/logout", {
+      const response = await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -40,7 +41,7 @@ function Header({
         console.error("Logout failed on backend - status:", response.status);
         // Try the other endpoint as fallback
         try {
-          const fallbackResponse = await fetch("http://localhost:3000/api/logout", {
+          const fallbackResponse = await fetch(`${API_URL}/api/logout`, {
             method: "POST",
             credentials: "include",
           });
