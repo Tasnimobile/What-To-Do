@@ -1,7 +1,9 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
+const SERVER_INSTANCE_ID = process.env.SERVER_INSTANCE_ID || crypto.randomBytes(8).toString('hex');
 const express = require("express");
 const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
@@ -119,7 +121,18 @@ app.use(function (req, res, next) {
   //try to decode incoming cookie
   try {
     const decoded = jwt.verify(req.cookies.ourSimpleApp, process.env.JWTSECRET);
-    req.user = decoded;
+    // Ensure token was issued for this server instance (prevents accepting
+    // cookies issued by other developers' local servers).
+    const SERVER_INSTANCE_ID = process.env.SERVER_INSTANCE_ID || process.env.SERVER_ID || null;
+    if (decoded && decoded.serverInstance && SERVER_INSTANCE_ID && decoded.serverInstance === SERVER_INSTANCE_ID) {
+      req.user = decoded;
+    } else if (decoded && !decoded.serverInstance && !SERVER_INSTANCE_ID) {
+      // Backwards compatibility: if no SERVER_INSTANCE_ID configured at all,
+      // accept tokens without serverInstance claim.
+      req.user = decoded;
+    } else {
+      req.user = false;
+    }
   } catch (err) {
     req.user = false;
   }
@@ -131,11 +144,12 @@ app.use(function (req, res, next) {
 });
 
 app.get("/", (req, res) => {
-  if (req.user) {
-    res.render("dashboard");
-  } else {
-    res.render("homepage");
-  }
+  // Always render the public homepage on initial load so freshly-started
+  // developer instances don't accidentally show a logged-in dashboard
+  // when a browser happens to have an `ourSimpleApp` cookie from another
+  // local server. The frontend will call `/api/user/me` to detect a session
+  // and update the UI as needed.
+  res.render("homepage");
 });
 
 app.get("/login", (req, res) => {
@@ -187,6 +201,7 @@ app.post("/login", (req, res) => {
       skyColor: "blue",
       userid: userInQuestion.id,
       username: userInQuestion.username,
+      serverInstance: SERVER_INSTANCE_ID,
     },
     process.env.JWTSECRET
   );
@@ -237,8 +252,6 @@ app.post("/register", (req, res) => {
     .prepare("SELECT * FROM user WHERE username = ?")
     .get(usernameCandidate);
   if (usernameCheck) errors.push("That username is already taken.");
-
-  if (!req.body.password) errors.push("You must provide a password.");
   if (req.body.password.length < 8)
     errors.push("Password must be at least 8 characters.");
   if (req.body.password.length > 70)
@@ -274,6 +287,7 @@ app.post("/register", (req, res) => {
       userid: newUser.id,
       username: newUser.username,
       display_name: newUser.display_name,
+      serverInstance: SERVER_INSTANCE_ID,
     },
     process.env.JWTSECRET
   );
@@ -322,9 +336,12 @@ app.post("/api/login", (req, res) => {
     userid: user.id,
     username: user.username,
     display_name: user.display_name,
+    serverInstance: SERVER_INSTANCE_ID,
   };
 
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
+  // ensure token reflects this server instance
+  // (tokenPayload already contains serverInstance below when created for api/register)
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -581,10 +598,10 @@ app.post("/api/oauth/google", async (req, res) => {
         userid: user.id,
         username: user.username,
         display_name: user.display_name,
+        serverInstance: SERVER_INSTANCE_ID,
       },
       process.env.JWTSECRET
     );
-
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
       secure: false,
@@ -767,6 +784,7 @@ app.post(
           userid: updatedUser.id,
           username: updatedUser.username,
           display_name: updatedUser.display_name,
+          serverInstance: SERVER_INSTANCE_ID,
         },
         process.env.JWTSECRET
       );
