@@ -488,6 +488,7 @@ app.post("/api/register", (req, res) => {
     userid: newUser.id,
     username: newUser.username,
     display_name: displayName,
+    serverInstance: SERVER_INSTANCE_ID,
   };
 
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
