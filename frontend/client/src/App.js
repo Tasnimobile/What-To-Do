@@ -16,6 +16,7 @@ import SavedItinerariesPage from "./components/SavedItinerariesPage/SavedItinera
 import ErrorPopup from "./components/ErrorPopup/ErrorPopup";
 import { useErrorPopup } from "./hooks/useErrorPopup";
 import CompletedItinerariesPage from "./components/CompletedItinerariesPage/CompletedItinerariesPage.js";
+import API_URL from "./config.js";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("welcome");
@@ -31,7 +32,7 @@ function App() {
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/user/me", {
+        const res = await fetch(`${API_URL}/api/user/me`, {
           method: "GET",
           credentials: "include",
         });
@@ -210,7 +211,7 @@ function App() {
   // Handle user logout
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/logout", {
+      const res = await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -229,11 +230,11 @@ function App() {
     }
   };
 
-  // Shared handler for rating an itinerary 
+  // Shared handler for rating an itinerary
   const handleRateItinerary = async (itineraryId, rating) => {
     try {
       const payload = { id: Number(itineraryId), rating: Number(rating) };
-      const res = await fetch("http://localhost:3000/api/give-rating", {
+      const res = await fetch(`${API_URL}/api/give-rating`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -257,9 +258,12 @@ function App() {
       // Return updated rating info to callers so they can update local UI optimistically
       return {
         ok: true,
-        overallRating: typeof data.rating === "number" ? data.rating : undefined,
-        ratingCount: typeof data.rating_count === "number" ? data.rating_count : undefined,
-        totalRating: typeof data.total_rating === "number" ? data.total_rating : undefined,
+        overallRating:
+          typeof data.rating === "number" ? data.rating : undefined,
+        ratingCount:
+          typeof data.rating_count === "number" ? data.rating_count : undefined,
+        totalRating:
+          typeof data.total_rating === "number" ? data.total_rating : undefined,
       };
     } catch (err) {
       console.error("Error in shared handleRateItinerary:", err);
