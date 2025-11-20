@@ -117,23 +117,29 @@ app.use(cookieParser());
 
 app.use(function (req, res, next) {
   res.locals.errors = [];
-
-  //try to decode incoming cookie
+  // Strictly require tokens to carry the serverInstance that matches this
+  // running server. If a token is invalid or was issued by another
+  // developer's local server, clear it so the browser will remove it and
+  // force the user to sign up / log in again.
   try {
-    const decoded = jwt.verify(req.cookies.ourSimpleApp, process.env.JWTSECRET);
-    // Ensure token was issued for this server instance (prevents accepting
-    // cookies issued by other developers' local servers).
-    const SERVER_INSTANCE_ID = process.env.SERVER_INSTANCE_ID || process.env.SERVER_ID || null;
-    if (decoded && decoded.serverInstance && SERVER_INSTANCE_ID && decoded.serverInstance === SERVER_INSTANCE_ID) {
-      req.user = decoded;
-    } else if (decoded && !decoded.serverInstance && !SERVER_INSTANCE_ID) {
-      // Backwards compatibility: if no SERVER_INSTANCE_ID configured at all,
-      // accept tokens without serverInstance claim.
-      req.user = decoded;
-    } else {
+    const token = req.cookies && req.cookies.ourSimpleApp;
+    if (!token) {
       req.user = false;
+    } else {
+      const decoded = jwt.verify(token, process.env.JWTSECRET);
+      if (decoded && decoded.serverInstance && decoded.serverInstance === SERVER_INSTANCE_ID) {
+        req.user = decoded;
+      } else {
+        // Token does not belong to this server instance -> clear cookie
+        res.clearCookie("ourSimpleApp");
+        req.user = false;
+      }
     }
   } catch (err) {
+    // Invalid token: clear cookie and treat as unauthenticated
+    try {
+      res.clearCookie("ourSimpleApp");
+    } catch (e) {}
     req.user = false;
   }
 
@@ -149,6 +155,11 @@ app.get("/", (req, res) => {
   // when a browser happens to have an `ourSimpleApp` cookie from another
   // local server. The frontend will call `/api/user/me` to detect a session
   // and update the UI as needed.
+  // Ensure any pre-existing cookie (from another dev instance) is cleared
+  // immediately on the first public request so the client must sign up.
+  try {
+    res.clearCookie("ourSimpleApp");
+  } catch (e) {}
   res.render("homepage");
 });
 
