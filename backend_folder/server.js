@@ -1333,5 +1333,49 @@ app.post('/api/uncomplete-itinerary', (req, res) => {
   }
 });
 
+app.post("/api/update-itinerary", (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+    const { itinerary_id } = req.body.id || {};
+    const { id, itinerary } = req.body || {};
+    const itineraryId = Number(id);
+    console.log(req.body.id);
+    if (!Number.isFinite(itineraryId))
+      return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
+    db.prepare(`
+      UPDATE itineraries 
+      SET title = ?,
+        description = ?,
+        tags = ?,
+        duration = ?,
+        price = ?,
+        rating = ?,
+        rating_count = ?,
+        total_rating = ?,
+        destinations = ?
+      WHERE id = ?
+    `).run(
+      req.body.title,
+      req.body.description,
+      req.body.tags,
+      req.body.duration,
+      req.body.price,
+      req.body.rating,
+      req.body.rating_count,
+      req.body.total_rating,
+      req.body.destinations,
+      req.body.id
+    );
+
+    return res.json({
+      ok: true,
+      message: "Itinerary updated successfully",
+      itineraryId,
+    });
+  } catch (err) {
+    console.error("Error editing itinerary:", err);
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+});
 
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
