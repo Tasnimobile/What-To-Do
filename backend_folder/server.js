@@ -1378,4 +1378,35 @@ app.post("/api/update-itinerary", (req, res) => {
   }
 });
 
+app.post('/api/unsave-itinerary', (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
+    const { saved_itinerary } = req.body || {};
+    const user_id = req.user.userid;
+    const itineraryId = Number(saved_itinerary);
+    if (!Number.isFinite(itineraryId))
+      return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
+
+    const stmt = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?");
+    const row = stmt.get(user_id) || {};
+    let arr;
+    try {
+      arr = JSON.parse(row.saved_itineraries || "[]");
+      if (!Array.isArray(arr)) arr = [];
+    } catch {
+      arr = [];
+    }
+
+    const newArr = arr.filter((id) => Number(id) !== itineraryId);
+    if (newArr.length !== arr.length) {
+      db.prepare('UPDATE user SET saved_itineraries = ? WHERE id = ?').run(JSON.stringify(newArr), user_id);
+    }
+
+    return res.json({ ok: true, saved_itineraries: newArr });
+  } catch (err) {
+    console.error('Error uncompleting itinerary:', err);
+    return res.status(500).json({ ok: false, errors: ['Server error'] });
+  }
+});
+
 app.listen(3000, () => console.log("Backend running on http://localhost:3000"));

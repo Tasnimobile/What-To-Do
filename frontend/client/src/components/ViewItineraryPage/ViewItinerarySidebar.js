@@ -140,20 +140,37 @@ function ViewItinerarySidebar({
       setBookmarked(initialBookmarked);
     }, [initialBookmarked]);
 
-    const handleClick = async () => {
-      setBookmarked((prev) => !prev);
-      try {
-        await fetch("http://localhost:3000/api/save-itinerary", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ saved_itinerary: id }),
-        });
-      } catch (err) {
-        console.error(err);
-        alert("Error saving itinerary");
-      }
-    };
+const handleClick = async () => {
+  try {
+    const nextBookmarked = !bookmarked;
+    const url = nextBookmarked
+      ? "/api/save-itinerary"
+      : "/api/unsave-itinerary";
+
+
+    setBookmarked(nextBookmarked);
+
+    const res = await fetch("http://localhost:3000" + url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ saved_itinerary: id }),
+    });
+
+    if (!res.ok) {
+      setBookmarked(!nextBookmarked); 
+      alert("Error saving itinerary");
+    }
+  } catch (err) {
+    console.error(err);
+    setBookmarked((prev) => !prev); 
+    alert("Error saving itinerary");
+  }
+};
+
+
+
+
 
     return (
       <button
