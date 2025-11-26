@@ -229,7 +229,7 @@ app.post("/login", (req, res) => {
     },
     process.env.JWTSECRET
   );
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -316,7 +316,7 @@ app.post("/register", (req, res) => {
     process.env.JWTSECRET
   );
 
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
