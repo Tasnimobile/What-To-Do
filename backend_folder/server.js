@@ -170,10 +170,7 @@ app.get("/", (req, res) => {
   // and update the UI as needed.
   // Ensure any pre-existing cookie (from another dev instance) is cleared
   // immediately on the first public request so the client must sign up.
-  try {
-    res.clearCookie("ourSimpleApp");
-  } catch (e) {}
-  res.render("homepage");
+  res.send("What-To-Do backend is running.");
 });
 
 app.get("/login", (req, res) => {
