@@ -10,8 +10,16 @@ const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 const cors = require("cors");
 const multer = require("multer");
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction =
+  process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 
+
+const authCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,     
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 1000 * 60 * 60 * 24, //
+};
 
 //multer handles form data
 
