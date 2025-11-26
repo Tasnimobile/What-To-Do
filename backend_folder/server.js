@@ -126,30 +126,16 @@ app.use(cookieParser());
 
 app.use(function (req, res, next) {
   res.locals.errors = [];
-  // Strictly require tokens to carry the serverInstance that matches this
-  // running server. If a token is invalid or was issued by another
-  // developer's local server, clear it so the browser will remove it and
-  // force the user to sign up / log in again.
+
   try {
     const token = req.cookies && req.cookies.ourSimpleApp;
     if (!token) {
       req.user = false;
     } else {
       const decoded = jwt.verify(token, process.env.JWTSECRET);
-      if (
-        decoded &&
-        decoded.serverInstance &&
-        decoded.serverInstance === SERVER_INSTANCE_ID
-      ) {
-        req.user = decoded;
-      } else {
-        // Token does not belong to this server instance -> clear cookie
-        res.clearCookie("ourSimpleApp");
-        req.user = false;
-      }
+      req.user = decoded;
     }
   } catch (err) {
-    // Invalid token: clear cookie and treat as unauthenticated
     try {
       res.clearCookie("ourSimpleApp");
     } catch (e) {}
@@ -157,10 +143,11 @@ app.use(function (req, res, next) {
   }
 
   res.locals.user = req.user;
-  console.log(req.user);
+  console.log("req.user in auth middleware:", req.user);
 
   next();
 });
+
 
 app.get("/", (req, res) => {
   // Always render the public homepage on initial load so freshly-started
