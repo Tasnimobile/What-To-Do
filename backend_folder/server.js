@@ -224,7 +224,7 @@ app.post("/login", (req, res) => {
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "none",
     maxAge: 1000 * 60 * 60 * 24,
   });
   res.redirect("/");
@@ -311,7 +311,7 @@ app.post("/register", (req, res) => {
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "none",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -362,7 +362,7 @@ app.post("/api/login", (req, res) => {
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "none",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -502,7 +502,7 @@ app.post("/api/register", (req, res) => {
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "none",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -622,7 +622,7 @@ app.post("/api/oauth/google", async (req, res) => {
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24,
     });
 
@@ -809,7 +809,7 @@ app.post(
       res.cookie("ourSimpleApp", token, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: isProduction ? "none" : "lax",
+        sameSite: "none",
         maxAge: 1000 * 60 * 60 * 24,
       });
 
