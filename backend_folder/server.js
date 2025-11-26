@@ -10,7 +10,9 @@ const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 const cors = require("cors");
 const multer = require("multer");
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction =
+  process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+
 
 const authCookieOptions = {
   httpOnly: true,
@@ -995,6 +997,7 @@ app.post("/api/give-rating", (req, res) => {
 
 // Get itineraries for the logged-in user
 app.get("/api/my-itineraries", (req, res) => {
+  console.log(req)
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
