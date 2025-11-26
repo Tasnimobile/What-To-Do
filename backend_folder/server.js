@@ -10,9 +10,7 @@ const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 const cors = require("cors");
 const multer = require("multer");
-const isProduction =
-  process.env.NODE_ENV === "production" || process.env.RENDER === "true";
-
+const isProduction = process.env.NODE_ENV === "production";
 
 const authCookieOptions = {
   httpOnly: true,
@@ -221,7 +219,7 @@ app.post("/login", (req, res) => {
     },
     process.env.JWTSECRET
   );
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -308,7 +306,7 @@ app.post("/register", (req, res) => {
     process.env.JWTSECRET
   );
 
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -359,7 +357,7 @@ app.post("/api/login", (req, res) => {
   // ensure token reflects this server instance
   // (tokenPayload already contains serverInstance below when created for api/register)
 
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -499,7 +497,7 @@ app.post("/api/register", (req, res) => {
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -619,7 +617,7 @@ app.post("/api/oauth/google", async (req, res) => {
       },
       process.env.JWTSECRET
     );
-    res.cookie("ourSimpleApp", ourTokenValue, {
+    res.cookie("ourSimpleApp", token, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "none" : "lax",
@@ -806,7 +804,7 @@ app.post(
         process.env.JWTSECRET
       );
 
-      res.cookie("ourSimpleApp", ourTokenValue, {
+      res.cookie("ourSimpleApp", token, {
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? "none" : "lax",
