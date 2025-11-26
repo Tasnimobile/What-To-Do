@@ -3,12 +3,15 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
-const SERVER_INSTANCE_ID = process.env.SERVER_INSTANCE_ID || crypto.randomBytes(8).toString('hex');
+const SERVER_INSTANCE_ID =
+  process.env.SERVER_INSTANCE_ID || crypto.randomBytes(8).toString("hex");
 const express = require("express");
 const db = require("better-sqlite3")("ourApp.db");
 db.pragma("journal_mode = WAL");
 const cors = require("cors");
 const multer = require("multer");
+const isProduction = process.env.NODE_ENV === "production";
+
 
 //multer handles form data
 
@@ -81,7 +84,9 @@ try {
 }
 // Backfill completed_itineraries if the column was just added
 try {
-  db.prepare("UPDATE user SET completed_itineraries = '[]' WHERE completed_itineraries IS NULL").run();
+  db.prepare(
+    "UPDATE user SET completed_itineraries = '[]' WHERE completed_itineraries IS NULL"
+  ).run();
 } catch (err) {}
 // Database setup end
 const app = express();
@@ -98,7 +103,11 @@ try {
 
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://localhost:3002"], // React dev server
+    origin: [
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "https://what-to-do-fe.onrender.com",
+    ], // React dev server
     credentials: true,
   })
 ); //added 3002 bc it kept putting me in that for now, will fix later
@@ -127,7 +136,11 @@ app.use(function (req, res, next) {
       req.user = false;
     } else {
       const decoded = jwt.verify(token, process.env.JWTSECRET);
-      if (decoded && decoded.serverInstance && decoded.serverInstance === SERVER_INSTANCE_ID) {
+      if (
+        decoded &&
+        decoded.serverInstance &&
+        decoded.serverInstance === SERVER_INSTANCE_ID
+      ) {
         req.user = decoded;
       } else {
         // Token does not belong to this server instance -> clear cookie
@@ -218,8 +231,8 @@ app.post("/login", (req, res) => {
   );
   res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
   res.redirect("/");
@@ -303,10 +316,10 @@ app.post("/register", (req, res) => {
     process.env.JWTSECRET
   );
 
-  res.cookie("ourSimpleApp", token, {
+  res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -354,10 +367,10 @@ app.post("/api/login", (req, res) => {
   // ensure token reflects this server instance
   // (tokenPayload already contains serverInstance below when created for api/register)
 
-  res.cookie("ourSimpleApp", token, {
+  res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -494,10 +507,10 @@ app.post("/api/register", (req, res) => {
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
-  res.cookie("ourSimpleApp", token, {
+  res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 
@@ -616,8 +629,8 @@ app.post("/api/oauth/google", async (req, res) => {
     );
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24,
     });
 
@@ -803,8 +816,8 @@ app.post(
 
       res.cookie("ourSimpleApp", token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
         maxAge: 1000 * 60 * 60 * 24,
       });
 

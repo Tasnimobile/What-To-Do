@@ -4,6 +4,7 @@ import Header from "./Header";
 import Map from "./Map";
 import Sidebar from "./Sidebar";
 import "./HomePage.css";
+import API_URL from "../../config";
 
 const LS_KEY = "rated_itins";
 const getMap = () => JSON.parse(localStorage.getItem(LS_KEY) || "{}");
@@ -98,7 +99,7 @@ function HomePage({
         total_rating: Number(total_rating),
       };
 
-      const res = await fetch("http://localhost:3000/api/give-rating", {
+      const res = await fetch(`${API_URL}/api/give-rating`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -115,7 +116,9 @@ function HomePage({
           return;
         }
         showError?.(
-          `Failed to submit rating (${res.status}). ${msg || "Please try again."}`,
+          `Failed to submit rating (${res.status}). ${
+            msg || "Please try again."
+          }`,
           "error"
         );
         return;
@@ -146,7 +149,7 @@ function HomePage({
     try {
       console.log("=== DEBUG: Loading itineraries ===");
 
-      const response = await fetch("http://localhost:3000/api/itineraries", {
+      const response = await fetch(`${API_URL}/api/itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -178,21 +181,31 @@ function HomePage({
           let processedDestinations = [];
           if (itinerary.destinations) {
             if (Array.isArray(itinerary.destinations)) {
-              processedDestinations = itinerary.destinations.map(dest => ({
+              processedDestinations = itinerary.destinations.map((dest) => ({
                 ...dest,
-                lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                id: dest.id || Math.random().toString(36).substr(2, 9)
+                lat:
+                  parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+                lng:
+                  parseFloat(dest.lng) ||
+                  parseFloat(dest.longitude) ||
+                  -73.9712,
+                id: dest.id || Math.random().toString(36).substr(2, 9),
               }));
-            } else if (typeof itinerary.destinations === 'string') {
+            } else if (typeof itinerary.destinations === "string") {
               try {
                 const parsed = JSON.parse(itinerary.destinations);
                 if (Array.isArray(parsed)) {
-                  processedDestinations = parsed.map(dest => ({
+                  processedDestinations = parsed.map((dest) => ({
                     ...dest,
-                    lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                    lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                    id: dest.id || Math.random().toString(36).substr(2, 9)
+                    lat:
+                      parseFloat(dest.lat) ||
+                      parseFloat(dest.latitude) ||
+                      40.7831,
+                    lng:
+                      parseFloat(dest.lng) ||
+                      parseFloat(dest.longitude) ||
+                      -73.9712,
+                    id: dest.id || Math.random().toString(36).substr(2, 9),
                   }));
                 }
               } catch (e) {
@@ -221,7 +234,7 @@ function HomePage({
             id: it.id,
             title: it.title,
             destinationsCount: it.destinations.length,
-            destinations: it.destinations
+            destinations: it.destinations,
           });
         });
 

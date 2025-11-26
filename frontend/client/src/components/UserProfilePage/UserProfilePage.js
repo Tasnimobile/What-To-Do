@@ -5,6 +5,7 @@ import ProfileInfo from "./ProfileInfo";
 import ProfileStats from "./ProfileStats";
 import ItineraryView from "./ItineraryView";
 import "./UserProfilePage.css";
+import API_URL from "../../config";
 
 const UserProfilePage = ({
   onBack,
@@ -45,34 +46,36 @@ const UserProfilePage = ({
     return [];
   };
 
-  // Process destinations 
+  // Process destinations
   const processDestinations = (destinations) => {
     if (!destinations) return [];
 
     let processedDestinations = [];
 
     if (Array.isArray(destinations)) {
-      processedDestinations = destinations.map(dest => ({
+      processedDestinations = destinations.map((dest) => ({
         ...dest,
         lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
         lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
         id: dest.id || Math.random().toString(36).substr(2, 9),
-        name: dest.name || dest.formatted_address || 'Unknown Location',
-        address: dest.address || dest.formatted_address || 'Address not available',
-        rating: dest.rating || null
+        name: dest.name || dest.formatted_address || "Unknown Location",
+        address:
+          dest.address || dest.formatted_address || "Address not available",
+        rating: dest.rating || null,
       }));
-    } else if (typeof destinations === 'string') {
+    } else if (typeof destinations === "string") {
       try {
         const parsed = JSON.parse(destinations);
         if (Array.isArray(parsed)) {
-          processedDestinations = parsed.map(dest => ({
+          processedDestinations = parsed.map((dest) => ({
             ...dest,
             lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
             lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
             id: dest.id || Math.random().toString(36).substr(2, 9),
-            name: dest.name || dest.formatted_address || 'Unknown Location',
-            address: dest.address || dest.formatted_address || 'Address not available',
-            rating: dest.rating || null
+            name: dest.name || dest.formatted_address || "Unknown Location",
+            address:
+              dest.address || dest.formatted_address || "Address not available",
+            rating: dest.rating || null,
           }));
         }
       } catch (e) {
@@ -108,7 +111,7 @@ const UserProfilePage = ({
       console.log("Fetching user itineraries for profile:", user?.id);
 
       // First get user itinerary IDs
-      const userResponse = await fetch("http://localhost:3000/api/my-itineraries", {
+      const userResponse = await fetch(`${API_URL}/api/my-itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -121,11 +124,11 @@ const UserProfilePage = ({
         let userItineraryIds = [];
 
         if (userData.ok && Array.isArray(userData.itineraries)) {
-          userItineraryIds = userData.itineraries.map(it => it.id);
+          userItineraryIds = userData.itineraries.map((it) => it.id);
         }
 
         // Then get all itineraries for complete data
-        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+        const allResponse = await fetch(`${API_URL}/api/itineraries`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -147,26 +150,31 @@ const UserProfilePage = ({
           }
 
           // Filter to user's itineraries
-          const userItinerariesFromDB = allItinerariesFromDB.filter(it =>
+          const userItinerariesFromDB = allItinerariesFromDB.filter((it) =>
             userItineraryIds.includes(it.id)
           );
 
           // Process with complete data including ratings
-          const processedItineraries = userItinerariesFromDB.map((itinerary) => ({
-            ...itinerary,
-            tags: processTags(itinerary.tags),
-            destinations: processDestinations(itinerary.destinations),
-            title: itinerary.title || "Untitled Itinerary",
-            description: itinerary.description || "",
-            duration: itinerary.duration || "1 day",
-            price: itinerary.price || "$$",
-            rating: parseFloat(itinerary.rating) || 0,
-            createdBy: itinerary.authorid || user?.id || "unknown",
-            authorid: itinerary.authorid,
-            authorname: itinerary.authorname || "Unknown",
-          }));
+          const processedItineraries = userItinerariesFromDB.map(
+            (itinerary) => ({
+              ...itinerary,
+              tags: processTags(itinerary.tags),
+              destinations: processDestinations(itinerary.destinations),
+              title: itinerary.title || "Untitled Itinerary",
+              description: itinerary.description || "",
+              duration: itinerary.duration || "1 day",
+              price: itinerary.price || "$$",
+              rating: parseFloat(itinerary.rating) || 0,
+              createdBy: itinerary.authorid || user?.id || "unknown",
+              authorid: itinerary.authorid,
+              authorname: itinerary.authorname || "Unknown",
+            })
+          );
 
-          console.log("User itineraries loaded for profile with ratings:", processedItineraries);
+          console.log(
+            "User itineraries loaded for profile with ratings:",
+            processedItineraries
+          );
           setUserItineraries(processedItineraries);
         }
       }
@@ -183,7 +191,7 @@ const UserProfilePage = ({
       console.log("Fetching saved itineraries for profile:", user?.id);
 
       // First get saved itinerary IDs
-      const savedResponse = await fetch("http://localhost:3000/api/my-saved-itineraries", {
+      const savedResponse = await fetch(`${API_URL}/api/my-saved-itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -196,11 +204,11 @@ const UserProfilePage = ({
         let savedItineraryIds = [];
 
         if (savedData.ok && Array.isArray(savedData.itineraries)) {
-          savedItineraryIds = savedData.itineraries.map(it => it.id);
+          savedItineraryIds = savedData.itineraries.map((it) => it.id);
         }
 
         // Then get all itineraries for complete data
-        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+        const allResponse = await fetch(`${API_URL}/api/itineraries`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -208,7 +216,10 @@ const UserProfilePage = ({
 
         if (allResponse.ok) {
           const allData = await allResponse.json();
-          console.log("Profile all itineraries for saved API Response:", allData);
+          console.log(
+            "Profile all itineraries for saved API Response:",
+            allData
+          );
 
           let allItinerariesFromDB = [];
 
@@ -222,26 +233,31 @@ const UserProfilePage = ({
           }
 
           // Filter to saved itineraries
-          const savedItinerariesFromDB = allItinerariesFromDB.filter(it =>
+          const savedItinerariesFromDB = allItinerariesFromDB.filter((it) =>
             savedItineraryIds.includes(it.id)
           );
 
           // Process with complete data including ratings
-          const processedSavedItineraries = savedItinerariesFromDB.map((itinerary) => ({
-            ...itinerary,
-            tags: processTags(itinerary.tags),
-            destinations: processDestinations(itinerary.destinations),
-            title: itinerary.title || "Untitled Itinerary",
-            description: itinerary.description || "",
-            duration: itinerary.duration || "1 day",
-            price: itinerary.price || "$$",
-            rating: parseFloat(itinerary.rating) || 0,
-            createdBy: itinerary.authorid || "unknown",
-            authorid: itinerary.authorid,
-            authorname: itinerary.authorname || "Unknown",
-          }));
+          const processedSavedItineraries = savedItinerariesFromDB.map(
+            (itinerary) => ({
+              ...itinerary,
+              tags: processTags(itinerary.tags),
+              destinations: processDestinations(itinerary.destinations),
+              title: itinerary.title || "Untitled Itinerary",
+              description: itinerary.description || "",
+              duration: itinerary.duration || "1 day",
+              price: itinerary.price || "$$",
+              rating: parseFloat(itinerary.rating) || 0,
+              createdBy: itinerary.authorid || "unknown",
+              authorid: itinerary.authorid,
+              authorname: itinerary.authorname || "Unknown",
+            })
+          );
 
-          console.log("Saved itineraries loaded for profile with ratings:", processedSavedItineraries);
+          console.log(
+            "Saved itineraries loaded for profile with ratings:",
+            processedSavedItineraries
+          );
           setSavedItineraries(processedSavedItineraries);
         }
       }
@@ -256,24 +272,30 @@ const UserProfilePage = ({
       console.log("Fetching completed itineraries for profile:", user?.id);
 
       // First get completed itinerary IDs
-      const completedResponse = await fetch("http://localhost:3000/api/my-completed-itineraries", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      const completedResponse = await fetch(
+        `${API_URL}/api/my-completed-itineraries`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }
+      );
 
       if (completedResponse.ok) {
         const completedData = await completedResponse.json();
-        console.log("Profile completed itineraries API Response:", completedData);
+        console.log(
+          "Profile completed itineraries API Response:",
+          completedData
+        );
 
         let completedItineraryIds = [];
 
         if (completedData.ok && Array.isArray(completedData.itineraries)) {
-          completedItineraryIds = completedData.itineraries.map(it => it.id);
+          completedItineraryIds = completedData.itineraries.map((it) => it.id);
         }
 
         // Then get all itineraries for complete data
-        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+        const allResponse = await fetch(`${API_URL}/api/itineraries`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -281,7 +303,10 @@ const UserProfilePage = ({
 
         if (allResponse.ok) {
           const allData = await allResponse.json();
-          console.log("Profile all itineraries for completed API Response:", allData);
+          console.log(
+            "Profile all itineraries for completed API Response:",
+            allData
+          );
 
           let allItinerariesFromDB = [];
 
@@ -295,26 +320,31 @@ const UserProfilePage = ({
           }
 
           // Filter to completed itineraries
-          const completedItinerariesFromDB = allItinerariesFromDB.filter(it =>
+          const completedItinerariesFromDB = allItinerariesFromDB.filter((it) =>
             completedItineraryIds.includes(it.id)
           );
 
           // Process with complete data including ratings
-          const processedCompletedItineraries = completedItinerariesFromDB.map((itinerary) => ({
-            ...itinerary,
-            tags: processTags(itinerary.tags),
-            destinations: processDestinations(itinerary.destinations),
-            title: itinerary.title || "Untitled Itinerary",
-            description: itinerary.description || "",
-            duration: itinerary.duration || "1 day",
-            price: itinerary.price || "$$",
-            rating: parseFloat(itinerary.rating) || 0,
-            createdBy: itinerary.authorid || "unknown",
-            authorid: itinerary.authorid,
-            authorname: itinerary.authorname || "Unknown",
-          }));
+          const processedCompletedItineraries = completedItinerariesFromDB.map(
+            (itinerary) => ({
+              ...itinerary,
+              tags: processTags(itinerary.tags),
+              destinations: processDestinations(itinerary.destinations),
+              title: itinerary.title || "Untitled Itinerary",
+              description: itinerary.description || "",
+              duration: itinerary.duration || "1 day",
+              price: itinerary.price || "$$",
+              rating: parseFloat(itinerary.rating) || 0,
+              createdBy: itinerary.authorid || "unknown",
+              authorid: itinerary.authorid,
+              authorname: itinerary.authorname || "Unknown",
+            })
+          );
 
-          console.log("Completed itineraries loaded for profile with ratings:", processedCompletedItineraries);
+          console.log(
+            "Completed itineraries loaded for profile with ratings:",
+            processedCompletedItineraries
+          );
           setCompletedItineraries(processedCompletedItineraries);
         }
       }
@@ -354,7 +384,7 @@ const UserProfilePage = ({
     }
   };
 
-  // Handler for viewing itinerary 
+  // Handler for viewing itinerary
   const handleViewItinerary = (itinerary) => {
     console.log("Viewing itinerary from profile page:", itinerary);
     if (onViewItinerary) {
@@ -368,7 +398,9 @@ const UserProfilePage = ({
         price: itinerary.price || "$$",
         rating: itinerary.rating || 0,
         tags: Array.isArray(itinerary.tags) ? itinerary.tags : [],
-        destinations: Array.isArray(itinerary.destinations) ? itinerary.destinations : [],
+        destinations: Array.isArray(itinerary.destinations)
+          ? itinerary.destinations
+          : [],
         authorid: itinerary.authorid,
         authorname: itinerary.authorname || "Unknown",
       });

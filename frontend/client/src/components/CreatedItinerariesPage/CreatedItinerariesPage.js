@@ -5,6 +5,7 @@ import Map from "../HomePage/Map";
 import Sidebar from "../HomePage/Sidebar";
 import "../HomePage/HomePage.css";
 import "./CreatedItinerariesPage.css";
+import API_URL from "../../config";
 
 function CreatedItinerariesPage({
   onBack,
@@ -52,21 +53,21 @@ function CreatedItinerariesPage({
     let processedDestinations = [];
 
     if (Array.isArray(destinations)) {
-      processedDestinations = destinations.map(dest => ({
+      processedDestinations = destinations.map((dest) => ({
         ...dest,
         lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
         lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-        id: dest.id || Math.random().toString(36).substr(2, 9)
+        id: dest.id || Math.random().toString(36).substr(2, 9),
       }));
-    } else if (typeof destinations === 'string') {
+    } else if (typeof destinations === "string") {
       try {
         const parsed = JSON.parse(destinations);
         if (Array.isArray(parsed)) {
-          processedDestinations = parsed.map(dest => ({
+          processedDestinations = parsed.map((dest) => ({
             ...dest,
             lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
             lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-            id: dest.id || Math.random().toString(36).substr(2, 9)
+            id: dest.id || Math.random().toString(36).substr(2, 9),
           }));
         }
       } catch (e) {
@@ -89,7 +90,7 @@ function CreatedItinerariesPage({
       console.log("Fetching user itineraries for user:", user?.id);
 
       // get the user's itinerary IDs
-      const userResponse = await fetch("http://localhost:3000/api/my-itineraries", {
+      const userResponse = await fetch(`${API_URL}/api/my-itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -102,14 +103,14 @@ function CreatedItinerariesPage({
         let userItineraryIds = [];
 
         if (userData.ok && Array.isArray(userData.itineraries)) {
-          userItineraryIds = userData.itineraries.map(it => it.id);
+          userItineraryIds = userData.itineraries.map((it) => it.id);
         } else {
           console.error("Unexpected API response structure:", userData);
           userItineraryIds = [];
         }
 
         // fetch all itineraries to get complete data including ratings
-        const allResponse = await fetch("http://localhost:3000/api/itineraries", {
+        const allResponse = await fetch(`${API_URL}/api/itineraries`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -134,57 +135,76 @@ function CreatedItinerariesPage({
           }
 
           // Filter to only user's itineraries and process them
-          const userItinerariesFromDB = allItinerariesFromDB.filter(it =>
+          const userItinerariesFromDB = allItinerariesFromDB.filter((it) =>
             userItineraryIds.includes(it.id)
           );
 
-          // Process and format itinerary data for display 
-          const processedItineraries = userItinerariesFromDB.map((itinerary) => {
-            // Process destinations to ensure consistent format
-            let processedDestinations = [];
-            if (itinerary.destinations) {
-              if (Array.isArray(itinerary.destinations)) {
-                processedDestinations = itinerary.destinations.map(dest => ({
-                  ...dest,
-                  lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                  lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                  id: dest.id || Math.random().toString(36).substr(2, 9)
-                }));
-              } else if (typeof itinerary.destinations === 'string') {
-                try {
-                  const parsed = JSON.parse(itinerary.destinations);
-                  if (Array.isArray(parsed)) {
-                    processedDestinations = parsed.map(dest => ({
+          // Process and format itinerary data for display
+          const processedItineraries = userItinerariesFromDB.map(
+            (itinerary) => {
+              // Process destinations to ensure consistent format
+              let processedDestinations = [];
+              if (itinerary.destinations) {
+                if (Array.isArray(itinerary.destinations)) {
+                  processedDestinations = itinerary.destinations.map(
+                    (dest) => ({
                       ...dest,
-                      lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                      lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                      id: dest.id || Math.random().toString(36).substr(2, 9)
-                    }));
+                      lat:
+                        parseFloat(dest.lat) ||
+                        parseFloat(dest.latitude) ||
+                        40.7831,
+                      lng:
+                        parseFloat(dest.lng) ||
+                        parseFloat(dest.longitude) ||
+                        -73.9712,
+                      id: dest.id || Math.random().toString(36).substr(2, 9),
+                    })
+                  );
+                } else if (typeof itinerary.destinations === "string") {
+                  try {
+                    const parsed = JSON.parse(itinerary.destinations);
+                    if (Array.isArray(parsed)) {
+                      processedDestinations = parsed.map((dest) => ({
+                        ...dest,
+                        lat:
+                          parseFloat(dest.lat) ||
+                          parseFloat(dest.latitude) ||
+                          40.7831,
+                        lng:
+                          parseFloat(dest.lng) ||
+                          parseFloat(dest.longitude) ||
+                          -73.9712,
+                        id: dest.id || Math.random().toString(36).substr(2, 9),
+                      }));
+                    }
+                  } catch (e) {
+                    console.warn("Failed to parse destinations:", e);
                   }
-                } catch (e) {
-                  console.warn("Failed to parse destinations:", e);
                 }
               }
+
+              // Ensure rating is properly parsed as a number
+              const ratingValue = parseFloat(itinerary.rating) || 0;
+
+              return {
+                ...itinerary,
+                tags: processTags(itinerary.tags),
+                title: itinerary.title || "Untitled Itinerary",
+                description: itinerary.description || "",
+                duration: itinerary.duration || "1 day",
+                price: itinerary.price || "$$",
+                rating: ratingValue,
+                destinations: processedDestinations,
+                createdBy: itinerary.authorid,
+                authorid: itinerary.authorid,
+              };
             }
+          );
 
-            // Ensure rating is properly parsed as a number
-            const ratingValue = parseFloat(itinerary.rating) || 0;
-
-            return {
-              ...itinerary,
-              tags: processTags(itinerary.tags),
-              title: itinerary.title || "Untitled Itinerary",
-              description: itinerary.description || "",
-              duration: itinerary.duration || "1 day",
-              price: itinerary.price || "$$",
-              rating: ratingValue,
-              destinations: processedDestinations,
-              createdBy: itinerary.authorid,
-              authorid: itinerary.authorid,
-            };
-          });
-
-          console.log("Processed user itineraries with ratings:", processedItineraries);
+          console.log(
+            "Processed user itineraries with ratings:",
+            processedItineraries
+          );
           setUserItineraries(processedItineraries);
         } else {
           console.error("Failed to fetch all itineraries");
@@ -201,7 +221,9 @@ function CreatedItinerariesPage({
       console.error("Error loading user itineraries from server:", error);
       setUserItineraries([]);
       if (showError) {
-        showError("Error loading your itineraries. Please check your connection.");
+        showError(
+          "Error loading your itineraries. Please check your connection."
+        );
       }
     } finally {
       setIsLoading(false);

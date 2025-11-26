@@ -1,6 +1,7 @@
 // src/components/UserProfilePage/ProfileInfo.js
 import React from "react";
 import "./ProfileInfo.css";
+import API_URL from "../../config";
 
 const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
   // State for form data and profile picture preview
@@ -96,10 +97,10 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
         fd.append("profilePicture", formData.profilePicture);
       }
 
-      const res = await fetch("http://localhost:3000/api/user/setup", {
+      const res = await fetch(`${API_URL}/api/user/setup`, {
         method: "POST",
         credentials: "include",
-        body: fd
+        body: fd,
       });
 
       const data = await res.json();
@@ -108,7 +109,10 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
         // update parent/app with canonical server user
         onSave(data.user);
       } else {
-        const msg = data && data.errors ? data.errors.join(", ") : "Failed to save profile";
+        const msg =
+          data && data.errors
+            ? data.errors.join(", ")
+            : "Failed to save profile";
         // use alert for now; you can integrate showError hook later
         alert(msg);
         console.error("Profile save failed:", data);
@@ -273,9 +277,7 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
           // View Mode Display
           <>
             <div className="username-display">
-              <h1 className="username-large">
-                {user.username}
-              </h1>
+              <h1 className="username-large">{user.username}</h1>
             </div>
 
             <div className="bio-section">
@@ -283,8 +285,6 @@ const ProfileInfo = ({ user, isEditing, onSave, onCancel }) => {
                 {user.bio || "No bio yet. Tell everyone about yourself!"}
               </p>
             </div>
-
-            
           </>
         )}
       </div>

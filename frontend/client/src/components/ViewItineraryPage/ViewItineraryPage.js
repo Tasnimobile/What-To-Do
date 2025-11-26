@@ -4,6 +4,7 @@ import Header from "../HomePage/Header";
 import Map from "../HomePage/Map";
 import ViewItinerarySidebar from "./ViewItinerarySidebar";
 import "../HomePage/HomePage.css";
+import API_URL from "../../config";
 
 function ViewItineraryPage({
   itinerary,
@@ -22,7 +23,7 @@ function ViewItineraryPage({
   const [isLoading, setIsLoading] = useState(true);
   const [allItineraries, setAllItineraries] = useState([]);
 
-  // Process tags from various formats (array, string, JSON string) 
+  // Process tags from various formats (array, string, JSON string)
   const processTags = (tags) => {
     if (!tags) return [];
 
@@ -43,13 +44,13 @@ function ViewItineraryPage({
     return [];
   };
 
-  // Load all itineraries from API 
+  // Load all itineraries from API
   const loadItineraries = async () => {
     setIsLoading(true);
     try {
       console.log("=== DEBUG: Loading itineraries for ViewItineraryPage ===");
 
-      const response = await fetch("http://localhost:3000/api/itineraries", {
+      const response = await fetch(`${API_URL}/api/itineraries`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -75,27 +76,37 @@ function ViewItineraryPage({
           itinerariesFromDB = [];
         }
 
-        // Process and format itinerary data with proper destination handling 
+        // Process and format itinerary data with proper destination handling
         const processedItineraries = itinerariesFromDB.map((itinerary) => {
           // Process destinations to ensure consistent format
           let processedDestinations = [];
           if (itinerary.destinations) {
             if (Array.isArray(itinerary.destinations)) {
-              processedDestinations = itinerary.destinations.map(dest => ({
+              processedDestinations = itinerary.destinations.map((dest) => ({
                 ...dest,
-                lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                id: dest.id || Math.random().toString(36).substr(2, 9)
+                lat:
+                  parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+                lng:
+                  parseFloat(dest.lng) ||
+                  parseFloat(dest.longitude) ||
+                  -73.9712,
+                id: dest.id || Math.random().toString(36).substr(2, 9),
               }));
-            } else if (typeof itinerary.destinations === 'string') {
+            } else if (typeof itinerary.destinations === "string") {
               try {
                 const parsed = JSON.parse(itinerary.destinations);
                 if (Array.isArray(parsed)) {
-                  processedDestinations = parsed.map(dest => ({
+                  processedDestinations = parsed.map((dest) => ({
                     ...dest,
-                    lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-                    lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-                    id: dest.id || Math.random().toString(36).substr(2, 9)
+                    lat:
+                      parseFloat(dest.lat) ||
+                      parseFloat(dest.latitude) ||
+                      40.7831,
+                    lng:
+                      parseFloat(dest.lng) ||
+                      parseFloat(dest.longitude) ||
+                      -73.9712,
+                    id: dest.id || Math.random().toString(36).substr(2, 9),
                   }));
                 }
               } catch (e) {
@@ -126,7 +137,7 @@ function ViewItineraryPage({
             title: it.title,
             destinationsCount: it.destinations.length,
             destinations: it.destinations,
-            rating: it.rating
+            rating: it.rating,
           });
         });
 
@@ -134,7 +145,9 @@ function ViewItineraryPage({
 
         // Find the specific itinerary we're looking for
         if (itinerary && itinerary.id) {
-          const foundItinerary = processedItineraries.find(it => it.id === itinerary.id);
+          const foundItinerary = processedItineraries.find(
+            (it) => it.id === itinerary.id
+          );
           if (foundItinerary) {
             console.log("Found itinerary in API data:", foundItinerary);
             setCurrentItinerary(foundItinerary);
@@ -195,7 +208,7 @@ function ViewItineraryPage({
     currentItinerary,
     mapDestinations,
     destinationsCount: mapDestinations.length,
-    isLoading
+    isLoading,
   });
 
   if (isLoading) {
@@ -212,24 +225,29 @@ function ViewItineraryPage({
             onNavigateToCompleted={onNavigateToCompleted}
             onLogout={onLogout}
           />
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, rgba(113, 193, 157, 0.3) 0%, rgba(113, 193, 157, 0.5) 100%)',
-            borderRadius: '16px',
-            color: 'white'
-          }}>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background:
+                "linear-gradient(135deg, rgba(113, 193, 157, 0.3) 0%, rgba(113, 193, 157, 0.5) 100%)",
+              borderRadius: "16px",
+              color: "white",
+            }}
+          >
             Loading itinerary...
           </div>
         </div>
         <div className="sidebar-container">
-          <div style={{
-            padding: '20px',
-            textAlign: 'center',
-            color: '#525252'
-          }}>
+          <div
+            style={{
+              padding: "20px",
+              textAlign: "center",
+              color: "#525252",
+            }}
+          >
             Loading itinerary details...
           </div>
         </div>
@@ -251,24 +269,29 @@ function ViewItineraryPage({
             onNavigateToCompleted={onNavigateToCompleted}
             onLogout={onLogout}
           />
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, rgba(113, 193, 157, 0.3) 0%, rgba(113, 193, 157, 0.5) 100%)',
-            borderRadius: '16px',
-            color: 'white'
-          }}>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background:
+                "linear-gradient(135deg, rgba(113, 193, 157, 0.3) 0%, rgba(113, 193, 157, 0.5) 100%)",
+              borderRadius: "16px",
+              color: "white",
+            }}
+          >
             Itinerary not found
           </div>
         </div>
         <div className="sidebar-container">
-          <div style={{
-            padding: '20px',
-            textAlign: 'center',
-            color: '#525252'
-          }}>
+          <div
+            style={{
+              padding: "20px",
+              textAlign: "center",
+              color: "#525252",
+            }}
+          >
             <h2>Itinerary Not Found</h2>
             <p>The requested itinerary could not be loaded.</p>
             <button className="save-btn" onClick={onBack}>
@@ -293,10 +316,7 @@ function ViewItineraryPage({
           onNavigateToCompleted={onNavigateToCompleted}
           onLogout={onLogout}
         />
-        <Map
-          selectedDestinations={mapDestinations}
-          isViewMode={true}
-        />
+        <Map selectedDestinations={mapDestinations} isViewMode={true} />
       </div>
 
       <div className="sidebar-container">
