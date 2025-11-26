@@ -367,7 +367,7 @@ app.post("/api/login", (req, res) => {
   // ensure token reflects this server instance
   // (tokenPayload already contains serverInstance below when created for api/register)
 
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -507,7 +507,7 @@ app.post("/api/register", (req, res) => {
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
