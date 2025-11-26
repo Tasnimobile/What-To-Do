@@ -129,24 +129,24 @@ app.use(function (req, res, next) {
 
   try {
     const token = req.cookies && req.cookies.ourSimpleApp;
+
     if (!token) {
       req.user = false;
     } else {
       const decoded = jwt.verify(token, process.env.JWTSECRET);
+      // Trust any valid JWT signed with your secret
       req.user = decoded;
     }
   } catch (err) {
-    try {
-      res.clearCookie("ourSimpleApp");
-    } catch (e) {}
+    // Invalid token: treat as unauthenticated, but don't nuke the cookie unless you really want to
     req.user = false;
   }
 
   res.locals.user = req.user;
-  console.log("req.user in auth middleware:", req.user);
-
+  console.log("auth middleware req.user =", req.user);
   next();
 });
+
 
 
 app.get("/", (req, res) => {
