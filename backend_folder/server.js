@@ -108,7 +108,7 @@ const upload = multer();
 try {
   db.prepare("ALTER TABLE user ADD COLUMN display_name TEXT").run();
 } catch {}
-
+app.set('trust proxy', 1);
 app.use(
   cors({
     origin: [
