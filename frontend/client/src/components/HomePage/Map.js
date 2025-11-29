@@ -10,21 +10,27 @@ const processDestinationsForMap = (destinations) => {
   let processed = [];
 
   if (Array.isArray(destinations)) {
-    processed = destinations.map(dest => {
-      // Handle both object format and string format
-      if (typeof dest === 'object' && dest !== null) {
-        return {
-          id: dest.id || dest.place_id || Math.random().toString(36).substr(2, 9),
-          lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
-          lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
-          name: dest.name || dest.formatted_address || 'Unknown Location',
-          address: dest.address || dest.formatted_address || 'Address not available',
-          rating: dest.rating || null
-        };
-      }
-      return null;
-    }).filter(Boolean);
-  } else if (typeof destinations === 'string') {
+    processed = destinations
+      .map((dest) => {
+        // Handle both object format and string format
+        if (typeof dest === "object" && dest !== null) {
+          return {
+            id:
+              dest.id ||
+              dest.place_id ||
+              Math.random().toString(36).substr(2, 9),
+            lat: parseFloat(dest.lat) || parseFloat(dest.latitude) || 40.7831,
+            lng: parseFloat(dest.lng) || parseFloat(dest.longitude) || -73.9712,
+            name: dest.name || dest.formatted_address || "Unknown Location",
+            address:
+              dest.address || dest.formatted_address || "Address not available",
+            rating: dest.rating || null,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  } else if (typeof destinations === "string") {
     try {
       const parsed = JSON.parse(destinations);
       if (Array.isArray(parsed)) {
@@ -73,13 +79,13 @@ function Map({
   selectedDestinations,
   onUpdateDestination,
   onCancelSelection,
-  isViewMode = false // Add view mode prop
+  isViewMode = false, // Add view mode prop
 }) {
   console.log("Map component props:", {
     isSelectingMode,
     selectedDestinationsCount: selectedDestinations?.length,
     isViewMode,
-    selectedDestinations: selectedDestinations
+    selectedDestinations: selectedDestinations,
   });
 
   // Process destinations for the map
@@ -96,7 +102,7 @@ function Map({
             selectedDestinations: processedDestinations, // Use processed destinations
             onUpdateDestination,
             onCancelSelection,
-            isViewMode
+            isViewMode,
           })
         }
         libraries={["places"]}
@@ -112,7 +118,7 @@ const MapComponent = ({
   selectedDestinations,
   onUpdateDestination,
   onCancelSelection,
-  isViewMode = false
+  isViewMode = false,
 }) => {
   const ref = React.useRef(null);
   const [map, setMap] = React.useState(null);
@@ -128,7 +134,7 @@ const MapComponent = ({
     isSelectingMode,
     destinationsCount: destinations.length,
     destinations: destinations,
-    isViewMode
+    isViewMode,
   });
 
   // Clear all markers from the map
@@ -208,9 +214,17 @@ const MapComponent = ({
     const infoWindow = new window.google.maps.InfoWindow({
       content: `
         <div style="padding: 12px; font-family: Arial, sans-serif; min-width: 200px;">
-          <h3 style="margin: 0 0 8px 0; color: #71C19D; font-weight: 600; font-size: 14px;">${destination.name}</h3>
-          <p style="margin: 0; color: #666; font-size: 12px; font-weight: 300;">${destination.address}</p>
-          ${isViewMode ? '<p style="margin: 4px 0 0 0; color: #999; font-size: 11px; font-weight: 300; font-style: italic;">Drag to move this marker</p>' : ''}
+          <h3 style="margin: 0 0 8px 0; color: #71C19D; font-weight: 600; font-size: 14px;">${
+            destination.name
+          }</h3>
+          <p style="margin: 0; color: #666; font-size: 12px; font-weight: 300;">${
+            destination.address
+          }</p>
+          ${
+            isViewMode
+              ? '<p style="margin: 4px 0 0 0; color: #999; font-size: 11px; font-weight: 300; font-style: italic;">Drag to move this marker</p>'
+              : ""
+          }
         </div>
       `,
     });
@@ -317,6 +331,7 @@ const MapComponent = ({
         center: { lat: 40.7831, lng: -73.9712 },
         zoom: 12,
         disableDefaultUI: false,
+        gestureHandling: "greedy",
         zoomControl: true,
         mapTypeControl: true,
         scaleControl: true,

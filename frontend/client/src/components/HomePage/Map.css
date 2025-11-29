@@ -36,6 +36,10 @@
   border-radius: 14px;
 }
 
+.google-map * {
+  pointer-events: auto !important;
+}
+
 /* Loading and error states */
 .map-loading,
 .map-error {
@@ -73,12 +77,14 @@
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   animation: slideDown 0.3s ease-out;
+  pointer-events: none;
 }
 
 .selection-hint-content {
   display: flex;
   align-items: center;
   gap: 12px;
+  pointer-events: auto;
 }
 
 .hint-circle {
