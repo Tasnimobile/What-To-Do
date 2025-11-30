@@ -7,7 +7,8 @@ const ItineraryView = ({
   activeTab,
   onTabClick,
   userItineraries = [],
-  savedItineraries = [], // Add saved itineraries prop
+  savedItineraries = [],
+  completedItineraries = [],
   user,
   onViewItinerary,
   onNavigateToCreated,
@@ -24,6 +25,9 @@ const ItineraryView = ({
     if (!itinerary) {
       itinerary = savedItineraries.find((item) => item.id === itineraryId);
     }
+    if (!itinerary) {
+      itinerary = completedItineraries.find((item) => item.id === itineraryId);
+    }
 
     if (itinerary && onViewItinerary) {
       console.log("Found itinerary to view from profile:", itinerary);
@@ -37,7 +41,9 @@ const ItineraryView = ({
         price: itinerary.price || "$$",
         rating: itinerary.rating || 0,
         tags: Array.isArray(itinerary.tags) ? itinerary.tags : [],
-        destinations: Array.isArray(itinerary.destinations) ? itinerary.destinations : [],
+        destinations: Array.isArray(itinerary.destinations)
+          ? itinerary.destinations
+          : [],
         authorid: itinerary.authorid,
         authorname: itinerary.authorname || "Unknown",
       });
@@ -75,7 +81,7 @@ const ItineraryView = ({
       case "saved":
         return savedItineraries.length > 3; // Check saved itineraries count
       case "completed":
-        return false; // No completed itineraries yet
+        return completedItineraries.length > 3; // Check completed itineraries count
       default:
         return false;
     }
@@ -100,8 +106,7 @@ const ItineraryView = ({
               <p>You haven't created any itineraries yet.</p>
               <p
                 style={{ fontSize: "0.9rem", opacity: 0.8, marginTop: "10px" }}
-              >
-              </p>
+              ></p>
             </div>
           );
         }
@@ -132,11 +137,18 @@ const ItineraryView = ({
         if (savedItineraries.length === 0) {
           return (
             <div className="grid-placeholder">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
                 <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
               </svg>
               <p>No saved itineraries yet</p>
-              <p style={{ fontSize: "0.9rem", opacity: 0.8, marginTop: "10px" }}>
+              <p
+                style={{ fontSize: "0.9rem", opacity: 0.8, marginTop: "10px" }}
+              >
                 Save itineraries you like to find them here later
               </p>
             </div>
@@ -165,13 +177,6 @@ const ItineraryView = ({
         );
 
       case "completed":
-        // Filter and display itineraries created in the last week
-        const completedItineraries = userItineraries.filter((itin) => {
-          const oneWeekAgo = new Date();
-          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          return new Date(itin.createdAt) > oneWeekAgo;
-        });
-
         if (completedItineraries.length === 0) {
           return (
             <div className="grid-placeholder">
@@ -184,6 +189,11 @@ const ItineraryView = ({
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm5.04-11.28V8.7c-.4-.39-1.03-.39-1.42 0L10.33 14l-2.6-2.62a.996.996 0 0 0-1.41 0 .984.984 0 0 0-.01 1.4l.01.01 3.3 3.34a1 1 0 0 0 1.42.01l6-6.01a.996.996 0 0 0 0-1.41" />
               </svg>
               <p>No completed itineraries</p>
+              <p
+                style={{ fontSize: "0.9rem", opacity: 0.8, marginTop: "10px" }}
+              >
+                Mark itineraries as completed to see them here
+              </p>
             </div>
           );
         }
@@ -224,8 +234,9 @@ const ItineraryView = ({
       {/* Tab Navigation */}
       <div className="profile-tabs">
         <button
-          className={`tab-button ${activeTab === "itineraries" ? "active" : ""
-            }`}
+          className={`tab-button ${
+            activeTab === "itineraries" ? "active" : ""
+          }`}
           onClick={() => onTabClick("itineraries")}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -249,7 +260,7 @@ const ItineraryView = ({
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm5.04-11.28V8.7c-.4-.39-1.03-.39-1.42 0L10.33 14l-2.6-2.62a.996.996 0 0 0-1.41 0 .984.984 0 0 0-.01 1.4l.01.01 3.3 3.34a1 1 0 0 0 1.42.01l6-6.01a.996.996 0 0 0 0-1.41" />
           </svg>
-          Completed
+          Completed ({completedItineraries.length}) {/* Updated count */}
         </button>
       </div>
 

@@ -2,16 +2,16 @@
 import React from "react";
 import "./ProfileStats.css";
 
-const ProfileStats = ({ userItineraries = [], savedItineraries = [] }) => {
+const ProfileStats = ({
+  userItineraries = [],
+  savedItineraries = [],
+  completedItineraries = [],
+}) => {
   // Calculate stats for display - itineraries count and recent activity
   const stats = {
     itineraries: userItineraries.length,
-    saved: savedItineraries.length, // Now using actual saved itineraries count
-    recent: userItineraries.filter((itin) => {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      return new Date(itin.createdAt) > oneWeekAgo;
-    }).length,
+    saved: savedItineraries.length,
+    completed: completedItineraries.length,
   };
 
   return (
@@ -22,7 +22,7 @@ const ProfileStats = ({ userItineraries = [], savedItineraries = [] }) => {
         <div className="stat-label-small">Created</div>
       </div>
 
-      {/* Saved itineraries count (now using actual data) */}
+      {/* Saved itineraries count */}
       <div className="stat-item-small">
         <div className="stat-number-small">{stats.saved}</div>
         <div className="stat-label-small">Saved</div>
@@ -30,7 +30,7 @@ const ProfileStats = ({ userItineraries = [], savedItineraries = [] }) => {
 
       {/* Completed itineraries count */}
       <div className="stat-item-small">
-        <div className="stat-number-small">{stats.recent}</div>
+        <div className="stat-number-small">{stats.completed}</div>
         <div className="stat-label-small">Completed</div>
       </div>
     </div>
