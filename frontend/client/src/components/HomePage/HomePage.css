@@ -27,6 +27,8 @@ body {
   flex-direction: column;
   gap: 20px;
   min-width: 0;
+  min-height: 0;
+  position: relative;
 }
 
 /* Mobile responsive styles */

@@ -348,6 +348,52 @@ const MapComponent = ({
       });
 
       setMap(newMap);
+
+      window.google.maps.event.addListenerOnce(newMap, "tilesloaded", () => {
+        console.log("Map tiles loaded - aggressively fixing pointer events");
+        const mapDiv = ref.current;
+        if (mapDiv) {
+          const fixMapInteraction = () => {
+            const overlays = mapDiv.querySelectorAll(
+              'div[style*="pointer-events: none"][style*="z-index: 1000002"]'
+            );
+            overlays.forEach((overlay) => {
+              console.log("Removing blocking overlay:", overlay);
+              overlay.remove();
+            });
+
+            const allElements = mapDiv.querySelectorAll("*");
+            allElements.forEach((el) => {
+              if (el.style.pointerEvents === "none") {
+                el.style.pointerEvents = "auto";
+              }
+            });
+          };
+
+          fixMapInteraction();
+          setTimeout(fixMapInteraction, 100);
+          setTimeout(fixMapInteraction, 500);
+          setTimeout(fixMapInteraction, 1000);
+
+          const observer = new MutationObserver(() => {
+            fixMapInteraction();
+          });
+
+          observer.observe(mapDiv, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["style"],
+          });
+
+          newMap.setOptions({
+            draggable: true,
+            scrollwheel: true,
+            disableDoubleClickZoom: false,
+            gestureHandling: "greedy",
+          });
+        }
+      });
     }
   }, [ref, map]);
 
@@ -369,8 +415,13 @@ const MapComponent = ({
       document.addEventListener("mousedown", handleOutsideClick);
     }
 
+    // Update cursor using CSS class instead of inline style
     if (ref.current) {
-      ref.current.style.cursor = isSelectingMode ? "crosshair" : "grab";
+      if (isSelectingMode) {
+        ref.current.classList.add("selecting-mode");
+      } else {
+        ref.current.classList.remove("selecting-mode");
+      }
     }
 
     return () => {
