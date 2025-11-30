@@ -9,6 +9,7 @@ function ViewItinerarySidebar({
   user,
   onNavigateToEdit,
   onRateItinerary,
+  onRefreshUser,
 }) {
   const [completed, setCompleted] = useState(false);
   const [currentUserRating, setCurrentUserRating] = useState(0);
@@ -64,6 +65,17 @@ function ViewItinerarySidebar({
       });
     }
   }, [normalized?.id, normalized?.userRating, normalized?.overallRating]);
+
+  useEffect(() => {
+    if (normalized && user) {
+      try {
+        const completedIds = JSON.parse(user.completed_itineraries || "[]");
+        setCompleted(completedIds.includes(normalized.id));
+      } catch {
+        setCompleted(false);
+      }
+    }
+  }, [normalized?.id, user?.completed_itineraries]);
 
   const savedIds = useMemo(() => {
     if (!user || !user.saved_itineraries) return [];
@@ -136,30 +148,63 @@ function ViewItinerarySidebar({
     }
   };
 
-  function ItineraryBookmark({ id, initialBookmarked }) {
+  function ItineraryBookmark({ id, initialBookmarked, savedIds }) {
     const [bookmarked, setBookmarked] = useState(initialBookmarked);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-      setBookmarked(initialBookmarked);
-    }, [initialBookmarked]);
+      const isCurrentlySaved = savedIds.includes(id);
+      setBookmarked(isCurrentlySaved);
+    }, [savedIds, id]);
 
     const handleClick = async () => {
-      setBookmarked((prev) => !prev);
       try {
-        await fetch(`${API_URL}/api/save-itinerary`, {
+        if (!user) {
+          alert("You must be logged in to save itineraries.");
+          return;
+        }
+        if (isLoading) return; // Prevent multiple clicks
+        setIsLoading(true);
+        const newBookmarkedState = !bookmarked;
+        setBookmarked(newBookmarkedState); // Optimistic update
+        // Choose endpoint based on current state (same pattern as completed button)
+        const url = bookmarked
+          ? "/api/unsave-itinerary"
+          : "/api/save-itinerary";
+        const response = await fetch(`${API_URL}${url}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ saved_itinerary: id }),
         });
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data || data.ok === false) {
+          console.error("Save/unsave toggle failed", response.status, data);
+          setBookmarked(!newBookmarkedState);
+          alert("Unable to update saved status. See console for details.");
+          return;
+        }
+        if (onRefreshUser) {
+          await onRefreshUser();
+        }
       } catch (err) {
         console.error(err);
+        setBookmarked(!bookmarked); // Revert on error
         alert("Error saving itinerary");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     return (
-      <button className="bookmark-icon" onClick={handleClick}>
+      <button
+        className="bookmark-icon"
+        onClick={handleClick}
+        disabled={isLoading}
+        style={{ opacity: isLoading ? 0.6 : 1 }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -182,12 +227,15 @@ function ViewItinerarySidebar({
         return;
       }
 
+      const newCompletedState = !completed;
+      setCompleted(newCompletedState);
+
       // choose endpoint based on current state
       const url = completed
         ? "/api/uncomplete-itinerary"
         : "/api/complete-itinerary";
 
-      const resp = await fetch(`${API_URL}` + url, {
+      const resp = await fetch(`${API_URL}${url}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -198,17 +246,18 @@ function ViewItinerarySidebar({
 
       if (!resp.ok || !data || data.ok === false) {
         console.error("Complete toggle failed", resp.status, data);
+        setCompleted(!newCompletedState); // Revert on error
         alert("Unable to update completed status. See console for details.");
         return;
       }
 
-      // Toggle UI state and optionally refresh canonical user data
-      setCompleted(!completed);
-
-      // OPTIONAL: if you keep user in parent/global state, refresh it so other views update:
-      // fetch('/api/user/me', { credentials: 'include' }).then(r => r.json()).then(d => setUser && setUser(d.user));
+      // Refresh user data to sync completed_itineraries
+      if (onRefreshUser) {
+        await onRefreshUser();
+      }
     } catch (err) {
       console.error("Network error toggling complete:", err);
+      setCompleted(!completed); // Revert on error
       alert("Network error while updating completed status.");
     }
   };
@@ -243,7 +292,11 @@ function ViewItinerarySidebar({
     <div className="view-itinerary-sidebar">
       <div className="create-header">
         <div className="title-row">
-          <ItineraryBookmark id={id} initialBookmarked={isBookmarked} />
+          <ItineraryBookmark
+            id={id}
+            initialBookmarked={isBookmarked}
+            savedIds={savedIds}
+          />
           <h1 className="itinerary-main-title">{title}</h1>
         </div>
         <p className="itinerary-author">Created by: {authorname}</p>
@@ -369,7 +422,10 @@ function ViewItinerarySidebar({
       </div>
 
       <div className="create-actions">
-        <button className="completed-btn" onClick={handleToggleCompleted}>
+        <button
+          className={`completed-btn ${completed ? "active" : ""}`}
+          onClick={handleToggleCompleted}
+        >
           {completed ? "Completed!" : "Completed?"}
         </button>
         {isAuthor && (

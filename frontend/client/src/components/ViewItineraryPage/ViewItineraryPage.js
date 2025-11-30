@@ -18,6 +18,7 @@ function ViewItineraryPage({
   onNavigateToEdit,
   onRateItinerary,
   onLogout,
+  onRefreshUser,
 }) {
   const [currentItinerary, setCurrentItinerary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -326,6 +327,7 @@ function ViewItineraryPage({
           user={user}
           onNavigateToEdit={onNavigateToEdit}
           onRateItinerary={handleRateItinerary}
+          onRefreshUser={onRefreshUser}
         />
       </div>
     </div>

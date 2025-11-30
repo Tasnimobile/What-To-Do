@@ -271,6 +271,25 @@ function App() {
     }
   };
 
+  const refreshUserData = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/user/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          setUser(data.user); // Update user state
+          console.log("✅ User data refreshed:", data.user);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    }
+  };
+
   // Render the current active page based on state
   const renderCurrentPage = () => {
     switch (currentPage) {
@@ -369,6 +388,7 @@ function App() {
             showError={showError}
             onLogout={handleLogout}
             onRateItinerary={handleRateItinerary}
+            onRefreshUser={refreshUserData}
           />
         );
       case "edit-itinerary":
