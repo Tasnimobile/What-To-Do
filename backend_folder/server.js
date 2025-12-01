@@ -287,18 +287,28 @@ app.post("/register", (req, res) => {
   const hashed = bcrypt.hashSync(req.body.password, salt);
 
   let result;
-  if (emailValue) {
-    result = db
-      .prepare(
-        "INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)"
-      )
-      .run(usernameCandidate, hashed, emailValue, usernameCandidate);
-  } else {
-    result = db
-      .prepare(
-        "INSERT INTO user (username, password, display_name) VALUES (?, ?, ?)"
-      )
-      .run(usernameCandidate, hashed, usernameCandidate);
+  try {
+    if (emailValue) {
+      result = db
+        .prepare(
+          "INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)"
+        )
+        .run(usernameCandidate, hashed, emailValue, usernameCandidate);
+    } else {
+      result = db
+        .prepare(
+          "INSERT INTO user (username, password, display_name) VALUES (?, ?, ?)"
+        )
+        .run(usernameCandidate, hashed, usernameCandidate);
+    }
+  } catch (err) {
+    console.error("Register insert error:", err && err.message ? err.message : err);
+    const errors = [];
+    if (err && (err.code === "SQLITE_CONSTRAINT" || (err.message && err.message.includes("UNIQUE constraint")))) {
+      errors.push("That email or username is already taken.");
+      return res.status(400).json({ ok: false, errors });
+    }
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 
   const newUser = db
@@ -316,7 +326,7 @@ app.post("/register", (req, res) => {
     process.env.JWTSECRET
   );
 
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -367,7 +377,7 @@ app.post("/api/login", (req, res) => {
   // ensure token reflects this server instance
   // (tokenPayload already contains serverInstance below when created for api/register)
 
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
@@ -443,19 +453,30 @@ app.post("/api/register", (req, res) => {
   let result;
   // Persist display_name on API registration as well so the frontend doesn't
   // need to perform an extra update to set it. 
-  if (emailValue) {
-    result = db
-      .prepare( 
-        "INSERT INTO user (username, password, email, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?, ?)"
-      )
-      .run(usernameCandidate, hashed, emailValue, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
-  } else {
-    result = db
-      .prepare(
-        "INSERT INTO user (username, password, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?)"
-      )
-      .run(usernameCandidate, hashed, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
+  try {
+    if (emailValue) {
+      result = db
+        .prepare( 
+          "INSERT INTO user (username, password, email, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?, ?)"
+        )
+        .run(usernameCandidate, hashed, emailValue, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
+    } else {
+      result = db
+        .prepare(
+          "INSERT INTO user (username, password, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?)"
+        )
+        .run(usernameCandidate, hashed, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
+    }
+  } catch (err) {
+    console.error("/api/register insert error:", err && err.message ? err.message : err);
+    const errors = [];
+    if (err && (err.code === "SQLITE_CONSTRAINT" || (err.message && err.message.includes("UNIQUE constraint")))) {
+      errors.push("That email or username is already taken.");
+      return res.status(400).json({ ok: false, errors });
+    }
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
   }
+
 
   const newUser = db
 
@@ -507,7 +528,7 @@ app.post("/api/register", (req, res) => {
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
-  res.cookie("ourSimpleApp", ourTokenValue, {
+  res.cookie("ourSimpleApp", token, {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
