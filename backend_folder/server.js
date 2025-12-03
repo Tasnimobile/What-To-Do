@@ -6,175 +6,176 @@ const cookieParser = require("cookie-parser");
 const SERVER_INSTANCE_ID =
   process.env.SERVER_INSTANCE_ID || crypto.randomBytes(8).toString("hex");
 const express = require("express");
-const db = require("better-sqlite3")("ourApp.db");
-db.pragma("journal_mode = WAL");
+// Removed legacy better-sqlite3 import (migrated to Postgres pool)
+// const db = require("better-sqlite3")("ourApp.db");
+// db.pragma("journal_mode = WAL");
+const { Pool } = require('pg');
+const DATABASE_URL = process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/whattodo';
+const pool = new Pool({ connectionString: DATABASE_URL });
 const cors = require("cors");
 const multer = require("multer");
 const isProduction = process.env.NODE_ENV === "production";
 
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+// Allow the frontend dev server to send cookies. Do NOT use a wildcard origin
+// when `credentials` is true — set the exact origin your frontend uses.
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3001';
+app.use(
+  cors({
+    origin: FRONTEND_ORIGIN,
+    credentials: true,
+  })
+);
+const upload = multer();
+
+// Authentication middleware: read JWT from cookie and populate req.user
+app.use((req, res, next) => {
+  try {
+    const token = req.cookies && req.cookies.ourSimpleApp;
+    if (!token) return next();
+    const payload = jwt.verify(token, process.env.JWTSECRET);
+    // If serverInstance was embedded in token, ensure it matches current server
+    if (payload && payload.serverInstance && payload.serverInstance !== SERVER_INSTANCE_ID) {
+      // token was issued for a different server instance - treat as not authenticated
+      return next();
+    }
+    req.user = {
+      userid: payload.userid,
+      username: payload.username,
+      display_name: payload.display_name,
+    };
+  } catch (e) {
+    // ignore errors and treat as anonymous
+  }
+  return next();
+});
 
 //multer handles form data
 
 // Database setup here
-const createTables = db.transaction(() => {
-  db.prepare(
-    `
-        CREATE TABLE IF NOT EXISTS user (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username STRING NOT NULL UNIQUE,
-        password STRING NOT NULL,
-        saved_itineraries TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(saved_itineraries)),
-        completed_itineraries TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(completed_itineraries))
-        )
-        `
-  ).run();
+app.post("/register", async (req, res) => {
+  let errors = [];
 
-  db.prepare(
-    `
-        CREATE TABLE IF NOT EXISTS itineraries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title STRING NOT NULL,
-        description TEXT NOT NULL,
-        tags TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(tags)),
-        duration TEXT NOT NULL,
-        price TEXT NOT NULL,
-        authorid INTEGER,
-        authorname TEXT,
-        rating INTEGER,
-        rating_count INTEGER,
-        total_rating INTEGER,
-        destinations TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(destinations)),
-        FOREIGN KEY (authorid) REFERENCES user (id) 
-        )
-        `
-  ).run();
-});
+  if (typeof req.body.username !== "string") req.body.username = "";
+  if (typeof req.body.password !== "string") req.body.password = "";
+  const raw = req.body.username.trim();
+  const isEmail = raw.includes("@");
+  let usernameCandidate = raw;
+  let emailValue = null;
 
-createTables();
-
-try {
-  db.prepare("ALTER TABLE user ADD COLUMN email TEXT").run();
-} catch {}
-try {
-  db.prepare("ALTER TABLE user ADD COLUMN google_sub TEXT").run();
-} catch {}
-
-//for bio; find the code at line 305
-try {
-  db.prepare("ALTER TABLE user ADD COLUMN bio TEXT").run();
-} catch {}
-
-// for completed itineraries column
-try {
-  db.prepare("ALTER TABLE user ADD COLUMN completed_itineraries TEXT").run();
-} catch {}
-
-db.prepare(
-  "CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email ON user(email)"
-).run();
-db.prepare(
-  "CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_sub ON user(google_sub)"
-).run();
-try {
-  db.prepare(
-    "UPDATE user SET email = username WHERE instr(username,'@') > 0 AND email IS NULL"
-  ).run();
-} catch (error) {
-  console.log("Skipping email migration due to duplicate emails");
-}
-// Backfill completed_itineraries if the column was just added
-try {
-  db.prepare(
-    "UPDATE user SET completed_itineraries = '[]' WHERE completed_itineraries IS NULL"
-  ).run();
-} catch (err) {}
-// Database setup end
-const app = express();
-
-app.use(express.json());
-
-//configure multer for handling multipart/form-data
-const upload = multer();
-
-//for display names
-try {
-  db.prepare("ALTER TABLE user ADD COLUMN display_name TEXT").run();
-} catch {}
-
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3001",
-      "http://localhost:3002",
-      "https://what-to-do-fe.onrender.com",
-    ], // React dev server
-    credentials: true,
-  })
-); //added 3002 bc it kept putting me in that for now, will fix later
-//TODO: Get rid of 3002 origin
-
-//log all incoming requests
-app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.url}`);
-  next();
-});
-
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static("public"));
-app.use(cookieParser());
-
-app.use(function (req, res, next) {
-  res.locals.errors = [];
-  // Strictly require tokens to carry the serverInstance that matches this
-  // running server. If a token is invalid or was issued by another
-  // developer's local server, clear it so the browser will remove it and
-  // force the user to sign up / log in again.
-  try {
-    const token = req.cookies && req.cookies.ourSimpleApp;
-    if (!token) {
-      req.user = false;
-    } else {
-      const decoded = jwt.verify(token, process.env.JWTSECRET);
-      if (
-        decoded &&
-        decoded.serverInstance &&
-        decoded.serverInstance === SERVER_INSTANCE_ID
-      ) {
-        req.user = decoded;
-      } else {
-        // Token does not belong to this server instance -> clear cookie
-        res.clearCookie("ourSimpleApp");
-        req.user = false;
-      }
+  if (isEmail) {
+    emailValue = raw.toLowerCase();
+    const base =
+      emailValue.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
+    usernameCandidate = base.slice(0, 10);
+    while (true) {
+      const { rows: existsRows } = await pool.query('SELECT 1 FROM "user" WHERE username = $1', [usernameCandidate]);
+      if (!existsRows || existsRows.length === 0) break;
+      usernameCandidate = (
+        base.slice(0, 9) + Math.floor(Math.random() * 10)
+      ).slice(0, 10);
     }
-  } catch (err) {
-    // Invalid token: clear cookie and treat as unauthenticated
-    try {
-      res.clearCookie("ourSimpleApp");
-    } catch (e) {}
-    req.user = false;
+  } else {
+    usernameCandidate = raw;
   }
 
-  res.locals.user = req.user;
-  console.log(req.user);
+  if (!usernameCandidate) errors.push("You must provide a username or email.");
+  if (!isEmail && usernameCandidate.length < 3)
+    errors.push("Username must be at least 3 characters.");
+  if (!isEmail && usernameCandidate.length > 10)
+    errors.push("Username cannot exceed 10 characters.");
+  if (!isEmail && !usernameCandidate.match(/^[a-zA-Z0-9]+$/))
+    errors.push("Username can only contain letters and numbers.");
 
-  next();
-});
+  {
+    const { rows: usernameRows } = await pool.query('SELECT * FROM "user" WHERE username = $1', [usernameCandidate]);
+    if (usernameRows && usernameRows.length) errors.push("That username is already taken.");
+  }
+  if (req.body.password.length < 8)
+    errors.push("Password must be at least 8 characters.");
+  if (req.body.password.length > 70)
+    errors.push("Password cannot exceed 70 characters.");
 
-app.get("/", (req, res) => {
-  // Always render the public homepage on initial load so freshly-started
-  // developer instances don't accidentally show a logged-in dashboard
-  // when a browser happens to have an `ourSimpleApp` cookie from another
-  // local server. The frontend will call `/api/user/me` to detect a session
-  // and update the UI as needed.
-  // Ensure any pre-existing cookie (from another dev instance) is cleared
-  // immediately on the first public request so the client must sign up.
+  if (errors.length) return res.status(400).json({ ok: false, errors });
+
+  const salt = bcrypt.genSaltSync(10);
+  const hashed = bcrypt.hashSync(req.body.password, salt);
+  let newUser;
   try {
-    res.clearCookie("ourSimpleApp");
-  } catch (e) {}
-  res.render("homepage");
+    if (emailValue) {
+      const { rows } = await pool.query(
+        `INSERT INTO "user" (username, password, email, display_name, saved_itineraries, completed_itineraries) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+        [usernameCandidate, hashed, emailValue, usernameCandidate, JSON.stringify([]), JSON.stringify([])]
+      );
+      newUser = rows[0];
+    } else {
+      const { rows } = await pool.query(
+        `INSERT INTO "user" (username, password, display_name, saved_itineraries, completed_itineraries) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+        [usernameCandidate, hashed, usernameCandidate, JSON.stringify([]), JSON.stringify([])]
+      );
+      newUser = rows[0];
+    }
+  } catch (err) {
+    console.error("/api/register insert error:", err && err.message ? err.message : err);
+    const errors = [];
+    if (err && (err.code === "23505" || err.code === "SQLITE_CONSTRAINT" || (err.message && err.message.includes("UNIQUE constraint")))) {
+      errors.push("That email or username is already taken.");
+      return res.status(400).json({ ok: false, errors });
+    }
+    return res.status(500).json({ ok: false, errors: ["Server error"] });
+  }
+
+  // Defensive: ensure display_name is the full usernameCandidate (avoid truncation)
+  try {
+    if (!newUser.display_name || newUser.display_name !== usernameCandidate) {
+      await pool.query('UPDATE "user" SET display_name = $1 WHERE id = $2', [usernameCandidate, newUser.id]);
+      const { rows: refreshedRows } = await pool.query('SELECT * FROM "user" WHERE id = $1', [newUser.id]);
+      const refreshed = refreshedRows[0];
+      console.log("[DEBUG register] refreshed user:", refreshed);
+      newUser.display_name = refreshed.display_name;
+    }
+  } catch (e) {
+    console.error("[DEBUG register] display_name enforcement failed:", e);
+  }
+
+  // Ensure a deterministic display name value to return and embed in the JWT
+  const displayName = newUser.display_name || usernameCandidate || newUser.username;
+
+  const tokenPayload = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    userid: newUser.id,
+    username: newUser.username,
+    display_name: displayName,
+    serverInstance: SERVER_INSTANCE_ID,
+  };
+
+  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
+
+  // Use `lax` so the cookie is set when called from the React dev server on another port
+  res.cookie("ourSimpleApp", token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 1000 * 60 * 60 * 24,
+  });
+
+  res.json({
+    ok: true,
+    user: {
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email || null,
+      bio: newUser.bio || "",
+      display_name: displayName,
+      saved_itineraries: newUser.saved_itineraries || "[]",
+      completed_itineraries: newUser.completed_itineraries || "[]",
+    },
+  });
 });
+// stray code removed (was an accidental duplicate block)
 
 app.get("/login", (req, res) => {
   res.render("login");
@@ -185,7 +186,7 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   let errors = [];
 
   if (typeof req.body.username != "string") req.body.username = "";
@@ -200,10 +201,8 @@ app.post("/login", (req, res) => {
 
   // res.send("Thank you")
 
-  const userInQuestionStatement = db.prepare(
-    "SELECT * FROM user WHERE USERNAME = ?"
-  );
-  const userInQuestion = userInQuestionStatement.get(req.body.username);
+  const { rows: loginRows } = await pool.query('SELECT * FROM "user" WHERE username = $1', [req.body.username]);
+  const userInQuestion = loginRows[0];
 
   if (!userInQuestion) {
     errors = ["inavlid username or password."];
@@ -238,108 +237,9 @@ app.post("/login", (req, res) => {
   res.redirect("/");
 });
 
-app.post("/register", (req, res) => {
-  let errors = [];
+// old SQLite /register handler removed (replaced by Postgres async handler above)
 
-  if (typeof req.body.username !== "string") req.body.username = "";
-  if (typeof req.body.password !== "string") req.body.password = "";
-  const raw = req.body.username.trim();
-  const isEmail = raw.includes("@");
-  let usernameCandidate = raw;
-  let emailValue = null;
-
-  if (isEmail) {
-    emailValue = raw.toLowerCase();
-    const base =
-      emailValue.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
-    usernameCandidate = base.slice(0, 10);
-    while (
-      db.prepare("SELECT 1 FROM user WHERE username = ?").get(usernameCandidate)
-    ) {
-      usernameCandidate = (
-        base.slice(0, 9) + Math.floor(Math.random() * 10)
-      ).slice(0, 10);
-    }
-  } else {
-    usernameCandidate = raw;
-  }
-
-  if (!usernameCandidate) errors.push("You must provide a username or email.");
-  if (!isEmail && usernameCandidate.length < 3)
-    errors.push("Username must be at least 3 characters.");
-  if (!isEmail && usernameCandidate.length > 10)
-    errors.push("Username cannot exceed 10 characters.");
-  if (!isEmail && !usernameCandidate.match(/^[a-zA-Z0-9]+$/))
-    errors.push("Username can only contain letters and numbers.");
-
-  const usernameCheck = db
-    .prepare("SELECT * FROM user WHERE username = ?")
-    .get(usernameCandidate);
-  if (usernameCheck) errors.push("That username is already taken.");
-  if (req.body.password.length < 8)
-    errors.push("Password must be at least 8 characters.");
-  if (req.body.password.length > 70)
-    errors.push("Password cannot exceed 70 characters.");
-
-  if (errors.length) return res.status(400).json({ ok: false, errors });
-
-  const salt = bcrypt.genSaltSync(10);
-  const hashed = bcrypt.hashSync(req.body.password, salt);
-
-  let result;
-  try {
-    if (emailValue) {
-      result = db
-        .prepare(
-          "INSERT INTO user (username, password, email, display_name) VALUES (?, ?, ?, ?)"
-        )
-        .run(usernameCandidate, hashed, emailValue, usernameCandidate);
-    } else {
-      result = db
-        .prepare(
-          "INSERT INTO user (username, password, display_name) VALUES (?, ?, ?)"
-        )
-        .run(usernameCandidate, hashed, usernameCandidate);
-    }
-  } catch (err) {
-    console.error("Register insert error:", err && err.message ? err.message : err);
-    const errors = [];
-    if (err && (err.code === "SQLITE_CONSTRAINT" || (err.message && err.message.includes("UNIQUE constraint")))) {
-      errors.push("That email or username is already taken.");
-      return res.status(400).json({ ok: false, errors });
-    }
-    return res.status(500).json({ ok: false, errors: ["Server error"] });
-  }
-
-  const newUser = db
-    .prepare("SELECT * FROM user WHERE rowid = ?")
-    .get(result.lastInsertRowid);
-
-  const token = jwt.sign(
-    {
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
-      userid: newUser.id,
-      username: newUser.username,
-      display_name: newUser.display_name,
-      serverInstance: SERVER_INSTANCE_ID,
-    },
-    process.env.JWTSECRET
-  );
-
-  res.cookie("ourSimpleApp", token, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
-    maxAge: 1000 * 60 * 60 * 24,
-  });
-
-  res.json({
-    ok: true,
-    user: { id: newUser.id, username: newUser.username, email: newUser.email },
-  });
-});
-
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   let errors = [];
   if (typeof req.body.email !== "string") req.body.email = "";
   if (typeof req.body.password !== "string") req.body.password = "";
@@ -349,9 +249,8 @@ app.post("/api/login", (req, res) => {
 
   if (errors.length) return res.status(400).json({ ok: false, errors });
 
-  const user = db
-    .prepare("SELECT * FROM user WHERE email = ?")
-    .get(req.body.email);
+  const { rows: userRows } = await pool.query('SELECT * FROM "user" WHERE email = $1', [req.body.email]);
+  const user = userRows[0];
 
   if (!user)
     return res
@@ -374,8 +273,6 @@ app.post("/api/login", (req, res) => {
   };
 
   const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
-  // ensure token reflects this server instance
-  // (tokenPayload already contains serverInstance below when created for api/register)
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -399,7 +296,7 @@ app.post("/api/login", (req, res) => {
 });
 
 // Register route for React frontend
-app.post("/api/register", (req, res) => {
+app.post("/api/register", async (req, res) => {
   let errors = [];
 
   if (typeof req.body.username !== "string") req.body.username = "";
@@ -414,9 +311,9 @@ app.post("/api/register", (req, res) => {
     const base =
       emailValue.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
     usernameCandidate = base.slice(0, 10);
-    while (
-      db.prepare("SELECT 1 FROM user WHERE username = ?").get(usernameCandidate)
-    ) {
+    while (true) {
+      const { rows: existsRows } = await pool.query('SELECT 1 FROM "user" WHERE username = $1', [usernameCandidate]);
+      if (!existsRows || existsRows.length === 0) break;
       usernameCandidate = (
         base.slice(0, 9) + Math.floor(Math.random() * 10)
       ).slice(0, 10);
@@ -433,10 +330,8 @@ app.post("/api/register", (req, res) => {
   if (!isEmail && !usernameCandidate.match(/^[a-zA-Z0-9]+$/))
     errors.push("Username can only contain letters and numbers.");
 
-  const usernameCheck = db
-    .prepare("SELECT * FROM user WHERE username = ?")
-    .get(usernameCandidate);
-  if (usernameCheck) errors.push("That username is already taken.");
+  const { rows: usernameRows } = await pool.query('SELECT * FROM "user" WHERE username = $1', [usernameCandidate]);
+  if (usernameRows && usernameRows.length) errors.push("That username is already taken.");
 
   if (!req.body.password) errors.push("You must provide a password.");
   if (req.body.password.length < 8)
@@ -450,27 +345,27 @@ app.post("/api/register", (req, res) => {
   const hashed = bcrypt.hashSync(req.body.password, salt);
   const savedItineraries = JSON.stringify([]);
   const completedItineraries = JSON.stringify([]);
-  let result;
+  let newUser;
   // Persist display_name on API registration as well so the frontend doesn't
-  // need to perform an extra update to set it. 
+  // need to perform an extra update to set it.
   try {
     if (emailValue) {
-      result = db
-        .prepare( 
-          "INSERT INTO user (username, password, email, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?, ?)"
-        )
-        .run(usernameCandidate, hashed, emailValue, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
+      const { rows } = await pool.query(
+        `INSERT INTO "user" (username, password, email, display_name, saved_itineraries, completed_itineraries) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [usernameCandidate, hashed, emailValue, usernameCandidate, savedItineraries, completedItineraries]
+      );
+      newUser = rows[0];
     } else {
-      result = db
-        .prepare(
-          "INSERT INTO user (username, password, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?)"
-        )
-        .run(usernameCandidate, hashed, usernameCandidate, JSON.stringify([]), JSON.stringify([]));
+      const { rows } = await pool.query(
+        `INSERT INTO "user" (username, password, display_name, saved_itineraries, completed_itineraries) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [usernameCandidate, hashed, usernameCandidate, savedItineraries, completedItineraries]
+      );
+      newUser = rows[0];
     }
   } catch (err) {
     console.error("/api/register insert error:", err && err.message ? err.message : err);
     const errors = [];
-    if (err && (err.code === "SQLITE_CONSTRAINT" || (err.message && err.message.includes("UNIQUE constraint")))) {
+    if (err && (err.code === "23505" || err.code === "SQLITE_CONSTRAINT" || (err.message && err.message.includes("UNIQUE constraint")))) {
       errors.push("That email or username is already taken.");
       return res.status(400).json({ ok: false, errors });
     }
@@ -478,17 +373,12 @@ app.post("/api/register", (req, res) => {
   }
 
 
-  const newUser = db
-
-    .prepare("SELECT * FROM user WHERE rowid = ?")
-    .get(result.lastInsertRowid);
-
   // Debug logging to diagnose username/display_name anomalies
   try {
     console.log("[DEBUG register] inserted values:", {
       usernameCandidate,
       emailValue,
-      lastInsertRowid: result.lastInsertRowid,
+      userId: newUser && newUser.id,
     });
     console.log("[DEBUG register] newUser from DB:", newUser);
   } catch (e) {
@@ -498,14 +388,10 @@ app.post("/api/register", (req, res) => {
   // Defensive: ensure display_name is the full usernameCandidate (avoid truncation)
   try {
     if (!newUser.display_name || newUser.display_name !== usernameCandidate) {
-      db.prepare("UPDATE user SET display_name = ? WHERE id = ?").run(
-        usernameCandidate,
-        newUser.id
-      );
+      await pool.query('UPDATE "user" SET display_name = $1 WHERE id = $2', [usernameCandidate, newUser.id]);
       // re-read the user row after the enforced update
-      const refreshed = db
-        .prepare("SELECT * FROM user WHERE id = ?")
-        .get(newUser.id);
+      const { rows: refreshedRows } = await pool.query('SELECT * FROM "user" WHERE id = $1', [newUser.id]);
+      const refreshed = refreshedRows[0];
       console.log("[DEBUG register] refreshed user:", refreshed);
       // replace newUser reference so downstream token/response use the corrected value
       newUser.display_name = refreshed.display_name;
@@ -575,33 +461,34 @@ app.post("/api/oauth/google", async (req, res) => {
         .json({ ok: false, errors: ["Google email not verified"] });
     }
 
-    let user =
-      db.prepare("SELECT * FROM user WHERE google_sub = ?").get(profile.sub) ||
-      db.prepare("SELECT * FROM user WHERE email = ?").get(profile.email) ||
-      db.prepare("SELECT * FROM user WHERE username = ?").get(profile.email);
+    let user = null;
+    const { rows: byGoogle } = await pool.query('SELECT * FROM "user" WHERE google_sub = $1', [profile.sub]);
+    if (byGoogle && byGoogle.length) user = byGoogle[0];
+    if (!user) {
+      const { rows: byEmail } = await pool.query('SELECT * FROM "user" WHERE email = $1', [profile.email]);
+      if (byEmail && byEmail.length) user = byEmail[0];
+    }
+    if (!user) {
+      const { rows: byUsername } = await pool.query('SELECT * FROM "user" WHERE username = $1', [profile.email]);
+      if (byUsername && byUsername.length) user = byUsername[0];
+    }
 
     if (user) {
       if (!user.email) {
-        db.prepare("UPDATE user SET email = ? WHERE id = ?").run(
-          profile.email,
-          user.id
-        );
+        await pool.query('UPDATE "user" SET email = $1 WHERE id = $2', [profile.email, user.id]);
         user.email = profile.email;
       }
       if (!user.google_sub) {
-        db.prepare("UPDATE user SET google_sub = ? WHERE id = ?").run(
-          profile.sub,
-          user.id
-        );
+        await pool.query('UPDATE "user" SET google_sub = $1 WHERE id = $2', [profile.sub, user.id]);
         user.google_sub = profile.sub;
       }
     } else {
       const base =
         profile.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
       let username = base.slice(0, 10);
-      while (
-        db.prepare("SELECT 1 FROM user WHERE username = ?").get(username)
-      ) {
+      while (true) {
+        const { rows: exists } = await pool.query('SELECT 1 FROM "user" WHERE username = $1', [username]);
+        if (!exists || exists.length === 0) break;
         username = base.slice(0, 9) + Math.floor(Math.random() * 10);
       }
 
@@ -609,32 +496,17 @@ app.post("/api/oauth/google", async (req, res) => {
       const randomPass = bcrypt.hashSync(Math.random().toString(36), salt);
       const savedItineraries = JSON.stringify([]);
       const completedItineraries = JSON.stringify([]);
-      const ins = db
-        .prepare(
-          "INSERT INTO user (username, password, email, google_sub, display_name, saved_itineraries, completed_itineraries) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        )
-        .run(
-          username,
-          randomPass,
-          profile.email,
-          profile.sub,
-          profile.name || username,
-          JSON.stringify([]),
-          JSON.stringify([])
-        );
-
-      user = db
-        .prepare("SELECT * FROM user WHERE rowid = ?")
-        .get(ins.lastInsertRowid);
+      const { rows: inserted } = await pool.query(
+        `INSERT INTO "user" (username, password, email, google_sub, display_name, saved_itineraries, completed_itineraries) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [username, randomPass, profile.email, profile.sub, profile.name || username, JSON.stringify([]), JSON.stringify([])]
+      );
+      user = inserted[0];
     }
 
     // Make sure display_name is set for existing users too
     if (!user.display_name) {
       const display = profile.name || user.username;
-      db.prepare("UPDATE user SET display_name = ? WHERE id = ?").run(
-        display,
-        user.id
-      );
+      await pool.query('UPDATE "user" SET display_name = $1 WHERE id = $2', [display, user.id]);
       user.display_name = display;
     }
 
@@ -691,7 +563,7 @@ app.post("/api/auth/logout", (req, res) => {
 app.post(
   "/api/user/setup",
   upload.fields([{ name: "profilePicture" }]),
-  (req, res) => {
+  async (req, res) => {
     console.log("=== USER SETUP ATTEMPT ===");
     console.log("Content-Type:", req.headers["content-type"]);
     console.log("Request body:", req.body);
@@ -749,17 +621,13 @@ app.post(
     ) {
       try {
         if (isEmail) {
-          const existingEmail = db
-            .prepare("SELECT id FROM user WHERE email = ?")
-            .get(newUsername.toLowerCase());
-          if (existingEmail && existingEmail.id !== req.user.userid) {
+          const { rows: existingEmail } = await pool.query('SELECT id FROM "user" WHERE email = $1', [newUsername.toLowerCase()]);
+          if (existingEmail && existingEmail[0] && existingEmail[0].id !== req.user.userid) {
             errors.push("That email is already taken.");
           }
         } else {
-          const existing = db
-            .prepare("SELECT id FROM user WHERE username = ?")
-            .get(newUsername);
-          if (existing && existing.id !== req.user.userid) {
+          const { rows: existing } = await pool.query('SELECT id FROM "user" WHERE username = $1', [newUsername]);
+          if (existing && existing[0] && existing[0].id !== req.user.userid) {
             errors.push("That username is already taken.");
           }
         }
@@ -811,16 +679,17 @@ app.post(
       }
 
       if (updates.length > 0) {
-        const sql = `UPDATE user SET ${updates.join(", ")} WHERE id = ?`;
+        const sql = `UPDATE "user" SET ${updates.join(",")} WHERE id = ?`;
         params.push(req.user.userid);
-        db.prepare(sql).run(...params);
+        // convert ? placeholders to $1..$n
+        let idx = 1;
+        const dollarSql = sql.replace(/\?/g, () => "$" + (idx++));
+        await pool.query(dollarSql, params);
       }
 
       // Read back canonical user data
-      const userStatement = db.prepare(
-        "SELECT id, username, email, bio, display_name FROM user WHERE id = ?"
-      );
-      const updatedUser = userStatement.get(req.user.userid);
+      const { rows: updatedRows } = await pool.query('SELECT id, username, email, bio, display_name FROM "user" WHERE id = $1', [req.user.userid]);
+      const updatedUser = updatedRows[0];
 
       // Reissue JWT so the cookie and req.user reflect the change immediately.
       // Include display_name in the token so downstream code can access it.
@@ -856,15 +725,13 @@ app.post(
 
 //get current user info
 //frontend kept asking for this
-app.get("/api/user/me", (req, res) => {
+app.get("/api/user/me", async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
 
-  const userStatement = db.prepare(
-    "SELECT id, username, email, bio, display_name, saved_itineraries, completed_itineraries FROM user WHERE id = ?"
-  );
-  const userData = userStatement.get(req.user.userid);
+  const { rows: userRows } = await pool.query('SELECT id, username, email, bio, display_name, saved_itineraries, completed_itineraries FROM "user" WHERE id = $1', [req.user.userid]);
+  const userData = userRows[0];
 
   if (!userData) {
     return res.status(404).json({ ok: false, errors: ["User not found"] });
@@ -878,13 +745,12 @@ app.post("/api/logout", (req, res) => {
   res.json({ ok: true, message: "Logged out" });
 });
 
-app.get("/api/itineraries", (req, res) => {
-  const statement = db.prepare("SELECT * FROM itineraries");
-  const itineraries = statement.all();
+app.get("/api/itineraries", async (req, res) => {
+  const { rows: itineraries } = await pool.query('SELECT * FROM itineraries');
 
   res.json({ ok: true, itineraries });
 });
-app.post("/api/create-itinerary", (req, res) => {
+app.post("/api/create-itinerary", async (req, res) => {
   console.log("Create itinerary request received");
   console.log("User from session:", req.user);
   console.log("Request body:", req.body);
@@ -913,64 +779,49 @@ app.post("/api/create-itinerary", (req, res) => {
   }
 
   try {
-    const userRow = db
-      .prepare(`SELECT display_name, username FROM user WHERE id = ?`)
-      .get(req.user.userid);
+    const { rows: userRows } = await pool.query('SELECT display_name, username FROM "user" WHERE id = $1', [req.user.userid]);
+    const userRow = userRows[0];
+    const authorname = (userRow && (userRow.display_name || userRow.username)) || null;
 
-    const authorname =
-      (userRow && (userRow.display_name || userRow.username)) || null;
-
-    const stmt = db.prepare(`
-      INSERT INTO itineraries
+    const { rows: inserted } = await pool.query(
+      `INSERT INTO itineraries
         (title, description, tags, duration, price,
          rating, rating_count, total_rating,
          destinations, authorid, authorname)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = stmt.run(
-      title,
-      description,
-      tags || "[]",
-      duration,
-      price,
-      rating,
-      rating_count,
-      total_rating,
-      destinations || "[]",
-      req.user.userid,
-      authorname
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
+      [
+        title,
+        description,
+        tags || "[]",
+        duration,
+        price,
+        rating,
+        rating_count,
+        total_rating,
+        destinations || "[]",
+        req.user.userid,
+        authorname,
+      ]
     );
 
-    console.log(
-      "Itinerary created with ID:",
-      result.lastInsertRowid,
-      "for user:",
-      req.user.userid,
-      "authorname:",
-      authorname
-    );
+    const insertedId = inserted[0] && inserted[0].id;
 
-    res.json({
-      ok: true,
-      message: "Itinerary created successfully",
-      itineraryId: result.lastInsertRowid,
-    });
+    console.log("Itinerary created with ID:", insertedId, "for user:", req.user.userid, "authorname:", authorname);
+
+    res.json({ ok: true, message: "Itinerary created successfully", itineraryId: insertedId });
   } catch (error) {
     console.error("Error creating itinerary:", error);
     res.status(500).json({ ok: false, errors: ["Server error"] });
   }
 });
 
-app.post("/api/give-rating", (req, res) => {
+app.post("/api/give-rating", async (req, res) => {
   try {
     const { id, rating, rating_count, total_rating } = req.body || {};
     const itineraryId = Number(id);
     const ratingTemp = Number(rating);
-    const statement = db.prepare(
-      "SELECT rating_count, total_rating from itineraries WHERE id = ?"
-    );
-    const ratingTally = statement.get(req.body.id);
+    const { rows: ratingRows } = await pool.query('SELECT rating_count, total_rating from itineraries WHERE id = $1', [req.body.id]);
+    const ratingTally = ratingRows[0];
     console.log(ratingTally.rating_count);
     const ratingCount = ratingTally.rating_count + 1;
     const totalTemp = ratingTally.total_rating;
@@ -988,20 +839,11 @@ app.post("/api/give-rating", (req, res) => {
       });
     }
 
-    const stmt = db.prepare("UPDATE itineraries SET rating = ? WHERE id = ?");
-    const result = stmt.run(ratingNum, itineraryId);
-    const stmt2 = db.prepare(
-      "UPDATE itineraries SET total_rating = ? WHERE id = ?"
-    );
-    const result2 = stmt2.run(totalRating, itineraryId);
-    const stmt3 = db.prepare(
-      "UPDATE itineraries SET rating_count = ? WHERE id = ?"
-    );
-    const result3 = stmt3.run(ratingCount, itineraryId);
-    if (result.changes === 0) {
-      return res
-        .status(404)
-        .json({ ok: false, errors: ["Itinerary not found"] });
+    const update1 = await pool.query('UPDATE itineraries SET rating = $1 WHERE id = $2', [ratingNum, itineraryId]);
+    const update2 = await pool.query('UPDATE itineraries SET total_rating = $1 WHERE id = $2', [totalRating, itineraryId]);
+    const update3 = await pool.query('UPDATE itineraries SET rating_count = $1 WHERE id = $2', [ratingCount, itineraryId]);
+    if (update1.rowCount === 0) {
+      return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
     }
 
     console.log("Itinerary rated:", {
@@ -1025,16 +867,13 @@ app.post("/api/give-rating", (req, res) => {
 });
 
 // Get itineraries for the logged-in user
-app.get("/api/my-itineraries", (req, res) => {
+app.get("/api/my-itineraries", async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
 
   try {
-    const statement = db.prepare(
-      "SELECT * FROM itineraries WHERE authorid = ? ORDER BY id DESC"
-    );
-    const itineraries = statement.all(req.user.userid);
+    const { rows: itineraries } = await pool.query('SELECT * FROM itineraries WHERE authorid = $1 ORDER BY id DESC', [req.user.userid]);
 
     // Return in the format your frontend expects
     res.json({
@@ -1052,7 +891,7 @@ app.get("/api/my-itineraries", (req, res) => {
   }
 });
 
-app.get("/api/my-saved-itineraries", (req, res) => {
+app.get("/api/my-saved-itineraries", async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
@@ -1060,8 +899,8 @@ app.get("/api/my-saved-itineraries", (req, res) => {
   try {
     const user_id = req.user.userid;
 
-    const stmt = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?");
-    const row = stmt.get(user_id);
+    const { rows: rowRows } = await pool.query('SELECT saved_itineraries FROM "user" WHERE id = $1', [user_id]);
+    const row = rowRows[0];
 
     let arr;
     try {
@@ -1075,12 +914,11 @@ app.get("/api/my-saved-itineraries", (req, res) => {
       return res.json({ ok: true, itineraries: [] });
     }
 
-    const placeholders = arr.map(() => "?").join(","); 
-    const stmt2 = db.prepare(
-      `SELECT * FROM itineraries WHERE id IN (${placeholders})`
+    const placeholders = arr.map((_, i) => `$${i+1}`).join(",");
+    const { rows: itineraries } = await pool.query(
+      `SELECT * FROM itineraries WHERE id IN (${placeholders})`,
+      arr
     );
-
-    const itineraries = stmt2.all(...arr);
 
     res.json({
       ok: true,
@@ -1097,7 +935,7 @@ app.get("/api/my-saved-itineraries", (req, res) => {
   }
 });
 
-app.get("/api/my-completed-itineraries", (req, res) => {
+app.get("/api/my-completed-itineraries", async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
@@ -1105,8 +943,8 @@ app.get("/api/my-completed-itineraries", (req, res) => {
   try {
     const user_id = req.user.userid;
 
-    const stmt = db.prepare("SELECT completed_itineraries FROM user WHERE id = ?");
-    const row = stmt.get(user_id);
+    const { rows: rowRows } = await pool.query('SELECT completed_itineraries FROM "user" WHERE id = $1', [user_id]);
+    const row = rowRows[0];
 
     let arr;
     try {
@@ -1120,12 +958,11 @@ app.get("/api/my-completed-itineraries", (req, res) => {
       return res.json({ ok: true, itineraries: [] });
     }
 
-    const placeholders = arr.map(() => "?").join(","); 
-    const stmt2 = db.prepare(
-      `SELECT * FROM itineraries WHERE id IN (${placeholders})`
+    const placeholders = arr.map((_, i) => `$${i+1}`).join(",");
+    const { rows: itineraries } = await pool.query(
+      `SELECT * FROM itineraries WHERE id IN (${placeholders})`,
+      arr
     );
-
-    const itineraries = stmt2.all(...arr);
 
     res.json({
       ok: true,
@@ -1143,7 +980,7 @@ app.get("/api/my-completed-itineraries", (req, res) => {
 });
 
 // Add debug endpoint
-app.get("/api/debug/my-itineraries", (req, res) => {
+app.get("/api/debug/my-itineraries", async (req, res) => {
   if (!req.user) {
     return res.json({ user: null, message: "No user logged in" });
   }
@@ -1151,10 +988,7 @@ app.get("/api/debug/my-itineraries", (req, res) => {
   try {
     console.log("Debug: User ID:", req.user.userid);
 
-    const statement = db.prepare(
-      "SELECT * FROM itineraries WHERE authorid = ?"
-    );
-    const itineraries = statement.all(req.user.userid);
+    const { rows: itineraries } = await pool.query('SELECT * FROM itineraries WHERE authorid = $1', [req.user.userid]);
 
     console.log("Debug: Found itineraries:", itineraries);
 
@@ -1170,7 +1004,7 @@ app.get("/api/debug/my-itineraries", (req, res) => {
 });
 
 // Add test itineraries (run this once)
-app.get("/api/create-test-itineraries", (req, res) => {
+app.get("/api/create-test-itineraries", async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ error: "Not logged in" });
   }
@@ -1195,21 +1029,12 @@ app.get("/api/create-test-itineraries", (req, res) => {
       },
     ];
 
-    const statement = db.prepare(
-      "INSERT INTO itineraries (title, description, tags, duration, price, destinations, authorid) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    );
-
-    testItineraries.forEach((itinerary) => {
-      statement.run(
-        itinerary.title,
-        itinerary.description,
-        itinerary.tags,
-        itinerary.duration,
-        itinerary.price,
-        itinerary.destinations,
-        itinerary.authorid
+    for (const itinerary of testItineraries) {
+      await pool.query(
+        "INSERT INTO itineraries (title, description, tags, duration, price, destinations, authorid) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+        [itinerary.title, itinerary.description, itinerary.tags, itinerary.duration, itinerary.price, itinerary.destinations, itinerary.authorid]
       );
-    });
+    }
 
     res.json({
       message: "Test itineraries created",
@@ -1221,21 +1046,19 @@ app.get("/api/create-test-itineraries", (req, res) => {
   }
 });
 
-app.post("/api/delete-itinerary", (req, res) => {
+app.post("/api/delete-itinerary", async (req, res) => {
   try {
     const { id } = req.body;
 
-    const deletion = db.prepare("DELETE FROM itineraries WHERE id = ?");
-    const result = deletion.run(id);
+    const deletion = await pool.query('DELETE FROM itineraries WHERE id = $1', [id]);
 
-    if (result.changes === 0) {
+    if (deletion.rowCount === 0) {
       return res.status(404).json({ ok: false, error: "Itinerary not found" });
     }
     // Cleanup deleted itinerary id from users' saved and completed arrays
     try {
-      const users = db.prepare("SELECT id, saved_itineraries, completed_itineraries FROM user").all();
-      const update = db.prepare("UPDATE user SET saved_itineraries = ?, completed_itineraries = ? WHERE id = ?");
-      users.forEach((u) => {
+      const { rows: users } = await pool.query('SELECT id, saved_itineraries, completed_itineraries FROM "user"');
+      for (const u of users) {
         let saved = [];
         let completed = [];
         try {
@@ -1251,21 +1074,21 @@ app.post("/api/delete-itinerary", (req, res) => {
         const newSaved = saved.filter((sid) => Number(sid) !== Number(id));
         const newCompleted = completed.filter((cid) => Number(cid) !== Number(id));
         if (newSaved.length !== saved.length || newCompleted.length !== completed.length) {
-          update.run(JSON.stringify(newSaved), JSON.stringify(newCompleted), u.id);
+          await pool.query('UPDATE "user" SET saved_itineraries = $1, completed_itineraries = $2 WHERE id = $3', [JSON.stringify(newSaved), JSON.stringify(newCompleted), u.id]);
         }
-      });
+      }
     } catch (cleanupErr) {
       console.error('Error cleaning up user references after delete:', cleanupErr);
     }
 
-    res.json({ ok: true, deleted: result.changes });
+    res.json({ ok: true, deleted: deletion.rowCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ ok: false, error: "Delete failed" });
   }
 });
 
-app.post("/api/save-itinerary", (req, res) => {
+app.post("/api/save-itinerary", async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { saved_itinerary } = req.body || {};
@@ -1275,11 +1098,11 @@ app.post("/api/save-itinerary", (req, res) => {
       return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
 
     // ensure itinerary exists
-    const exists = db.prepare("SELECT 1 FROM itineraries WHERE id = ?").get(itineraryId);
-    if (!exists) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
+    const { rows: existsRows } = await pool.query('SELECT 1 FROM itineraries WHERE id = $1', [itineraryId]);
+    if (!existsRows || existsRows.length === 0) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
 
-    const stmt = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?");
-    const row = stmt.get(user_id) || {};
+    const { rows: rowRows } = await pool.query('SELECT saved_itineraries FROM "user" WHERE id = $1', [user_id]);
+    const row = rowRows[0] || {};
     let arr;
     try {
       arr = JSON.parse(row.saved_itineraries || "[]");
@@ -1290,7 +1113,7 @@ app.post("/api/save-itinerary", (req, res) => {
 
     if (!arr.includes(itineraryId)) {
       arr.push(itineraryId);
-      db.prepare("UPDATE user SET saved_itineraries = ? WHERE id = ?").run(JSON.stringify(arr), user_id);
+      await pool.query('UPDATE "user" SET saved_itineraries = $1 WHERE id = $2', [JSON.stringify(arr), user_id]);
     }
 
     return res.json({ ok: true, saved_itineraries: arr });
@@ -1300,7 +1123,7 @@ app.post("/api/save-itinerary", (req, res) => {
   }
 });
 
-app.post("/api/complete-itinerary", (req, res) => {
+app.post("/api/complete-itinerary", async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { completed_itinerary } = req.body || {};
@@ -1310,11 +1133,11 @@ app.post("/api/complete-itinerary", (req, res) => {
       return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
 
     // ensure itinerary exists
-    const exists = db.prepare("SELECT 1 FROM itineraries WHERE id = ?").get(itineraryId);
-    if (!exists) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
+    const { rows: existsRows } = await pool.query('SELECT 1 FROM itineraries WHERE id = $1', [itineraryId]);
+    if (!existsRows || existsRows.length === 0) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
 
-    const stmt = db.prepare("SELECT completed_itineraries FROM user WHERE id = ?");
-    const row = stmt.get(user_id) || {};
+    const { rows: rowRows } = await pool.query('SELECT completed_itineraries FROM "user" WHERE id = $1', [user_id]);
+    const row = rowRows[0] || {};
     let arr;
     try {
       arr = JSON.parse(row.completed_itineraries || "[]");
@@ -1325,7 +1148,7 @@ app.post("/api/complete-itinerary", (req, res) => {
 
     if (!arr.includes(itineraryId)) {
       arr.push(itineraryId);
-      db.prepare('UPDATE user SET completed_itineraries = ? WHERE id = ?').run(JSON.stringify(arr), user_id);
+      await pool.query('UPDATE "user" SET completed_itineraries = $1 WHERE id = $2', [JSON.stringify(arr), user_id]);
     }
 
     return res.json({ ok: true, completed_itineraries: arr });
@@ -1336,7 +1159,7 @@ app.post("/api/complete-itinerary", (req, res) => {
 });
 
 // Unmark a completed itinerary
-app.post('/api/uncomplete-itinerary', (req, res) => {
+app.post('/api/uncomplete-itinerary', async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { completed_itinerary } = req.body || {};
@@ -1345,8 +1168,8 @@ app.post('/api/uncomplete-itinerary', (req, res) => {
     if (!Number.isFinite(itineraryId))
       return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
 
-    const stmt = db.prepare("SELECT completed_itineraries FROM user WHERE id = ?");
-    const row = stmt.get(user_id) || {};
+    const { rows: rowRows } = await pool.query('SELECT completed_itineraries FROM "user" WHERE id = $1', [user_id]);
+    const row = rowRows[0] || {};
     let arr;
     try {
       arr = JSON.parse(row.completed_itineraries || "[]");
@@ -1357,7 +1180,7 @@ app.post('/api/uncomplete-itinerary', (req, res) => {
 
     const newArr = arr.filter((id) => Number(id) !== itineraryId);
     if (newArr.length !== arr.length) {
-      db.prepare('UPDATE user SET completed_itineraries = ? WHERE id = ?').run(JSON.stringify(newArr), user_id);
+      await pool.query('UPDATE "user" SET completed_itineraries = $1 WHERE id = $2', [JSON.stringify(newArr), user_id]);
     }
 
     return res.json({ ok: true, completed_itineraries: newArr });
@@ -1367,7 +1190,7 @@ app.post('/api/uncomplete-itinerary', (req, res) => {
   }
 });
 
-app.post("/api/update-itinerary", (req, res) => {
+app.post("/api/update-itinerary", async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { itinerary_id } = req.body.id || {};
@@ -1376,19 +1199,19 @@ app.post("/api/update-itinerary", (req, res) => {
     console.log(req.body.id);
     if (!Number.isFinite(itineraryId))
       return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
-    db.prepare(`
+    await pool.query(`
       UPDATE itineraries 
-      SET title = ?,
-        description = ?,
-        tags = ?,
-        duration = ?,
-        price = ?,
-        rating = ?,
-        rating_count = ?,
-        total_rating = ?,
-        destinations = ?
-      WHERE id = ?
-    `).run(
+      SET title = $1,
+        description = $2,
+        tags = $3,
+        duration = $4,
+        price = $5,
+        rating = $6,
+        rating_count = $7,
+        total_rating = $8,
+        destinations = $9
+      WHERE id = $10
+    `, [
       req.body.title,
       req.body.description,
       req.body.tags,
@@ -1398,8 +1221,8 @@ app.post("/api/update-itinerary", (req, res) => {
       req.body.rating_count,
       req.body.total_rating,
       req.body.destinations,
-      req.body.id
-    );
+      req.body.id,
+    ]);
 
     return res.json({
       ok: true,
@@ -1412,7 +1235,7 @@ app.post("/api/update-itinerary", (req, res) => {
   }
 });
 
-app.post('/api/unsave-itinerary', (req, res) => {
+app.post('/api/unsave-itinerary', async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { saved_itinerary } = req.body || {};
@@ -1421,8 +1244,8 @@ app.post('/api/unsave-itinerary', (req, res) => {
     if (!Number.isFinite(itineraryId))
       return res.status(400).json({ ok: false, errors: ["Invalid itinerary id"] });
 
-    const stmt = db.prepare("SELECT saved_itineraries FROM user WHERE id = ?");
-    const row = stmt.get(user_id) || {};
+    const { rows: rowRows } = await pool.query('SELECT saved_itineraries FROM "user" WHERE id = $1', [user_id]);
+    const row = rowRows[0] || {};
     let arr;
     try {
       arr = JSON.parse(row.saved_itineraries || "[]");
@@ -1433,7 +1256,7 @@ app.post('/api/unsave-itinerary', (req, res) => {
 
     const newArr = arr.filter((id) => Number(id) !== itineraryId);
     if (newArr.length !== arr.length) {
-      db.prepare('UPDATE user SET saved_itineraries = ? WHERE id = ?').run(JSON.stringify(newArr), user_id);
+      await pool.query('UPDATE "user" SET saved_itineraries = $1 WHERE id = $2', [JSON.stringify(newArr), user_id]);
     }
 
     return res.json({ ok: true, saved_itineraries: newArr });

@@ -13,7 +13,6 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.4.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -23,7 +22,8 @@
     "multer": "^2.0.2",
     "node-gyp-build": "^4.8.4",
     "packaged": "^6.0.4",
-    "packages": "^0.0.8"
+    "packages": "^0.0.8",
+    "pg": "^8.10.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
