@@ -69,7 +69,10 @@ function ViewItinerarySidebar({
   useEffect(() => {
     if (normalized && user) {
       try {
-        const completedIds = JSON.parse(user.completed_itineraries || "[]");
+        const completedRaw = user.completed_itineraries;
+        const completedIds = Array.isArray(completedRaw)
+          ? completedRaw
+          : JSON.parse(completedRaw || "[]");
         setCompleted(completedIds.includes(normalized.id));
       } catch {
         setCompleted(false);
@@ -78,9 +81,10 @@ function ViewItinerarySidebar({
   }, [normalized?.id, user?.completed_itineraries]);
 
   const savedIds = useMemo(() => {
-    if (!user || !user.saved_itineraries) return [];
+    if (!user) return [];
     try {
-      const arr = JSON.parse(user.saved_itineraries);
+      const raw = user.saved_itineraries;
+      const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
       return Array.isArray(arr) ? arr : [];
     } catch {
       return [];

@@ -16,6 +16,14 @@ const cors = require("cors");
 const multer = require("multer");
 const isProduction = process.env.NODE_ENV === "production";
 
+// Centralize JWT secret handling. In production, `JWTSECRET` must be set.
+const JWTSECRET = process.env.JWTSECRET;
+if (!JWTSECRET && isProduction) {
+  console.error("FATAL: JWTSECRET environment variable is required in production");
+  process.exit(1);
+}
+const JWT_SECRET = JWTSECRET || "devsecret"; // safe fallback for local development
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,7 +44,7 @@ app.use((req, res, next) => {
   try {
     const token = req.cookies && req.cookies.ourSimpleApp;
     if (!token) return next();
-    const payload = jwt.verify(token, process.env.JWTSECRET);
+    const payload = jwt.verify(token, JWT_SECRET);
     // If serverInstance was embedded in token, ensure it matches current server
     if (payload && payload.serverInstance && payload.serverInstance !== SERVER_INSTANCE_ID) {
       // token was issued for a different server instance - treat as not authenticated
@@ -152,7 +160,7 @@ app.post("/register", async (req, res) => {
     serverInstance: SERVER_INSTANCE_ID,
   };
 
-  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
+  const token = jwt.sign(tokenPayload, JWT_SECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
   res.cookie("ourSimpleApp", token, {
@@ -226,7 +234,7 @@ app.post("/login", async (req, res) => {
       username: userInQuestion.username,
       serverInstance: SERVER_INSTANCE_ID,
     },
-    process.env.JWTSECRET
+    JWT_SECRET
   );
   res.cookie("ourSimpleApp", ourTokenValue, {
     httpOnly: true,
@@ -272,7 +280,7 @@ app.post("/api/login", async (req, res) => {
     serverInstance: SERVER_INSTANCE_ID,
   };
 
-  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
+  const token = jwt.sign(tokenPayload, JWT_SECRET);
 
   res.cookie("ourSimpleApp", token, {
     httpOnly: true,
@@ -411,7 +419,7 @@ app.post("/api/register", async (req, res) => {
     serverInstance: SERVER_INSTANCE_ID,
   };
 
-  const token = jwt.sign(tokenPayload, process.env.JWTSECRET);
+  const token = jwt.sign(tokenPayload, JWT_SECRET);
 
   // Use `lax` so the cookie is set when called from the React dev server on another port
   res.cookie("ourSimpleApp", token, {
@@ -518,7 +526,7 @@ app.post("/api/oauth/google", async (req, res) => {
         display_name: user.display_name,
         serverInstance: SERVER_INSTANCE_ID,
       },
-      process.env.JWTSECRET
+      JWT_SECRET
     );
     res.cookie("ourSimpleApp", token, {
       httpOnly: true,
@@ -701,7 +709,7 @@ app.post(
           display_name: updatedUser.display_name,
           serverInstance: SERVER_INSTANCE_ID,
         },
-        process.env.JWTSECRET
+        JWT_SECRET
       );
 
       res.cookie("ourSimpleApp", token, {
@@ -729,6 +737,8 @@ app.get("/api/user/me", async (req, res) => {
   if (!req.user) {
     return res.status(401).json({ ok: false, errors: ["Not logged in"] });
   }
+  // Prevent caching/304 responses for this API so clients always get fresh JSON
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
 
   const { rows: userRows } = await pool.query('SELECT id, username, email, bio, display_name, saved_itineraries, completed_itineraries FROM "user" WHERE id = $1', [req.user.userid]);
   const userData = userRows[0];
@@ -1069,18 +1079,29 @@ app.post("/api/delete-itinerary", async (req, res) => {
     try {
       const { rows: users } = await pool.query('SELECT id, saved_itineraries, completed_itineraries FROM "user"');
       for (const u of users) {
+        // Defensive parsing: the DB may contain JSONB that the driver
+        // returns as a JS string, array, or object. Normalize to an array.
         let saved = [];
         let completed = [];
         try {
-          saved = JSON.parse(u.saved_itineraries || '[]') || [];
+          const parsedSaved = JSON.parse(u.saved_itineraries || "[]");
+          saved = Array.isArray(parsedSaved) ? parsedSaved : [];
         } catch {
-          saved = [];
+          // If parsing fails, the value might already be an array/object
+          // returned by the driver. Coerce to array when possible.
+          saved = Array.isArray(u.saved_itineraries) ? u.saved_itineraries : [];
         }
         try {
-          completed = JSON.parse(u.completed_itineraries || '[]') || [];
+          const parsedCompleted = JSON.parse(u.completed_itineraries || "[]");
+          completed = Array.isArray(parsedCompleted) ? parsedCompleted : [];
         } catch {
-          completed = [];
+          completed = Array.isArray(u.completed_itineraries) ? u.completed_itineraries : [];
         }
+
+        // Ensure we have real arrays before using filter()
+        if (!Array.isArray(saved)) saved = [];
+        if (!Array.isArray(completed)) completed = [];
+
         const newSaved = saved.filter((sid) => Number(sid) !== Number(id));
         const newCompleted = completed.filter((cid) => Number(cid) !== Number(id));
         if (newSaved.length !== saved.length || newCompleted.length !== completed.length) {
@@ -1100,6 +1121,7 @@ app.post("/api/delete-itinerary", async (req, res) => {
 
 app.post("/api/save-itinerary", async (req, res) => {
   try {
+    console.log("/api/save-itinerary called", { user: req.user, body: req.body });
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { saved_itinerary } = req.body || {};
     const user_id = req.user.userid;
@@ -1109,6 +1131,7 @@ app.post("/api/save-itinerary", async (req, res) => {
 
     // ensure itinerary exists
     const { rows: existsRows } = await pool.query('SELECT 1 FROM itineraries WHERE id = $1', [itineraryId]);
+    console.log("/api/save-itinerary existsRows:", existsRows);
     if (!existsRows || existsRows.length === 0) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
 
     const { rows: rowRows } = await pool.query('SELECT saved_itineraries FROM "user" WHERE id = $1', [user_id]);
@@ -1135,6 +1158,7 @@ app.post("/api/save-itinerary", async (req, res) => {
 
 app.post("/api/complete-itinerary", async (req, res) => {
   try {
+    console.log("/api/complete-itinerary called", { user: req.user, body: req.body });
     if (!req.user) return res.status(401).json({ ok: false, errors: ["Not logged in"] });
     const { completed_itinerary } = req.body || {};
     const user_id = req.user.userid;
@@ -1144,6 +1168,7 @@ app.post("/api/complete-itinerary", async (req, res) => {
 
     // ensure itinerary exists
     const { rows: existsRows } = await pool.query('SELECT 1 FROM itineraries WHERE id = $1', [itineraryId]);
+    console.log("/api/complete-itinerary existsRows:", existsRows);
     if (!existsRows || existsRows.length === 0) return res.status(404).json({ ok: false, errors: ["Itinerary not found"] });
 
     const { rows: rowRows } = await pool.query('SELECT completed_itineraries FROM "user" WHERE id = $1', [user_id]);
