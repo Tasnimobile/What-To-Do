@@ -924,7 +924,12 @@ app.get("/api/my-saved-itineraries", async (req, res) => {
 
     let arr;
     try {
-      arr = JSON.parse(row?.saved_itineraries || "[]");
+      const raw = row?.saved_itineraries;
+      if (Array.isArray(raw)) {
+        arr = raw;
+      } else {
+        arr = JSON.parse(raw || "[]");
+      }
       if (!Array.isArray(arr)) arr = [];
     } catch {
       arr = [];
@@ -968,7 +973,12 @@ app.get("/api/my-completed-itineraries", async (req, res) => {
 
     let arr;
     try {
-      arr = JSON.parse(row?.completed_itineraries || "[]");
+      const raw = row?.completed_itineraries;
+      if (Array.isArray(raw)) {
+        arr = raw;
+      } else {
+        arr = JSON.parse(raw || "[]");
+      }
       if (!Array.isArray(arr)) arr = [];
     } catch {
       arr = [];
@@ -1138,7 +1148,12 @@ app.post("/api/save-itinerary", async (req, res) => {
     const row = rowRows[0] || {};
     let arr;
     try {
-      arr = JSON.parse(row.saved_itineraries || "[]");
+      const raw = row.saved_itineraries;
+      if (Array.isArray(raw)) {
+        arr = raw;
+      } else {
+        arr = JSON.parse(raw || "[]");
+      }
       if (!Array.isArray(arr)) arr = [];
     } catch {
       arr = [];
@@ -1175,7 +1190,12 @@ app.post("/api/complete-itinerary", async (req, res) => {
     const row = rowRows[0] || {};
     let arr;
     try {
-      arr = JSON.parse(row.completed_itineraries || "[]");
+      const raw = row.completed_itineraries;
+      if (Array.isArray(raw)) {
+        arr = raw;
+      } else {
+        arr = JSON.parse(raw || "[]");
+      }
       if (!Array.isArray(arr)) arr = [];
     } catch {
       arr = [];
@@ -1207,7 +1227,12 @@ app.post('/api/uncomplete-itinerary', async (req, res) => {
     const row = rowRows[0] || {};
     let arr;
     try {
-      arr = JSON.parse(row.completed_itineraries || "[]");
+      const raw = row.completed_itineraries;
+      if (Array.isArray(raw)) {
+        arr = raw;
+      } else {
+        arr = JSON.parse(raw || "[]");
+      }
       if (!Array.isArray(arr)) arr = [];
     } catch {
       arr = [];
@@ -1283,7 +1308,12 @@ app.post('/api/unsave-itinerary', async (req, res) => {
     const row = rowRows[0] || {};
     let arr;
     try {
-      arr = JSON.parse(row.saved_itineraries || "[]");
+      const raw = row.saved_itineraries;
+      if (Array.isArray(raw)) {
+        arr = raw;
+      } else {
+        arr = JSON.parse(raw || "[]");
+      }
       if (!Array.isArray(arr)) arr = [];
     } catch {
       arr = [];
