@@ -782,6 +782,16 @@ app.post("/api/create-itinerary", async (req, res) => {
     const { rows: userRows } = await pool.query('SELECT display_name, username FROM "user" WHERE id = $1', [req.user.userid]);
     const userRow = userRows[0];
     const authorname = (userRow && (userRow.display_name || userRow.username)) || null;
+    // Ensure JSONB columns receive valid JSON text. If the client sent
+    // arrays/objects, stringify them; if they sent JSON text, use as-is.
+    const tagsParam =
+      typeof tags === "string" ? tags : JSON.stringify(tags || []);
+    const destinationsParam =
+      typeof destinations === "string"
+        ? destinations
+        : JSON.stringify(destinations || []);
+
+    // tagsParam and destinationsParam prepared (stringified where needed)
 
     const { rows: inserted } = await pool.query(
       `INSERT INTO itineraries
@@ -792,13 +802,13 @@ app.post("/api/create-itinerary", async (req, res) => {
       [
         title,
         description,
-        tags || "[]",
+        tagsParam,
         duration,
         price,
         rating,
         rating_count,
         total_rating,
-        destinations || "[]",
+        destinationsParam,
         req.user.userid,
         authorname,
       ]
