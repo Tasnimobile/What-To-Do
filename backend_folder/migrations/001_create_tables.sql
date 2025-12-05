@@ -1,7 +1,7 @@
 -- migrations/001_create_tables.sql
 -- Creates the initial schema for Postgres (users + itineraries)
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS "user" (
   id SERIAL PRIMARY KEY,
   username VARCHAR(100) NOT NULL UNIQUE,
   password TEXT NOT NULL,
