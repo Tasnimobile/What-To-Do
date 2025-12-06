@@ -1331,4 +1331,9 @@ app.post('/api/unsave-itinerary', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
+// replace this line with next lines for heroku deployment
+// when running locally, use the line below
+// app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
