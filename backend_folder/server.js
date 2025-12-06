@@ -194,6 +194,12 @@ app.get("/logout", (req, res) => {
   res.redirect("/");
 });
 
+//DEPLOYMENT
+// Minimal root route so GET / doesn't return 404 on deployed instances
+app.get("/", (req, res) => {
+  res.send("What-To-Do backend is running. Visit /api/itineraries or the frontend.");
+});
+
 app.post("/login", async (req, res) => {
   let errors = [];
 
@@ -1335,5 +1341,6 @@ app.post('/api/unsave-itinerary', async (req, res) => {
 // when running locally, use the line below
 // app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
 
+//DEPLOYMENT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
