@@ -28,32 +28,55 @@ function App() {
   const [editingItinerary, setEditingItinerary] = useState(null);
   const { error, showError, clearError } = useErrorPopup();
 
-  // Check for existing user session on app start
-  useEffect(() => {
-    const checkUserSession = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/user/me`, {
-          method: "GET",
-          credentials: "include",
-        });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.user) {
-            setUser(data.user);
-            setCurrentPage("homepage");
-          }
-        }
-      } catch (error) {
-        console.error("Session check failed:", error);
-        showError("Failed to check user session. Please try again.");
-      } finally {
-        setIsLoading(false);
+useEffect(() => {
+  const checkUserSession = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/user/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+   
+      if (res.status === 401) {
+        setUser(null);
+        setCurrentPage("welcome");
+        return;
       }
-    };
 
-    checkUserSession();
-  }, [showError]);
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        console.error("Session check non-OK:", res.status, text);
+        showError("Failed to check user session. Please try again.");
+        return;
+      }
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch (e) {
+        console.error("Failed to parse /api/user/me JSON:", e);
+      }
+
+      if (data && data.user) {
+        setUser(data.user);
+        setCurrentPage("homepage");
+      } else {
+        setUser(null);
+        setCurrentPage("welcome");
+      }
+    } catch (error) {
+      console.error("Session check failed:", error);
+      showError("Failed to check user session. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  checkUserSession();
+}, [showError, API_URL]);
+
 
   // Navigation function to switch between pages
   const navigateTo = (page) => {
