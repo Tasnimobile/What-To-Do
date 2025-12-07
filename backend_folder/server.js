@@ -33,6 +33,9 @@ if (!JWTSECRET && isProduction) {
 const JWT_SECRET = JWTSECRET || "devsecret"; // safe fallback for local development
 
 const app = express();
+app.get("/", (req, res) => {
+  res.send("What-To-Do API is running ");
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -1338,6 +1341,9 @@ app.post('/api/unsave-itinerary', async (req, res) => {
     return res.status(500).json({ ok: false, errors: ['Server error'] });
   }
 });
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
