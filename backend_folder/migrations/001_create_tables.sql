@@ -1,7 +1,7 @@
 -- migrations/001_create_tables.sql
 -- Creates the initial schema for Postgres (users + itineraries)
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS "user" (
   id SERIAL PRIMARY KEY,
   username VARCHAR(100) NOT NULL UNIQUE,
   password TEXT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS itineraries (
   tags JSONB NOT NULL DEFAULT '[]'::jsonb,
   duration VARCHAR(100) NOT NULL,
   price VARCHAR(100) NOT NULL,
-  authorid INTEGER REFERENCES users(id),
+  authorid INTEGER REFERENCES "user"(id),
   authorname TEXT,
   rating NUMERIC,
   rating_count INTEGER,

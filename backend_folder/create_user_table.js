@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/whattodo';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://whattodo_fupw_user:Re8xkGs3FSWHO8sybh1lm3V26w2YhNsX@dpg-d4qhn6m3jp1c739hjgkg-a.virginia-postgres.render.com/whattodo_fupw';
 const pool = new Pool({ connectionString: DATABASE_URL });
 
 (async () => {

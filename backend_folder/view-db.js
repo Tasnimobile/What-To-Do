@@ -1,6 +1,6 @@
 // view-db.js (Postgres version)
 const { Pool } = require('pg');
-const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/whattodo' });
+const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://whattodo_fupw_user:Re8xkGs3FSWHO8sybh1lm3V26w2YhNsX@dpg-d4qhn6m3jp1c739hjgkg-a.virginia-postgres.render.com/whattodo_fupw' });
 
 async function main() {
     console.log('=== DATABASE TABLES ===');

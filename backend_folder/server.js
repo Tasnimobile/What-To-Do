@@ -9,9 +9,17 @@ const express = require("express");
 // Removed legacy better-sqlite3 import (migrated to Postgres pool)
 // const db = require("better-sqlite3")("ourApp.db");
 // db.pragma("journal_mode = WAL");
-const { Pool } = require('pg');
-const DATABASE_URL = process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/whattodo';
-const pool = new Pool({ connectionString: DATABASE_URL });
+const { Pool } = require("pg");
+const DATABASE_URL =
+  process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/whattodo";
+
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, 
+  },
+});
+
 const cors = require("cors");
 const multer = require("multer");
 const isProduction = process.env.NODE_ENV === "production";
@@ -1331,4 +1339,6 @@ app.post('/api/unsave-itinerary', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("Backend running on http://localhost:3000"));
+const PORT = process.env.PORT || 3000;
+app.set("trust proxy", 1);
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
