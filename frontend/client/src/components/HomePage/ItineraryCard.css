@@ -11,7 +11,7 @@
   padding: 20px;
   border-radius: 16px;
   margin-bottom: 16px;
-  color: white;
+  color: #525252;
   border: 2px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -103,13 +103,13 @@
 
 .rating-text {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #525252;
   margin-left: 8px;
 }
 
 .rate-hint {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: #525252;
   margin-left: 8px;
   font-style: italic;
 }
@@ -160,7 +160,7 @@
   padding: 6px 12px;
   border-radius: 16px;
   font-size: 0.75rem;
-  color: white;
+  color: #525252;
   border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
@@ -176,7 +176,7 @@
   background: linear-gradient(135deg,
       rgba(113, 193, 157, 0.7) 0%,
       rgba(113, 193, 157, 0.9) 100%);
-  color: white;
+  color: #525252;
   border: 2px solid rgba(255, 255, 255, 0.2);
   padding: 14px 16px;
   border-radius: 12px;
