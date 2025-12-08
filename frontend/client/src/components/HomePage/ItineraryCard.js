@@ -98,13 +98,8 @@ function ItineraryCard({
       canRate,
       currentUser: currentUser?.id,
       createdBy,
-      onRateItinerary: !!onRateItinerary
+      onRateItinerary: !!onRateItinerary,
     });
-
-    if (!canRate) {
-      console.log("Cannot rate - user created this itinerary or already rated or not logged in");
-      return;
-    }
 
     if (onRateItinerary) {
       try {
@@ -154,8 +149,9 @@ function ItineraryCard({
           {Array.from({ length: 5 }, (_, i) => (
             <span
               key={i}
-              className={`star ${i < displayRating ? "filled" : ""} ${canRate ? "clickable" : ""
-                }`}
+              className={`star ${i < displayRating ? "filled" : ""} ${
+                canRate ? "clickable" : ""
+              }`}
               onClick={(e) => handleRate(e, i + 1)}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
