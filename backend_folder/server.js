@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // Allow the frontend dev server to send cookies. Do NOT use a wildcard origin
 // when `credentials` is true — set the exact origin your frontend uses.
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://what-to-do-1-f79d.onrender.com';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://www.what-to-do-app.com';
 app.use(
   cors({
     origin: FRONTEND_ORIGIN,
