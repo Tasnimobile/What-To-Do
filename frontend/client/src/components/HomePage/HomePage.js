@@ -73,6 +73,13 @@ function HomePage({
     rating_count,
     total_rating
   ) => {
+    const itinerary = allItineraries.find((it) => it.id === itineraryId);
+
+    if (itinerary && user && itinerary.createdBy === user.id) {
+      showError?.("You cannot rate your own itinerary", "error");
+      return;
+    }
+
     if (ratedMap[itineraryId]) {
       showError?.("You've already rated this itinerary", "info");
       return;

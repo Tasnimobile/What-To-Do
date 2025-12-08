@@ -78,6 +78,22 @@ function CreatedItinerariesPage({
     return processedDestinations;
   };
 
+  // Handle rating an itinerary with ownership check
+  const handleRateItinerary = async (itineraryId, rating) => {
+    const itinerary = userItineraries.find((it) => it.id === itineraryId);
+
+    // Check if user is trying to rate their own itinerary
+    if (itinerary && user && itinerary.createdBy === user.id) {
+      showError?.("You cannot rate your own itinerary", "error");
+      return;
+    }
+
+    // Call the parent handler if ownership check passes
+    if (onRateItinerary) {
+      return await onRateItinerary(itineraryId, rating);
+    }
+  };
+
   // Load user's created itineraries on component mount
   useEffect(() => {
     loadUserItineraries();
@@ -289,7 +305,7 @@ function CreatedItinerariesPage({
           itineraries={userItineraries}
           isLoading={isLoading}
           currentUser={user}
-          onRateItinerary={onRateItinerary}
+          onRateItinerary={handleRateItinerary}
           onViewItinerary={onViewItinerary}
           onCreateNew={handleCreateNew}
           onItineraryClick={handleItineraryClick}
