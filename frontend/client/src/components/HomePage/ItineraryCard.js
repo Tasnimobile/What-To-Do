@@ -142,16 +142,18 @@ function ItineraryCard({
       onClick={handleCardClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
     >
-      {/* Header with title and rating stars */}
-      <div className="itinerary-header">
-        <h3>{title}</h3>
+      {/* Title-only header */}
+      <div className="itinerary-header" style={{ justifyContent: 'center' }}>
+        <h3 style={{ textAlign: 'center', width: '100%' }}>{title}</h3>
+      </div>
+
+      {/* Rating-only header below title - centered */}
+      <div className="itinerary-header" onClick={(e) => e.stopPropagation()} style={{ justifyContent: 'center', flexDirection: 'column', gap: '4px' }}>
         <div className="rating">
           {Array.from({ length: 5 }, (_, i) => (
             <span
               key={i}
-              className={`star ${i < displayRating ? "filled" : ""} ${
-                canRate ? "clickable" : ""
-              }`}
+              className={`star ${i < displayRating ? "filled" : ""} ${canRate ? "clickable" : ""}`}
               onClick={(e) => handleRate(e, i + 1)}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
