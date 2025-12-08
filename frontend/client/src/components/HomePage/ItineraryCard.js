@@ -142,14 +142,11 @@ function ItineraryCard({
       onClick={handleCardClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
     >
-      {/* Title-only header */}
-      <div className="itinerary-header" style={{ justifyContent: 'center' }}>
-        <h3 style={{ textAlign: 'center', width: '100%' }}>{title}</h3>
-      </div>
+      {/* Combined title and rating in same box */}
+      <div className="itinerary-header" style={{ justifyContent: 'center', flexDirection: 'column', gap: '2px', padding: '8px 16px' }}>
+        <h3 style={{ textAlign: 'center', width: '100%', margin: '0' }}>{title}</h3>
 
-      {/* Rating-only header below title - centered */}
-      <div className="itinerary-header" onClick={(e) => e.stopPropagation()} style={{ justifyContent: 'center', flexDirection: 'column', gap: '4px' }}>
-        <div className="rating">
+        <div className="rating" onClick={(e) => e.stopPropagation()} style={{ justifyContent: 'center' }}>
           {Array.from({ length: 5 }, (_, i) => (
             <span
               key={i}
@@ -170,11 +167,12 @@ function ItineraryCard({
         </div>
       </div>
 
-      {/* Description - collapsed or expanded */}
+      {/* Description - collapsed or expanded - centered */}
       <p
         className={
           isExpanded ? "expanded-description" : "collapsed-description"
         }
+        style={{ textAlign: 'center' }}
       >
         {description}
       </p>
