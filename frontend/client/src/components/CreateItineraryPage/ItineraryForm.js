@@ -37,8 +37,8 @@ function ItineraryForm({ itineraryData, onUpdate }) {
           placeholder="Itinerary Title"
           value={itineraryData.title}
           onChange={(e) => handleInputChange("title", e.target.value)}
-          className="form-input"
-        />
+          className="form-input title-input"
+          maxLength="30" />
       </div>
 
       {/* Itinerary description textarea */}
