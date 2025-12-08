@@ -37,21 +37,6 @@ const WelcomePage = ({
           >
             Sign Up
           </button>
-
-          {/* Temporary bypass buttons for development/testing */}
-          <button
-            className="welcome-button temp-bypass-button"
-            onClick={onSwitchToHomepage}
-          >
-            Go to Homepage
-          </button>
-
-          <button
-            className="welcome-button temp-bypass-button"
-            onClick={onSwitchToAccountSetup}
-          >
-            Go to Account Setup
-          </button>
         </div>
       </div>
     </div>
